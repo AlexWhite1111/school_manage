@@ -95,7 +95,7 @@ export const usePermissions = () => {
     // 页面权限配置（非学生用户）
     const pagePermissions: Record<string, UserRole[]> = {
       // 所有登录用户都可以访问
-      '/dashboard': [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TEACHER],
+      '/dashboard': [UserRole.SUPER_ADMIN, UserRole.MANAGER],
       '/profile': [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TEACHER],
       
       // 管理员及以上可访问
@@ -132,7 +132,7 @@ export const usePermissions = () => {
         key: 'dashboard',
         label: '核心仪表盘',
         path: '/dashboard',
-        roles: [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TEACHER]
+        roles: [UserRole.SUPER_ADMIN, UserRole.MANAGER]
       },
       {
         key: 'crm',

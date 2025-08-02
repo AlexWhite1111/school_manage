@@ -64,7 +64,7 @@ const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ tit
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPage }) => {
   // ✅ 所有Hooks必须在组件顶部调用
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
-  const { canAccessPage } = usePermissions();
+  const { canAccessPage, user } = usePermissions();
   
   // ✅ 条件渲染放在Hooks之后
   if (!isInitialized || isLoading) {
@@ -75,9 +75,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPage 
     return <Navigate to="/login" replace />;
   }
 
+  // 动态计算无权限时的回退路径
+  const getFallbackPath = () => {
+    if (!user) return '/login';
+    switch (user.role) {
+      case 'TEACHER':
+        return '/student-log';
+      case 'STUDENT':
+        return `/student-log/report/${user.username}`;
+      default:
+        return '/dashboard';
+    }
+  };
+
   // 如果指定了页面权限要求，检查权限
   if (requiredPage && !canAccessPage(requiredPage)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getFallbackPath()} replace />;
   }
   
   return <AppLayout>{children}</AppLayout>;
@@ -135,7 +148,7 @@ const AppRouter: React.FC = () => {
       {/* 保护路由 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPage="/dashboard">
           <DashboardPage />
         </ProtectedRoute>
       } />
