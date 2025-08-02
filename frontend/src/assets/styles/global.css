@@ -1,0 +1,365 @@
+/* 全局样式 */
+
+/* 毛玻璃效果兼容性 */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 确保在不支持backdrop-filter的浏览器中有备用样式 */
+@supports not (backdrop-filter: blur(10px)) {
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  .dark .glass-effect {
+    background: rgba(20, 20, 20, 0.95) !important;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  /* 防止移动端滚动时出现的问题 */
+  .ant-layout-sider {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* 优化移动端触摸滚动 */
+  .ant-layout-sider .ant-menu {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 滚动条样式优化 */
+.ant-layout-sider::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.ant-layout-sider::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+} 
+
+/* 滑动提示动画 */
+@keyframes slideHint {
+  0%, 100% { opacity: 0.3; transform: translateX(0); }
+  50% { opacity: 0.8; transform: translateX(8px); }
+}
+
+/* 拖拽动画效果 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-3px); }
+  60% { transform: translateY(-1px); }
+}
+
+@keyframes dragGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(24, 144, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(24, 144, 255, 0.6); }
+}
+
+/* 拖拽状态下的鼠标样式 */
+.dragging {
+  cursor: grabbing !important;
+}
+
+.dragging * {
+  pointer-events: none !important;
+}
+
+/* 拖拽目标区域高亮 */
+.drag-target {
+  animation: dragGlow 2s ease-in-out infinite;
+} 
+
+/* 学生卡片样式优化 */
+.student-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.student-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .student-card:hover {
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+/* 签到按钮样式 */
+.attendance-btn {
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.attendance-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .attendance-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+}
+
+.attendance-btn.ant-btn-loading {
+  transform: none;
+}
+
+/* 签到按钮激活状态动画 */
+.attendance-btn:active {
+  transform: scale(0.98);
+}
+
+/* 学生头像动画 */
+.student-avatar {
+  transition: all 0.3s ease;
+}
+
+.student-avatar:hover {
+  transform: scale(1.05);
+}
+
+/* 卡片网格布局优化 */
+.student-cards-grid {
+  display: grid;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+/* 响应式网格 */
+@media (min-width: 1200px) {
+  .student-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .student-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .student-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 0;
+  }
+}
+
+/* 表现词条选择区域样式 */
+.growth-performance-section {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+[data-theme="dark"] .growth-performance-section {
+  border-top-color: #434343;
+}
+
+/* 时间提示样式 */
+.time-hint {
+  color: #8c8c8c;
+  font-size: 11px;
+  font-style: italic;
+}
+
+[data-theme="dark"] .time-hint {
+  color: #a0a0a0;
+}
+
+/* 多班级标识点动画 */
+.multi-class-badge .ant-badge-dot {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 卡片选中状态 */
+.student-card-selected {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .student-card-selected {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3) !important;
+}
+
+/* 签到状态指示器 */
+.attendance-status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.attendance-status-present {
+  background-color: #52c41a;
+}
+
+.attendance-status-late {
+  background-color: #faad14;
+}
+
+.attendance-status-absent {
+  background-color: #ff4d4f;
+}
+
+.attendance-status-no-show {
+  background-color: #8c8c8c;
+}
+
+/* 加载动画优化 */
+.student-card .ant-spin-dot {
+  color: #1890ff;
+}
+
+/* 下拉菜单优化 */
+.student-card .ant-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .student-card .ant-dropdown {
+  background-color: #2a2a2a;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* 成长词条下拉菜单样式 */
+.growth-tags-dropdown .ant-select-dropdown {
+  border-radius: 12px !important;
+  padding: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border: none !important;
+}
+
+[data-theme="dark"] .growth-tags-dropdown .ant-select-dropdown {
+  background-color: #2a2a2a !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 扩展版成长词条下拉菜单样式 */
+.growth-tags-dropdown-expanded .ant-select-dropdown {
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+  border: none !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  min-width: 320px !important;
+}
+
+[data-theme="dark"] .growth-tags-dropdown-expanded .ant-select-dropdown {
+  background-color: rgba(42, 42, 42, 0.95) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.growth-tags-dropdown .ant-select-item-group,
+.growth-tags-dropdown-expanded .ant-select-item-group {
+  padding: 8px 0 4px 0;
+}
+
+.growth-tags-dropdown .ant-select-item-group-list,
+.growth-tags-dropdown-expanded .ant-select-item-group-list {
+  padding: 0;
+}
+
+.growth-tags-dropdown .ant-select-item-option,
+.growth-tags-dropdown-expanded .ant-select-item-option {
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 2px 0;
+  transition: all 0.2s ease;
+}
+
+.growth-tags-dropdown .ant-select-item-option:hover,
+.growth-tags-dropdown-expanded .ant-select-item-option:hover {
+  background-color: rgba(24, 144, 255, 0.08) !important;
+  transform: translateX(2px);
+}
+
+[data-theme="dark"] .growth-tags-dropdown .ant-select-item-option:hover,
+[data-theme="dark"] .growth-tags-dropdown-expanded .ant-select-item-option:hover {
+  background-color: rgba(24, 144, 255, 0.15) !important;
+}
+
+.growth-tags-dropdown .ant-select-item-option-selected,
+.growth-tags-dropdown-expanded .ant-select-item-option-selected {
+  background-color: rgba(24, 144, 255, 0.12) !important;
+}
+
+/* 扩展版特殊样式 */
+.growth-tags-dropdown-expanded .ant-select-item-option {
+  padding: 10px 16px;
+  margin: 3px 0;
+  border-radius: 10px;
+}
+
+.growth-tags-dropdown-expanded .ant-select-item-group {
+  padding: 12px 0 8px 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* 移动端优化 */
+@media (max-width: 576px) {
+  .student-card .ant-card-body {
+    padding: 10px !important;
+  }
+  
+  .attendance-btn {
+    font-size: 10px;
+    height: 28px;
+    min-width: 0;
+  }
+  
+  .growth-performance-section .ant-select {
+    font-size: 12px;
+  }
+  
+  .growth-tags-dropdown .ant-select-dropdown {
+    padding: 8px !important;
+    max-height: 240px !important;
+  }
+  
+  .growth-tags-dropdown .ant-select-item-option {
+    padding: 6px 8px;
+  }
+} 

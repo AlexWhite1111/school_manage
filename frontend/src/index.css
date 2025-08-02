@@ -1,0 +1,492 @@
+/* 全局样式重置和基础样式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* 🚀 性能优化：自定义滚动条样式 */
+.custom-scrollbar {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f8f9fa;
+}
+
+/* WebKit浏览器 (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
+  /* 🚀 优化：只过渡background-color，避免transition: all */
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+  border-color: #d4d4d4;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #a8a8a8;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #f8f9fa;
+}
+
+/* 暗色主题滚动条 */
+[data-theme="dark"] .custom-scrollbar {
+  scrollbar-color: #555 #2a2a2a;
+}
+
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #555;
+  border-color: #333;
+}
+
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #666;
+  border-color: #444;
+}
+
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-corner {
+  background: #2a2a2a;
+}
+
+/* 🚀 性能优化：优化标签组件的动画 */
+.ant-tag.ant-tag-checkable {
+  /* 只过渡需要的属性，避免transition: all */
+  transition: transform 0.2s cubic-bezier(0.78, 0.14, 0.15, 0.86), 
+              box-shadow 0.2s cubic-bezier(0.78, 0.14, 0.15, 0.86),
+              background-color 0.2s ease;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  /* 启用硬件加速 */
+  will-change: transform, box-shadow;
+}
+
+.ant-tag.ant-tag-checkable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-tag.ant-tag-checkable-checked {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* 暗色主题标签优化 */
+[data-theme="dark"] .ant-tag.ant-tag-checkable:hover {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .ant-tag.ant-tag-checkable-checked {
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.4);
+}
+
+/* �� 性能优化：卡片样式 */
+.ant-card {
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  /* 只过渡box-shadow，避免transition: all */
+  transition: box-shadow 0.3s ease;
+  /* 启用硬件加速 */
+  will-change: box-shadow;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* 暗色主题卡片优化 */
+[data-theme="dark"] .ant-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  background: #1f1f1f; /* 简化背景，移除gradient */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 🚀 性能优化：输入框样式 */
+.ant-input, .ant-select-selector {
+  border-radius: 8px;
+  /* 只过渡border和box-shadow */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ant-input:focus, .ant-select-focused .ant-select-selector {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 暗色主题输入框优化 */
+[data-theme="dark"] .ant-input:focus, 
+[data-theme="dark"] .ant-select-focused .ant-select-selector {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+}
+
+/* 🚀 性能优化：按钮样式 */
+.ant-btn {
+  border-radius: 8px;
+  /* 只过渡transform和background */
+  transition: transform 0.2s ease, background-color 0.3s ease;
+  /* 启用硬件加速 */
+  will-change: transform;
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* 暗色主题按钮优化 */
+[data-theme="dark"] .ant-btn-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .ant-btn-text:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 🚀 性能优化：滑动提示动画 */
+@keyframes slideHint {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(8px);
+  }
+}
+
+/* 🚀 性能优化：优化毛玻璃效果 - 仅在必要时使用 */
+.glass-effect {
+  backdrop-filter: blur(8px); /* 减少blur强度 */
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 暗色主题毛玻璃效果 */
+[data-theme="dark"] .glass-effect {
+  backdrop-filter: blur(8px); /* 移除saturate，减少GPU负载 */
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  /* 🚀 移动端性能优化：禁用毛玻璃效果 */
+  .glass-effect {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* 家庭画像区域 - 移动端隐藏滚动条 */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+  
+  .custom-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+   
+  .ant-card {
+    margin: 0;
+    border-radius: 8px;
+  }
+   
+  .ant-btn {
+    border-radius: 6px;
+    /* 移动端禁用按钮悬停动画 */
+    transform: none !important;
+  }
+
+  /* 移动端禁用标签动画 */
+  .ant-tag.ant-tag-checkable:hover {
+    transform: none;
+  }
+}
+
+/* 超小屏优化 */
+@media (max-width: 576px) {
+  .ant-card {
+    border-radius: 6px;
+  }
+  
+  .ant-input, .ant-select-selector {
+    border-radius: 6px;
+  }
+}
+
+/* 表单在暗色主题下的优化 */
+[data-theme="dark"] .ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .ant-form-item-explain-error {
+  color: #ff7875;
+}
+
+[data-theme="dark"] .ant-form-item-explain-success {
+  color: #95de64;
+}
+
+/* 菜单在暗色主题下的优化 */
+[data-theme="dark"] .ant-menu-dark {
+  background: transparent;
+}
+
+[data-theme="dark"] .ant-menu-dark .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .ant-menu-dark .ant-menu-item-selected {
+  background-color: rgba(24, 144, 255, 0.15);
+}
+
+/* 表格在暗色主题下的优化 */
+[data-theme="dark"] .ant-table {
+  background: rgba(31, 31, 31, 0.8);
+}
+
+[data-theme="dark"] .ant-table-thead > tr > th {
+  background: rgba(42, 42, 42, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .ant-table-tbody > tr:hover > td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 分页在暗色主题下的优化 */
+[data-theme="dark"] .ant-pagination .ant-pagination-item {
+  background: rgba(42, 42, 42, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .ant-pagination .ant-pagination-item:hover {
+  border-color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+[data-theme="dark"] .ant-pagination .ant-pagination-item-active {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+/* 模态框在暗色主题下的优化 */
+[data-theme="dark"] .ant-modal-content {
+  background: #1f1f1f; /* 简化背景 */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .ant-modal-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 通知在暗色主题下的优化 */
+[data-theme="dark"] .ant-notification {
+  background: rgba(31, 31, 31, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px); /* 减少blur强度 */
+}
+
+/* 消息在暗色主题下的优化 */
+[data-theme="dark"] .ant-message-notice-content {
+  background: rgba(31, 31, 31, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px); /* 减少blur强度 */
+}
+
+/* 🚀 性能优化：为低性能设备或用户偏好禁用动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+} 
+
+/* 学生列表卡片样式 */
+.student-list-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.student-list-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .student-list-card:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* 签到按钮简洁样式 */
+.attendance-button {
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* 成长表现下拉菜单优化 */
+.growth-select-dropdown {
+  border-radius: 12px !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-theme="dark"] .growth-select-dropdown {
+  background-color: rgba(42, 42, 42, 0.95) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 学生日志页面特定样式 */
+.student-log-sidebar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.student-log-sidebar .ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .student-log-sidebar .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 班级列表项样式 */
+.class-list-item {
+  transition: all 0.2s ease;
+}
+
+.class-list-item:hover {
+  background-color: rgba(24, 144, 255, 0.04);
+}
+
+[data-theme="dark"] .class-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .student-log-mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .attendance-button {
+    font-size: 10px;
+    height: 24px;
+    min-width: 0;
+  }
+}
+
+/* 侧边栏收起动画 */
+.sidebar-collapse-enter {
+  max-width: 0;
+  opacity: 0;
+}
+
+.sidebar-collapse-enter-active {
+  max-width: 400px;
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.sidebar-collapse-exit {
+  max-width: 400px;
+  opacity: 1;
+}
+
+.sidebar-collapse-exit-active {
+  max-width: 0;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+/* 页面标题区域样式 */
+.student-log-header {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+[data-theme="dark"] .student-log-header {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+/* 按钮悬浮效果增强 */
+.ant-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+}
+
+.ant-btn:active {
+  transform: translateY(0);
+}
+
+/* 优化加载状态 */
+.ant-spin-dot-item {
+  background-color: #1890ff;
+}
+
+[data-theme="dark"] .ant-spin-dot-item {
+  background-color: #40a9ff;
+} 

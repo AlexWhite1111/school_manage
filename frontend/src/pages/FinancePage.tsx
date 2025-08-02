@@ -1,0 +1,1 @@
+// src/pages/FinancePage.tsx: 财务中心主页的容器组件 

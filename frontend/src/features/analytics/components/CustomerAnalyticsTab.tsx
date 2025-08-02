@@ -1,0 +1,563 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Row, 
+  Col, 
+  Card, 
+  Statistic, 
+  Table, 
+  Alert, 
+  Spin, 
+  Empty,
+  Typography,
+  Tag,
+  Progress,
+  Tooltip,
+  Space,
+  Divider
+} from 'antd';
+import { 
+  ArrowUpOutlined, 
+  ArrowDownOutlined, 
+  TeamOutlined,
+  TrophyOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  FunnelPlotOutlined,
+  BarChartOutlined
+} from '@ant-design/icons';
+import { useThemeStore } from '@/stores/themeStore';
+import { 
+  getCustomerKeyMetrics, 
+  getCustomerFunnel,
+  getSourceChannelAnalysis 
+} from '@/api/analyticsApi';
+import type { 
+  AnalyticsTimeRangeParams,
+  AnalyticsKeyMetrics,
+  CustomerFunnelData,
+  SourceChannelAnalysis,
+  CustomerStatus 
+} from '@/types/api';
+import { useResponsive } from '@/hooks/useResponsive';
+import { getSourceChannelLabel } from '@/utils/enumMappings';
+
+const { Title, Text } = Typography;
+const { Column } = Table;
+
+interface CustomerAnalyticsTabProps {
+  timeParams: AnalyticsTimeRangeParams;
+  refreshKey: number;
+}
+
+const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
+  timeParams,
+  refreshKey
+}) => {
+  const { theme } = useThemeStore();
+  const { isMobile } = useResponsive();
+  const [loading, setLoading] = useState(false);
+  const [keyMetrics, setKeyMetrics] = useState<AnalyticsKeyMetrics | null>(null);
+  const [funnelData, setFunnelData] = useState<CustomerFunnelData | null>(null);
+  const [channelData, setChannelData] = useState<SourceChannelAnalysis | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // ===============================
+  // 数据加载
+  // ===============================
+
+  const loadAnalyticsData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('🔄 加载客户分析数据...', timeParams);
+      
+      // 并行加载所有数据
+      const [metricsResult, funnelResult, channelResult] = await Promise.all([
+        getCustomerKeyMetrics(timeParams),
+        getCustomerFunnel(timeParams),
+        getSourceChannelAnalysis(timeParams)
+      ]);
+
+      console.log('📊 API返回数据:', { metricsResult, funnelResult, channelResult });
+      
+      setKeyMetrics(metricsResult);
+      setFunnelData(funnelResult);
+      setChannelData(channelResult);
+      
+      console.log('✅ 客户分析数据加载成功');
+    } catch (err) {
+      console.error('❌ 客户分析数据加载失败:', err);
+      setError(err instanceof Error ? err.message : '数据加载失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log('🔄 CustomerAnalyticsTab useEffect triggered:', { timeParams, refreshKey });
+    loadAnalyticsData();
+  }, [timeParams, refreshKey]);
+
+  // ===============================
+  // 主题适配的样式配置
+  // ===============================
+
+  const themeStyles = {
+    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
+    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
+    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
+    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
+    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
+    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
+    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
+    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
+    funnelColors: [
+      theme === 'dark' ? '#722ed1' : '#9254de',  // 潜在客户
+      theme === 'dark' ? '#1890ff' : '#1890ff',  // 初步沟通
+      theme === 'dark' ? '#13c2c2' : '#13c2c2',  // 意向客户
+      theme === 'dark' ? '#52c41a' : '#52c41a',  // 试课
+      theme === 'dark' ? '#fa8c16' : '#fa8c16',  // 报名
+      theme === 'dark' ? '#ff4d4f' : '#ff7875',  // 流失
+    ]
+  };
+
+  // ===============================
+  // 渲染指标变化
+  // ===============================
+
+  const renderMetricChange = (current: number, change?: number, changePercentage?: number) => {
+    if (change === undefined || changePercentage === undefined) {
+      return null;
+    }
+
+    const isPositive = change > 0;
+    const color = isPositive ? themeStyles.successColor : themeStyles.errorColor;
+    const icon = isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />;
+
+    return (
+      <div style={{ marginTop: '4px' }}>
+        <Text style={{ color, fontSize: '12px' }}>
+          {icon} {Math.abs(changePercentage).toFixed(1)}% ({Math.abs(change)})
+        </Text>
+      </div>
+    );
+  };
+
+  // ===============================
+  // 客户状态中文映射
+  // ===============================
+
+  const getStatusLabel = (status: CustomerStatus): string => {
+    const statusMap = {
+      'POTENTIAL': '潜在客户',
+      'INITIAL_CONTACT': '初步沟通',
+      'INTERESTED': '意向客户',
+      'TRIAL_CLASS': '试课',
+      'ENROLLED': '报名',
+      'LOST': '流失客户'
+    };
+    return statusMap[status] || status;
+  };
+
+  // ===============================
+  // 渲染客户漏斗图
+  // ===============================
+
+  const renderFunnelChart = () => {
+    if (!funnelData) {
+      return (
+        <Empty 
+          description="暂无漏斗数据" 
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      );
+    }
+
+    if (!funnelData.stages || funnelData.stages.length === 0) {
+      return (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <Alert
+            message="数据为空"
+            description="当前时间段内没有客户数据"
+            type="info"
+            showIcon
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ padding: '20px' }}>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          {funnelData.stages.map((stage, index) => {
+            const color = themeStyles.funnelColors[index] || themeStyles.primaryColor;
+            const widthPercentage = stage.percentage;
+            
+            return (
+              <div key={stage.stage} style={{ width: '100%' }}>
+                <Row align="middle" gutter={[16, 0]}>
+                  {/* 阶段标签 */}
+                  <Col span={6}>
+                    <Text strong style={{ color: themeStyles.textPrimary }}>
+                      {getStatusLabel(stage.stage)}
+                    </Text>
+                  </Col>
+                  
+                  {/* 进度条 */}
+                  <Col span={12}>
+                    <Progress 
+                      percent={widthPercentage} 
+                      showInfo={false}
+                      strokeColor={color}
+                      trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
+                      strokeWidth={20}
+                    />
+                  </Col>
+                  
+                  {/* 数据统计 */}
+                  <Col span={6}>
+                    <Space size="large">
+                      <Tooltip title="客户数量">
+                        <Tag color={color} style={{ margin: 0 }}>
+                          {stage.count} 人
+                        </Tag>
+                      </Tooltip>
+                      <Tooltip title="占总数比例">
+                        <Text style={{ color: themeStyles.textSecondary, fontSize: '12px' }}>
+                          {stage.percentage.toFixed(1)}%
+                        </Text>
+                      </Tooltip>
+                      {stage.conversionRate !== undefined && (
+                        <Tooltip title="从上一阶段转化率">
+                          <Text style={{ color: themeStyles.successColor, fontSize: '12px' }}>
+                            转化率 {stage.conversionRate.toFixed(1)}%
+                          </Text>
+                        </Tooltip>
+                      )}
+                    </Space>
+                  </Col>
+                </Row>
+              </div>
+            );
+          })}
+        </Space>
+        
+        {/* 总体统计 */}
+        <Divider style={{ borderColor: themeStyles.borderColor }} />
+        <Row gutter={[16, 16]}>
+          <Col span={8}>
+            <Statistic
+              title="总新增客户"
+              value={funnelData.totalNewCustomers}
+              prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />}
+              valueStyle={{ color: themeStyles.textPrimary }}
+            />
+          </Col>
+          <Col span={8}>
+            <Statistic
+              title="最终报名"
+              value={funnelData.finalEnrolledCount}
+              prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />}
+              valueStyle={{ color: themeStyles.textPrimary }}
+            />
+          </Col>
+          <Col span={8}>
+            <Statistic
+              title="整体转化率"
+              value={funnelData.overallConversionRate}
+              suffix="%"
+              precision={1}
+              prefix={<FunnelPlotOutlined style={{ color: themeStyles.warningColor }} />}
+              valueStyle={{ color: themeStyles.textPrimary }}
+            />
+          </Col>
+        </Row>
+      </div>
+    );
+  };
+
+  // ===============================
+  // 渲染来源渠道表格
+  // ===============================
+
+  const renderChannelTable = () => {
+    if (!channelData || !channelData.channels || channelData.channels.length === 0) {
+      return (
+        <Empty 
+          description="暂无渠道数据" 
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      );
+    }
+
+    return (
+      <Table
+        dataSource={channelData.channels}
+        pagination={false}
+        size="middle"
+        rowKey="channel"
+        style={{ 
+          background: themeStyles.cardBackground,
+          borderRadius: '8px'
+        }}
+      >
+        <Column
+          title="来源渠道"
+          dataIndex="channel"
+          key="channel"
+          render={(channel: string) => (
+            <Text strong style={{ color: themeStyles.textPrimary }}>
+              {getSourceChannelLabel(channel) || '未知渠道'}
+            </Text>
+          )}
+        />
+        <Column
+          title="客户数量"
+          dataIndex="customerCount"
+          key="customerCount"
+          align="center"
+          render={(count: number) => (
+            <Tag color={themeStyles.primaryColor}>{count} 人</Tag>
+          )}
+        />
+        <Column
+          title="报名数量"
+          dataIndex="enrolledCount"
+          key="enrolledCount"
+          align="center"
+          render={(count: number) => (
+            <Tag color={themeStyles.successColor}>{count} 人</Tag>
+          )}
+        />
+        <Column
+          title="转化率"
+          dataIndex="conversionRate"
+          key="conversionRate"
+          align="center"
+          sorter={(a, b) => a.conversionRate - b.conversionRate}
+          render={(rate: number) => {
+            const color = rate >= 20 ? themeStyles.successColor : 
+                         rate >= 10 ? themeStyles.warningColor : 
+                         themeStyles.errorColor;
+            return (
+              <Text style={{ color, fontWeight: 'bold' }}>
+                {rate.toFixed(1)}%
+              </Text>
+            );
+          }}
+        />
+      </Table>
+    );
+  };
+
+  // ===============================
+  // 错误状态
+  // ===============================
+
+  if (error) {
+    return (
+      <Alert
+        message="数据加载失败"
+        description={error}
+        type="error"
+        showIcon
+        style={{ margin: '20px' }}
+      />
+    );
+  }
+
+  // ===============================
+  // 渲染主要内容
+  // ===============================
+
+  return (
+    <Spin spinning={loading} tip="正在加载客户分析数据...">
+      <div style={{ padding: '0 24px' }}>
+        {/* 核心指标卡片 */}
+        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card 
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Statistic
+                title={
+                  <Text style={{ color: themeStyles.textSecondary }}>
+                    新增客户
+                  </Text>
+                }
+                value={keyMetrics?.newCustomers.current || 0}
+                prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />}
+                valueStyle={{ color: themeStyles.textPrimary }}
+              />
+              {renderMetricChange(
+                keyMetrics?.newCustomers.current || 0,
+                keyMetrics?.newCustomers.change,
+                keyMetrics?.newCustomers.changePercentage
+              )}
+            </Card>
+          </Col>
+
+          <Col xs={24} sm={12} lg={6}>
+            <Card 
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Statistic
+                title={
+                  <Text style={{ color: themeStyles.textSecondary }}>
+                    转化率
+                  </Text>
+                }
+                value={keyMetrics?.conversionRate.current || 0}
+                suffix="%"
+                precision={1}
+                prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />}
+                valueStyle={{ color: themeStyles.textPrimary }}
+              />
+              {renderMetricChange(
+                keyMetrics?.conversionRate.current || 0,
+                keyMetrics?.conversionRate.change,
+                keyMetrics?.conversionRate.changePercentage
+              )}
+            </Card>
+          </Col>
+
+          <Col xs={24} sm={12} lg={6}>
+            <Card 
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Statistic
+                title={
+                  <Text style={{ color: themeStyles.textSecondary }}>
+                    平均转化天数
+                  </Text>
+                }
+                value={keyMetrics?.averageConversionDays.current || 0}
+                suffix="天"
+                prefix={<ClockCircleOutlined style={{ color: themeStyles.warningColor }} />}
+                valueStyle={{ color: themeStyles.textPrimary }}
+              />
+              {renderMetricChange(
+                keyMetrics?.averageConversionDays.current || 0,
+                keyMetrics?.averageConversionDays.change,
+                keyMetrics?.averageConversionDays.changePercentage
+              )}
+            </Card>
+          </Col>
+
+          <Col xs={24} sm={12} lg={6}>
+            <Card 
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Statistic
+                title={
+                  <Text style={{ color: themeStyles.textSecondary }}>
+                    总收入
+                  </Text>
+                }
+                value={keyMetrics?.totalRevenue?.current || 0}
+                prefix={<DollarOutlined style={{ color: themeStyles.successColor }} />}
+                valueStyle={{ color: themeStyles.textPrimary }}
+              />
+              {keyMetrics?.totalRevenue && renderMetricChange(
+                keyMetrics.totalRevenue.current,
+                keyMetrics.totalRevenue.change,
+                keyMetrics.totalRevenue.changePercentage
+              )}
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 客户转化漏斗图 */}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={14}>
+            <Card
+              title={
+                <Space>
+                  <FunnelPlotOutlined style={{ color: themeStyles.primaryColor }} />
+                  <Text strong style={{ color: themeStyles.textPrimary }}>
+                    客户转化漏斗
+                  </Text>
+                </Space>
+              }
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {funnelData ? renderFunnelChart() : (
+                <Empty 
+                  description="暂无漏斗数据" 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+            </Card>
+          </Col>
+
+          {/* 来源渠道分析 */}
+          <Col xs={24} lg={10}>
+            <Card
+              title={
+                <Space>
+                  <BarChartOutlined style={{ color: themeStyles.primaryColor }} />
+                  <Text strong style={{ color: themeStyles.textPrimary }}>
+                    来源渠道分析
+                  </Text>
+                </Space>
+              }
+              bordered={false}
+              style={{ 
+                background: themeStyles.cardBackground,
+                borderRadius: '12px',
+                boxShadow: theme === 'dark' 
+                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {channelData ? renderChannelTable() : (
+                <Empty 
+                  description="暂无渠道数据" 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              )}
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    </Spin>
+  );
+};
+
+export default CustomerAnalyticsTab; 
