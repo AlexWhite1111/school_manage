@@ -457,13 +457,18 @@ export const getStudentGrowthAnalysis = async (studentId: number, filters: Stude
  */
 export const getStudentGrowthAnalysisByPublicId = async (publicId: string, filters: StudentGrowthFilters) => {
   try {
-    // 暂时通过名称查找学生（因为publicId字段Prisma还未识别）
-    // @ts-ignore
-    const customer = await prisma.customer.findFirst({
-      where: {
-        publicId: publicId
-      }
-    });
+    let customer = null;
+
+    // 如果传入的是纯数字且位数较少，尝试按ID查找
+    if (/^\d+$/.test(publicId) && publicId.length <= 9) {
+      const numericId = Number(publicId);
+      customer = await prisma.customer.findUnique({ where: { id: numericId } });
+    }
+
+    // 若未找到，再按 publicId 查找
+    if (!customer) {
+      customer = await prisma.customer.findFirst({ where: { publicId } });
+    }
     
     if (!customer) {
       throw new Error('学生不存在');

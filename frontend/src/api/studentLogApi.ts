@@ -511,3 +511,25 @@ export interface GetGrowthReportParams {
   startDate?: string;
   endDate?: string;
 } 
+
+// ================================
+// 成长统计API（学生列表）
+// ================================
+
+export interface StudentGrowthStatsSummary {
+  studentId: number;
+  totalLogs: number;
+  positiveRatio: number;
+  negativeRatio: number;
+  lastActivityDate?: string;
+}
+
+/**
+ * 批量获取学生成长统计
+ */
+export const getStudentsGrowthStats = async (studentIds: number[]): Promise<StudentGrowthStatsSummary[]> => {
+  if (studentIds.length === 0) return [];
+  const idsParam = studentIds.join(',');
+  const response = await apiClient.get(`/students/growth-stats?ids=${idsParam}`);
+  return response.data;
+}; 

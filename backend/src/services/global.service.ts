@@ -5,6 +5,7 @@ import { PrismaClient, CustomerStatus, Gender, TagType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import Papa from 'papaparse';
 import fs from 'fs/promises';
+import { generateUniquePublicId } from '../utils/idGenerator';
 
 const prisma = new PrismaClient();
 
@@ -146,6 +147,7 @@ export const importCustomersFromCsv = async (filePath: string): Promise<any> => 
         // 创建客户记录
         await prisma.customer.create({
           data: {
+            publicId: await generateUniquePublicId(),
             name: row['姓名'].trim(),
             gender: row['性别'] === '男' ? 'MALE' : 'FEMALE',
             birthDate: new Date(row['出生日期']),

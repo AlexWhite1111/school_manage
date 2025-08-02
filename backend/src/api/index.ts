@@ -12,6 +12,7 @@ import financeRoutes from './finance.routes'; // 引入财务路由
 import dashboardRoutes from './dashboard.routes'; // 引入仪表盘路由
 import globalRoutes from './global.routes'; // 引入全局路由
 import analyticsRoutes from './analytics.routes'; // 引入数据分析路由
+import excelRoutes from './excel.routes'; // 引入Excel导入导出路由
 // ... import other route modules as they are created
 
 const router = Router();
@@ -45,6 +46,9 @@ router.use('/', globalRoutes);
 
 // 挂载数据分析模块的路由
 router.use('/analytics', analyticsRoutes);
+
+// 挂载Excel导入导出模块的路由
+router.use('/excel', excelRoutes);
 
 // ... mount other routers here
 

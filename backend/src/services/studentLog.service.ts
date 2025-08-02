@@ -345,3 +345,59 @@ export const getStudentGrowthReportByPublicId = async (publicId: string, startDa
     throw error;
   }
 }; 
+
+// ----------------------------------------
+// 新增：获取多学生的成长统计（列表页）
+// ----------------------------------------
+
+export const getStudentsGrowthStats = async (studentIds: number[]) => {
+  if (studentIds.length === 0) return [];
+
+  // 查询所有关联成长日志（包含标签类型 & 学生ID）
+  const logs = await prisma.growthLog.findMany({
+    where: {
+      enrollment: {
+        studentId: { in: studentIds }
+      }
+    },
+    select: {
+      createdAt: true,
+      tag: { select: { type: true } },
+      enrollment: { select: { studentId: true } }
+    }
+  });
+
+  // 归并统计
+  const statMap: Record<number, {
+    totalLogs: number;
+    positiveCount: number;
+    negativeCount: number;
+    lastActivityDate?: Date;
+  }> = {};
+
+  studentIds.forEach(id => {
+    statMap[id] = { totalLogs: 0, positiveCount: 0, negativeCount: 0 };
+  });
+
+  logs.forEach(log => {
+    const sid = log.enrollment.studentId;
+    const record = statMap[sid];
+    record.totalLogs += 1;
+    if (log.tag.type === 'GROWTH_POSITIVE') record.positiveCount += 1;
+    if (log.tag.type === 'GROWTH_NEGATIVE') record.negativeCount += 1;
+    if (!record.lastActivityDate || log.createdAt > record.lastActivityDate) {
+      record.lastActivityDate = log.createdAt;
+    }
+  });
+
+  return Object.entries(statMap).map(([studentIdStr, data]) => {
+    const { totalLogs, positiveCount, negativeCount, lastActivityDate } = data;
+    return {
+      studentId: Number(studentIdStr),
+      totalLogs,
+      positiveRatio: totalLogs ? positiveCount / totalLogs : 0,
+      negativeRatio: totalLogs ? negativeCount / totalLogs : 0,
+      lastActivityDate,
+    };
+  });
+}; 

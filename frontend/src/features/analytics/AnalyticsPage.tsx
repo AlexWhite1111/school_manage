@@ -36,7 +36,7 @@ const AnalyticsPage: React.FC = () => {
   // ===============================
   
   const [activeTab, setActiveTab] = useState<'customer' | 'student'>('customer');
-  const [timeRangeType, setTimeRangeType] = useState<'7' | '15' | '30' | 'custom'>('30');
+  const [timeRangeType, setTimeRangeType] = useState<'7' | '15' | '30' | '90' | '180' | '365' | 'custom'>('90');
   const [customDateRange, setCustomDateRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [enableComparison, setEnableComparison] = useState<boolean>(false);
   const [comparisonType, setComparisonType] = useState<'previous_period' | 'same_period_last_year'>('previous_period');

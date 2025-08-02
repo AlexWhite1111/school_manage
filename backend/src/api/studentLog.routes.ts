@@ -178,4 +178,29 @@ router.get('/students/:publicId/report', async (req: Request, res: Response) => 
   }
 });
 
+/**
+ * @route   GET /api/students/growth-stats?ids=1,2,3
+ * @desc    批量获取学生成长统计（列表页）
+ * @access  Private
+ */
+router.get('/students/growth-stats', async (req: Request, res: Response) => {
+  try {
+    const idsParam = req.query.ids as string | undefined;
+    if (!idsParam) {
+      return res.status(400).json({ message: '缺少 ids 查询参数' });
+    }
+    const idStrings = idsParam.split(',').filter(Boolean);
+    const studentIds = idStrings.map(id => Number(id)).filter(id => !isNaN(id));
+    if (studentIds.length === 0) {
+      return res.status(400).json({ message: 'ids 参数无效' });
+    }
+
+    const stats = await StudentLogService.getStudentsGrowthStats(studentIds);
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error('获取学生成长统计失败:', error);
+    res.status(500).json({ message: '获取学生成长统计失败' });
+  }
+});
+
 export default router; 

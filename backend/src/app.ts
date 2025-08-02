@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import apiRoutes from './api';
+import { dynamicCors, networkInfoMiddleware, detectNetworkType } from './middleware/cors.middleware';
 
 // Load environment variables
 dotenv.config();
@@ -16,15 +17,12 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] // Replace with actual production domain
-    : true, // Allow all origins in development
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-}));
+// 网络检测和信息收集
+app.use(networkInfoMiddleware);
+app.use(detectNetworkType);
+
+// 动态CORS配置
+app.use(dynamicCors);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

@@ -40,6 +40,7 @@ import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
 import * as crmApi from '@/api/crmApi';
+import { getStudentsGrowthStats, type StudentGrowthStatsSummary } from '@/api/studentLogApi';
 import { getGradeLabel } from '@/utils/enumMappings';
 import type { ClassStudent } from '@/types/api';
 
@@ -180,17 +181,31 @@ const StudentListView: React.FC<StudentListViewProps> = ({
 
       const studentsData = [...enrolledStudents, ...trialStudents];
 
-      // 添加模拟的成长统计数据
-      const studentsWithStats = studentsData.map(student => ({
-        ...student,
-        growthStats: {
-          totalLogs: Math.floor(Math.random() * 50) + 5,
-          positiveRatio: Math.random() * 0.7 + 0.2, // 20%-90%
-          negativeRatio: Math.random() * 0.2 + 0.1, // 10%-30%
-          lastActivityDate: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        }
-      }));
-
+      // 获取成长统计
+      const stats: StudentGrowthStatsSummary[] = await getStudentsGrowthStats(studentsData.map(s => s.id));
+      const statMap: Record<number, StudentGrowthStatsSummary> = {};
+      stats.forEach(item => {
+        statMap[item.studentId] = item;
+      });
+ 
+      const studentsWithStats = studentsData.map(student => {
+        const stat = statMap[student.id];
+        return {
+          ...student,
+          growthStats: stat ? {
+            totalLogs: stat.totalLogs,
+            positiveRatio: stat.positiveRatio,
+            negativeRatio: stat.negativeRatio,
+            lastActivityDate: stat.lastActivityDate ? stat.lastActivityDate.slice(0, 10) : undefined,
+          } : {
+            totalLogs: 0,
+            positiveRatio: 0,
+            negativeRatio: 0,
+            lastActivityDate: undefined,
+          }
+        };
+      });
+ 
       setStudents(studentsWithStats);
     } catch (error) {
       console.error('加载学生列表失败:', error);

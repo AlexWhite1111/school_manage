@@ -227,6 +227,7 @@ async function main() {
         sourceChannel: sourceChannel as any,
         firstContactDate,
         status,
+        createdAt: randomRecentDate(365),
         nextFollowUpDate,
       },
     });
