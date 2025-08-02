@@ -12,5 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173, // 明确指定一个端口
+    host: '0.0.0.0', // 允许外部访问
+    cors: true, // 启用CORS
   },
 }) 

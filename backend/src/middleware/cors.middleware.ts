@@ -16,13 +16,21 @@ const developmentCorsOptions: cors.CorsOptions = {
       'http://localhost:3000',
       'http://localhost:3001', 
       'http://localhost:5173',  // Vite默认端口
+      'http://localhost:5174',  // Vite备用端口
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
       'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      // 特定IP地址
+      'http://198.18.0.1:5173',
+      'http://198.18.0.1:5174',
+      'http://192.168.0.216:5173',
+      'http://192.168.0.216:5174',
       // 允许本地局域网IP访问
       /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
       /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
-      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/
+      /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
+      /^http:\/\/198\.18\.\d{1,3}\.\d{1,3}:\d+$/  // 支持198.18.x.x网段
     ];
 
     // 开发环境允许undefined origin（比如Postman）
@@ -123,9 +131,10 @@ export const networkInfoMiddleware = (req: Request, res: Response, next: NextFun
   // 添加到请求对象中
   (req as any).clientInfo = clientInfo;
   
-  // 开发环境下打印连接信息
+  // 开发环境下打印连接信息，添加用户信息便于并发测试追踪
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`🌐 连接信息: ${clientInfo.ip} -> ${req.method} ${req.path}`);
+    const userInfo = (req as any).user ? `[用户: ${(req as any).user.username || (req as any).user.id}]` : '[未认证]';
+    console.log(`🌐 连接信息: ${clientInfo.ip} ${userInfo} -> ${req.method} ${req.path}`);
   }
   
   next();

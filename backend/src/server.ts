@@ -7,8 +7,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Get port from environment or default to 3000
-const PORT = process.env.PORT || 3000;
+// Get port from environment or default to 3000 (标准配置)
+const PORT = parseInt(process.env.PORT || '3000', 10);
+const HOST = process.env.HOST || '0.0.0.0'; // 监听所有网络接口，支持内网访问
 
 // Function to test database connection
 async function testDatabaseConnection() {
@@ -29,12 +30,18 @@ async function startServer() {
     await testDatabaseConnection();
     
     // Start the HTTP server
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, HOST, () => {
       console.log('🚀 Education CRM Backend Server Started');
-      console.log(`📍 Server is running on http://localhost:${PORT}`);
-      console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
-      console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
-      console.log(`🌟 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📍 Server is running on http://${HOST}:${PORT}`);
+      console.log(`🏠 Local access: http://localhost:${PORT}`);
+              console.log(`🌐 Network access: http://198.18.0.1:${PORT}`);
+        console.log(`🏥 Health check: http://198.18.0.1:${PORT}/health`);
+        console.log(`📚 API endpoints: http://198.18.0.1:${PORT}/api`);
+        console.log(`🌟 Environment: ${process.env.NODE_ENV || 'development'}`);
+        console.log('---------------------------------------------------');
+        console.log('📱 在同一WiFi网络的其他设备上访问:');
+        console.log(`   前端: http://198.18.0.1:5173`);
+        console.log(`   后端API: http://198.18.0.1:3000/api`);
       console.log('---------------------------------------------------');
     });
 

@@ -11,6 +11,7 @@ declare global {
     interface Request {
       user?: {
         id: number;
+        username?: string; // 添加用户名字段
         role?: UserRole;
       };
     }
@@ -21,6 +22,7 @@ declare global {
 export interface AuthRequest extends Request {
   user?: {
     id: number;
+    username?: string; // 添加用户名字段
     role?: UserRole;
   };
 }
@@ -65,7 +67,9 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     
     // 5. 如果验证成功，将解码后的用户信息 (payload) 挂载到 req.user 上
     req.user = { 
-      id: payload.userId || payload.id 
+      id: payload.userId || payload.id,
+      username: payload.username, // 添加用户名，便于并发测试日志区分
+      role: payload.role // 添加角色信息
     };
     
     // 6. 调用 next() 将控制权传递给下一个中间件或路由处理器

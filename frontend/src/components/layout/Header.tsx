@@ -99,7 +99,17 @@ const Header: React.FC = () => {
                     color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'
                   }}
                 >
-                  {user.displayName || user.username}
+                  {user.displayName || user.username} 
+                  <span style={{ 
+                    fontSize: '12px', 
+                    color: '#1890ff',
+                    marginLeft: '8px',
+                    border: '1px solid #1890ff',
+                    borderRadius: '4px',
+                    padding: '2px 6px'
+                  }}>
+                    并发#{user.id}
+                  </span>
                 </Text>
                 {user.email && (
                   <Text 

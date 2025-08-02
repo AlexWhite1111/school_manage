@@ -14,7 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export const generateToken = (payload: object): string => {
   try {
     return jwt.sign(payload, JWT_SECRET, { 
-      expiresIn: '24h', // 令牌有效期24小时
+      expiresIn: '8h', // 延长到8小时，支持长时间并发测试
       issuer: 'education-crm' // 签发者
     });
   } catch (error) {
