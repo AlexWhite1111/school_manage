@@ -17,8 +17,62 @@
   }
 }
 
-/* 移动端优化 */
+/* 全局移动端优化 */
 @media (max-width: 768px) {
+  /* 页面整体边距优化 */
+  .ant-layout-content {
+    padding: 12px !important;
+    margin: 0 !important;
+  }
+  
+  /* 卡片边距优化 */
+  .ant-card {
+    margin-bottom: 12px !important;
+  }
+  
+  .ant-card-body {
+    padding: 16px !important;
+  }
+  
+  .ant-card-small .ant-card-body {
+    padding: 12px !important;
+  }
+  
+  /* 表单项间距优化 */
+  .ant-form-item {
+    margin-bottom: 16px !important;
+  }
+  
+  /* 按钮组间距优化 */
+  .ant-space-item {
+    margin-right: 8px !important;
+  }
+  
+  /* 模态框优化 */
+  .ant-modal {
+    margin: 0 !important;
+    top: 20px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+  
+  .ant-modal-content {
+    border-radius: 12px !important;
+  }
+  
+  .ant-modal-body {
+    padding: 16px !important;
+  }
+  
+  /* 抽屉优化 */
+  .ant-drawer-content {
+    border-radius: 12px 12px 0 0 !important;
+  }
+  
+  /* 下拉菜单优化 */
+  .ant-dropdown {
+    max-width: calc(100vw - 24px) !important;
+  }
+  
   /* 防止移动端滚动时出现的问题 */
   .ant-layout-sider {
     -webkit-transform: translateZ(0);
@@ -28,6 +82,139 @@
   /* 优化移动端触摸滚动 */
   .ant-layout-sider .ant-menu {
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* 表格滚动优化 */
+  .ant-table-wrapper {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* 分页器简化 */
+  .ant-pagination-simple .ant-pagination-simple-pager {
+    margin: 0 8px !important;
+  }
+  
+  /* 统计卡片优化 */
+  .ant-statistic-title {
+    font-size: 12px !important;
+  }
+  
+  .ant-statistic-content {
+    font-size: 18px !important;
+  }
+  
+  /* Tab标签优化 */
+  .ant-tabs-tab {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  /* 输入框优化 */
+  .ant-input, .ant-select-selector {
+    font-size: 14px !important;
+  }
+  
+  /* 按钮优化 */
+  .ant-btn {
+    font-size: 14px !important;
+    border-radius: 6px !important;
+  }
+  
+  .ant-btn-sm {
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+    height: 28px !important;
+  }
+  
+  /* 标签优化 */
+  .ant-tag {
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* 进度条优化 */
+  .ant-progress-line {
+    font-size: 12px !important;
+  }
+  
+  /* 时间选择器优化 */
+  .ant-picker-dropdown {
+    max-width: calc(100vw - 24px) !important;
+  }
+  
+  /* 滚动条优化 */
+  .ant-table-body::-webkit-scrollbar {
+    height: 4px !important;
+  }
+  
+  .ant-table-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 2px !important;
+  }
+}
+
+/* 移动端超小屏幕优化 */
+@media (max-width: 576px) {
+  .ant-layout-content {
+    padding: 8px !important;
+  }
+  
+  .ant-card-body {
+    padding: 12px !important;
+  }
+  
+  .ant-card-small .ant-card-body {
+    padding: 8px !important;
+  }
+  
+  .ant-modal {
+    top: 10px !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+  
+  .ant-modal-body {
+    padding: 12px !important;
+  }
+  
+  /* 字体大小进一步缩小 */
+  .ant-statistic-title {
+    font-size: 11px !important;
+  }
+  
+  .ant-statistic-content {
+    font-size: 16px !important;
+  }
+  
+  .ant-btn {
+    font-size: 13px !important;
+  }
+  
+  .ant-input, .ant-select-selector {
+    font-size: 13px !important;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (max-width: 768px) {
+  /* 增大可点击区域 */
+  .ant-btn, .ant-input, .ant-select-selector {
+    min-height: 36px !important;
+  }
+  
+  .ant-btn-sm {
+    min-height: 28px !important;
+  }
+  
+  /* 触摸反馈 */
+  .ant-btn:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s !important;
+  }
+  
+  /* 防止双击缩放 */
+  * {
+    touch-action: manipulation !important;
   }
 }
 
@@ -48,6 +235,38 @@
 .ant-layout-sider::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 } 
+
+/* 日历组件移动端优化 */
+@media (max-width: 768px) {
+  .ant-picker-dropdown {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100vh - 64px) !important;
+    overflow: auto !important;
+    z-index: 1050 !important;
+  }
+  
+  .ant-picker-panel-container {
+    max-width: 100% !important;
+  }
+  
+  .ant-picker-date-panel {
+    max-width: 300px !important;
+  }
+  
+  .ant-picker-cell {
+    height: 32px !important;
+  }
+  
+  .ant-picker-cell-inner {
+    font-size: 12px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+  }
+}
 
 /* 滑动提示动画 */
 @keyframes slideHint {
@@ -338,7 +557,7 @@
   font-size: 14px;
 }
 
-/* 移动端优化 */
+/* 移动端进一步优化 */
 @media (max-width: 576px) {
   .student-card .ant-card-body {
     padding: 10px !important;

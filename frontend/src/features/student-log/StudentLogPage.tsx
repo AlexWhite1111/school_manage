@@ -822,6 +822,7 @@ const StudentCard: React.FC<StudentCardProps> = ({
   onViewDetail
 }) => {
   const { theme } = useThemeStore();
+  const { isMobile } = useResponsive();
 
   const studentActions = [
     {
@@ -863,18 +864,25 @@ const StudentCard: React.FC<StudentCardProps> = ({
               onClick={(e) => e.stopPropagation()}
             />
             <Avatar 
-              size="small"
+              size={isMobile ? 28 : 32}
               style={{ 
                 backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
                                student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1',
-                opacity: isCompleted ? 0.6 : 1
+                opacity: isCompleted ? 0.6 : 1,
+                fontSize: isMobile ? '12px' : '14px'
               }}
             >
               {student.name?.slice(-2) || '学生'}
             </Avatar>
-            <span style={{ opacity: isCompleted ? 0.6 : 1 }}>{student.name}</span>
+            <span style={{ 
+              opacity: isCompleted ? 0.6 : 1,
+              fontSize: isMobile ? '13px' : '14px',
+              fontWeight: 500
+            }}>
+              {student.name}
+            </span>
             {isCompleted && (
-              <Tag color="orange">已完课</Tag>
+              <Tag color="orange" style={{ fontSize: isMobile ? '10px' : '12px' }}>已完课</Tag>
             )}
           </Space>
           <Dropdown 
@@ -886,19 +894,26 @@ const StudentCard: React.FC<StudentCardProps> = ({
               type="text"
               size="small"
               icon={<MoreOutlined />}
+              style={{
+                fontSize: isMobile ? '12px' : '14px'
+              }}
             />
           </Dropdown>
         </div>
       }
       style={{
-        height: '220px',
+        height: isMobile ? '200px' : '220px',
         borderColor: selectedRowKeys.includes(student.enrollmentId) ? '#1890ff' : undefined,
         opacity: isCompleted ? 0.8 : 1
       }}
-      bodyStyle={{ padding: '12px' }}
+      bodyStyle={{ padding: isMobile ? '8px' : '12px' }}
     >
       {/* 学生信息 */}
-      <div style={{ marginBottom: '12px', fontSize: '12px', color: '#8c8c8c' }}>
+      <div style={{ 
+        marginBottom: isMobile ? '8px' : '12px', 
+        fontSize: isMobile ? '11px' : '12px', 
+        color: '#8c8c8c' 
+      }}>
         <Space split={<Divider type="vertical" />} size="small">
           {student.school && <span>{student.school}</span>}
           {student.grade && (
@@ -908,13 +923,17 @@ const StudentCard: React.FC<StudentCardProps> = ({
       </div>
 
       {/* 签到按钮 */}
-      <div style={{ marginBottom: '12px' }}>
+      <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: isMobile ? '3px' : '4px' }}>
             <Button 
               size="small" 
               disabled={isCompleted}
-              style={{ flex: 1, fontSize: '11px' }}
+              style={{ 
+                flex: 1, 
+                fontSize: isMobile ? '10px' : '11px',
+                height: isMobile ? '26px' : '28px'
+              }}
               type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'PRESENT' ? 'primary' : 'default'}
               loading={attendanceLoading[student.enrollmentId] === 'PRESENT'}
               onClick={() => onAttendance(student, 'PRESENT')}
@@ -924,7 +943,11 @@ const StudentCard: React.FC<StudentCardProps> = ({
             <Button 
               size="small" 
               disabled={isCompleted}
-              style={{ flex: 1, fontSize: '11px' }}
+              style={{ 
+                flex: 1, 
+                fontSize: isMobile ? '10px' : '11px',
+                height: isMobile ? '26px' : '28px'
+              }}
               type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'LATE' ? 'primary' : 'default'}
               loading={attendanceLoading[student.enrollmentId] === 'LATE'}
               onClick={() => onAttendance(student, 'LATE')}
@@ -932,11 +955,15 @@ const StudentCard: React.FC<StudentCardProps> = ({
               迟到
             </Button>
           </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: isMobile ? '3px' : '4px' }}>
             <Button 
               size="small" 
               disabled={isCompleted}
-              style={{ flex: 1, fontSize: '11px' }}
+              style={{ 
+                flex: 1, 
+                fontSize: isMobile ? '10px' : '11px',
+                height: isMobile ? '26px' : '28px'
+              }}
               type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'ABSENT' ? 'primary' : 'default'}
               loading={attendanceLoading[student.enrollmentId] === 'ABSENT'}
               onClick={() => onAttendance(student, 'ABSENT')}
@@ -946,7 +973,11 @@ const StudentCard: React.FC<StudentCardProps> = ({
             <Button 
               size="small" 
               disabled={isCompleted}
-              style={{ flex: 1, fontSize: '11px' }}
+              style={{ 
+                flex: 1, 
+                fontSize: isMobile ? '10px' : '11px',
+                height: isMobile ? '26px' : '28px'
+              }}
               type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'NO_SHOW' ? 'primary' : 'default'}
               loading={attendanceLoading[student.enrollmentId] === 'NO_SHOW'}
               onClick={() => onAttendance(student, 'NO_SHOW')}
@@ -960,12 +991,12 @@ const StudentCard: React.FC<StudentCardProps> = ({
       {/* 成长表现选择 */}
       <div style={{ 
         borderTop: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`, 
-        paddingTop: '8px' 
+        paddingTop: isMobile ? '6px' : '8px'
       }}>
         <div style={{ 
-          fontSize: '11px', 
+          fontSize: isMobile ? '10px' : '11px', 
           color: theme === 'dark' ? '#a0a0a0' : '#8c8c8c', 
-          marginBottom: '6px' 
+          marginBottom: isMobile ? '4px' : '6px'
         }}>
           成长表现
         </div>
@@ -974,11 +1005,12 @@ const StudentCard: React.FC<StudentCardProps> = ({
           disabled={isCompleted}
           style={{ 
             width: '100%',
-            height: '32px',
+            height: isMobile ? '28px' : '32px',
             borderRadius: '6px',
             borderStyle: 'dashed',
             borderColor: isCompleted ? '#d9d9d9' : '#1890ff',
-            color: isCompleted ? '#bfbfbf' : '#1890ff'
+            color: isCompleted ? '#bfbfbf' : '#1890ff',
+            fontSize: isMobile ? '11px' : '12px'
           }}
           icon={<StarOutlined />}
           onClick={() => onGrowthRecord(student)}
@@ -1593,6 +1625,9 @@ const StudentLogPage: React.FC = () => {
               onChange={(e) => handleSearch(e.target.value)}
               onSearch={handleSearch}
               enterButton={<SearchOutlined />}
+              style={{
+                fontSize: isMobile ? '14px' : '16px'
+              }}
             />
           </Col>
           <Col xs={24} lg={12}>
@@ -1611,11 +1646,12 @@ const StudentLogPage: React.FC = () => {
                 style={{ 
                   borderRadius: '8px',
                   fontWeight: 600,
-                  height: isMobile ? '48px' : '48px',
-                  paddingLeft: '24px',
-                  paddingRight: '24px',
+                  height: isMobile ? '44px' : '48px',
+                  paddingLeft: isMobile ? '16px' : '24px',
+                  paddingRight: isMobile ? '16px' : '24px',
                   boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
-                  order: isMobile ? 1 : 0
+                  order: isMobile ? 1 : 0,
+                  fontSize: isMobile ? '14px' : '16px'
                 }}
               >
                 创建班级
@@ -1623,7 +1659,7 @@ const StudentLogPage: React.FC = () => {
               
               <Space size="middle" style={{ 
                 width: isMobile ? '100%' : 'auto',
-                justifyContent: isMobile ? 'space-between' : 'flex-end'
+                justifyContent: isMobile ? 'center' : 'flex-end'
               }}>
                 <Button 
                   icon={<DownloadOutlined />}
@@ -1631,7 +1667,8 @@ const StudentLogPage: React.FC = () => {
                   size={isMobile ? 'middle' : 'middle'}
                   style={{ 
                     borderRadius: '6px',
-                    flex: isMobile ? 1 : 'none'
+                    flex: isMobile ? 1 : 'none',
+                    fontSize: isMobile ? '14px' : '14px'
                   }}
                 >
                   {isMobile ? '导出' : '导出数据'}
@@ -1650,16 +1687,16 @@ const StudentLogPage: React.FC = () => {
               <Card title={
                 <Space>
                   <BarChartOutlined />
-                  <span>数据概览</span>
+                  <span style={{ fontSize: isMobile ? '14px' : '16px' }}>数据概览</span>
                 </Space>
               }>
-                <Row gutter={[0, 16]}>
+                <Row gutter={[0, isMobile ? 12 : 16]}>
                   <Col span={24}>
                     <Statistic
                       title="班级总数"
                       value={stats.totalClasses}
                       prefix={<TeamOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: '20px' }}
+                      valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
                   <Col span={24}>
@@ -1667,7 +1704,7 @@ const StudentLogPage: React.FC = () => {
                       title="在班学生"
                       value={stats.totalStudents - stats.completedCount}
                       prefix={<UserOutlined />}
-                      valueStyle={{ color: '#52c41a', fontSize: '20px' }}
+                      valueStyle={{ color: '#52c41a', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
                   <Col span={24}>
@@ -1675,7 +1712,7 @@ const StudentLogPage: React.FC = () => {
                       title="今日出席"
                       value={stats.activeStudents}
                       prefix={<CheckCircleOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: '20px' }}
+                      valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
                   <Col span={24}>
@@ -1683,14 +1720,33 @@ const StudentLogPage: React.FC = () => {
                       title="已完课学生"
                       value={stats.completedCount}
                       prefix={<BookFilled />}
-                      valueStyle={{ color: '#ff7875', fontSize: '20px' }}
+                      valueStyle={{ color: '#ff7875', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
                 </Row>
               </Card>
               
-              {/* 班级筛选 */}
-              <Card title="班级筛选" style={{ flex: 1 }}>
+              {/* 班级筛选 - 移动端可折叠 */}
+              <Card 
+                title={
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center' 
+                  }}>
+                    <span style={{ fontSize: isMobile ? '14px' : '16px' }}>班级筛选</span>
+                    {isMobile && (
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        {selectedClassId === 'all' ? '全部学生' : 
+                         selectedClassId === 'completed' ? '已完课' :
+                         classes.find(c => c.id.toString() === selectedClassId)?.name || ''}
+                      </Text>
+                    )}
+                  </div>
+                }
+                style={{ flex: 1 }}
+                size={isMobile ? 'small' : 'default'}
+              >
                 <Menu
                   mode="vertical"
                   selectedKeys={[selectedClassId]}
@@ -1698,7 +1754,7 @@ const StudentLogPage: React.FC = () => {
                   onClick={({ key }) => handleClassFilter(key)}
                   style={{ 
                     border: 'none', 
-                    fontSize: isMobile ? '14px' : '16px'
+                    fontSize: isMobile ? '13px' : '16px'
                   }}
                 />
               </Card>
@@ -1708,24 +1764,26 @@ const StudentLogPage: React.FC = () => {
                 title={
                   <Space>
                     <TrophyOutlined style={{ color: '#faad14' }} />
-                    <span>数据追踪报告</span>
+                    <span style={{ fontSize: isMobile ? '14px' : '16px' }}>数据追踪报告</span>
                     <Button type="text" icon={<EditOutlined />} onClick={() => setTagManagerOpen(true)} />
                   </Space>
                 }
+                size={isMobile ? 'small' : 'default'}
               >
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   <Button
                     type="primary"
                     icon={<BarChartOutlined />}
                     block
-                    size="large"
+                    size={isMobile ? 'middle' : 'large'}
                     onClick={() => navigate('/student-log/analytics')}
                     style={{
-                      height: '48px',
+                      height: isMobile ? '40px' : '48px',
                       borderRadius: '8px',
                       background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
                       border: 'none',
                       fontWeight: 600,
+                      fontSize: isMobile ? '14px' : '16px',
                       boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
                     }}
                   >
@@ -1733,22 +1791,22 @@ const StudentLogPage: React.FC = () => {
                   </Button>
                   
                   <div style={{ 
-                    padding: '12px', 
+                    padding: isMobile ? '8px' : '12px', 
                     background: theme === 'dark' ? '#1f1f1f' : '#f8f9fa', 
                     borderRadius: '6px',
                     border: theme === 'dark' ? '1px solid #424242' : '1px solid #e9ecef'
                   }}>
                     <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      <Text style={{ fontSize: '12px', color: '#666', fontWeight: 500 }}>
+                      <Text style={{ fontSize: isMobile ? '11px' : '12px', color: '#666', fontWeight: 500 }}>
                         ✨ 功能亮点
                       </Text>
-                      <Text style={{ fontSize: '11px', color: '#8c8c8c' }}>
+                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
                         • 学生成长趋势分析
                       </Text>
-                      <Text style={{ fontSize: '11px', color: '#8c8c8c' }}>
+                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
                         • 个人成长报告查看
                       </Text>
-                      <Text style={{ fontSize: '11px', color: '#8c8c8c' }}>
+                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
                         • 成长数据可视化展示
                       </Text>
                     </Space>
@@ -1769,7 +1827,7 @@ const StudentLogPage: React.FC = () => {
                      classes.find(c => c.id.toString() === selectedClassId)?.name || '学生列表'}
                   </span>
                   {debouncedSearchKeyword && (
-                    <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                    <Text type="secondary" style={{ fontSize: isMobile ? '11px' : '14px' }}>
                       (搜索: "{debouncedSearchKeyword}")
                     </Text>
                   )}
@@ -1778,14 +1836,17 @@ const StudentLogPage: React.FC = () => {
               extra={
                 selectedRowKeys.length > 0 && (
                   <Space>
-                    <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                    <Text style={{ fontSize: isMobile ? '11px' : '14px' }}>
                       已选择 {selectedRowKeys.length} 名
                     </Text>
                     <Button 
                       danger 
-                      size="small"
+                      size={isMobile ? 'small' : 'small'}
                       icon={<DeleteOutlined />}
                       onClick={handleBatchDelete}
+                      style={{
+                        fontSize: isMobile ? '12px' : '14px'
+                      }}
                     >
                       {isMobile ? 
                         (selectedClassId === 'completed' ? '删除' : '标记完课') : 
@@ -1795,7 +1856,13 @@ const StudentLogPage: React.FC = () => {
                   </Space>
                 )
               }
-              style={{ height: '100%' }}
+              style={{ 
+                height: '100%',
+                fontSize: isMobile ? '13px' : '14px'
+              }}
+              bodyStyle={{
+                padding: isMobile ? '16px' : '24px'
+              }}
             >
               {loading ? (
                 <Spin size="large" style={{ display: 'block', textAlign: 'center', margin: '40px 0' }} />
@@ -1807,14 +1874,14 @@ const StudentLogPage: React.FC = () => {
                     '该班级暂无学生'
                   }
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  style={{ margin: '40px 0' }}
+                  style={{ margin: isMobile ? '20px 0' : '40px 0' }}
                 />
               ) : (
                 <>
                   {/* 学生列表 */}
                   <List
                     grid={{
-                      gutter: 16,
+                      gutter: isMobile ? 12 : 16,
                       xs: 1,
                       sm: 1,
                       md: 2,
@@ -1848,19 +1915,29 @@ const StudentLogPage: React.FC = () => {
 
                   {/* 分页组件 */}
                   {students.length > pagination.pageSize && (
-                    <div style={{ marginTop: 24, textAlign: 'center' }}>
+                    <div style={{ 
+                      marginTop: isMobile ? 16 : 24, 
+                      textAlign: 'center',
+                      padding: isMobile ? '8px 0' : '0'
+                    }}>
                       <Pagination
                         current={pagination.current}
                         total={pagination.total}
                         pageSize={pagination.pageSize}
                         onChange={handlePaginationChange}
-                        showSizeChanger
-                        showQuickJumper
+                        showSizeChanger={!isMobile}
+                        showQuickJumper={!isMobile}
                         showTotal={(total, range) => 
+                          isMobile ? 
+                          `${range[0]}-${range[1]} / ${total}` :
                           `第 ${range[0]}-${range[1]} 条，共 ${total} 名学生`
                         }
                         pageSizeOptions={['8', '16', '24', '32']}
-                        style={{ padding: '16px 0' }}
+                        style={{ 
+                          padding: isMobile ? '8px 0' : '16px 0'
+                        }}
+                        size={isMobile ? 'small' : 'default'}
+                        simple={isMobile}
                       />
                     </div>
                   )}
@@ -1871,18 +1948,18 @@ const StudentLogPage: React.FC = () => {
               {students.length > 0 && (
                 <div style={{ 
                   textAlign: 'center', 
-                  marginTop: '16px', 
-                  padding: '8px 0',
+                  marginTop: isMobile ? '12px' : '16px', 
+                  padding: isMobile ? '6px 0' : '8px 0',
                   color: 'var(--ant-color-text-secondary)',
-                  fontSize: '12px',
+                  fontSize: isMobile ? '11px' : '12px',
                   borderTop: '1px solid var(--ant-color-border-secondary)'
                 }}>
                   总计 {students.length} 名学生 
-                  {students.length > pagination.pageSize && (
+                  {students.length > pagination.pageSize && !isMobile && (
                     <span>，当前显示第 {(pagination.current - 1) * pagination.pageSize + 1}-{Math.min(pagination.current * pagination.pageSize, students.length)} 条</span>
                   )}
                   {selectedClassId === 'all' && ` (在班: ${activeStudentsList.length}, 已完课: ${completedStudentsList.length})`}
-                  {stats.totalStudents && ` / 系统总计 ${stats.totalStudents} 名学生`}
+                  {stats.totalStudents && !isMobile && ` / 系统总计 ${stats.totalStudents} 名学生`}
                 </div>
               )}
             </Card>

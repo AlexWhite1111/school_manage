@@ -31,6 +31,7 @@ import {
   FallOutlined
 } from '@ant-design/icons';
 import { useThemeStore } from '@/stores/themeStore';
+import { useResponsive } from '@/hooks/useResponsive';
 import { 
   getStudentGrowthAnalytics,
   getStudentsForAnalytics 
@@ -53,6 +54,7 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
   refreshKey
 }) => {
   const { theme } = useThemeStore();
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
@@ -154,13 +156,13 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
     const chartData = growthData.growthTrend.flatMap(item => [
       {
         date: item.date,
-        count: item.positiveCount,
-        type: '积极标签',
+        count: item.positiveCount || 0,
+        type: '正面标签',
       },
       {
         date: item.date,
-        count: item.negativeCount,
-        type: '消极标签',
+        count: item.negativeCount || 0,
+        type: '需要改进',
       },
     ]);
 
@@ -176,26 +178,64 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
           duration: 1000,
         },
       },
-      color: [themeStyles.positiveColor, themeStyles.negativeColor],
+      color: ['#52c41a', '#ff7875'], // 更明确的颜色对比
       point: {
-        size: 4,
+        size: isMobile ? 3 : 4,
         shape: 'circle',
+      },
+      lineStyle: {
+        lineWidth: isMobile ? 2 : 3,
       },
       tooltip: {
         formatter: (datum: any) => ({
           name: datum.type,
           value: `${datum.count} 次`,
         }),
+        showCrosshairs: true,
+        shared: true,
       },
       legend: {
-        position: 'top',
+        position: isMobile ? 'bottom' : 'top',
+        itemSpacing: isMobile ? 16 : 24,
+      },
+      xAxis: {
+        type: 'time',
+        mask: 'MM-DD',
+        tickCount: isMobile ? 4 : 6,
+        label: {
+          style: {
+            fontSize: isMobile ? 10 : 12,
+          },
+        },
+      },
+      yAxis: {
+        min: 0,
+        tickCount: isMobile ? 4 : 5,
+        label: {
+          style: {
+            fontSize: isMobile ? 10 : 12,
+          },
+        },
+        grid: {
+          line: {
+            style: {
+              stroke: theme === 'dark' ? '#434343' : '#f0f0f0',
+              lineWidth: 1,
+              lineDash: [4, 5],
+            },
+          },
+        },
       },
       theme,
       autoFit: true,
-      padding: [20, 20, 40, 60],
+      padding: isMobile ? [20, 20, 40, 40] : [20, 20, 40, 60],
     };
 
-    return <Line {...config} style={{ height: 300 }} />;
+    return (
+      <div style={{ height: isMobile ? '280px' : '350px', width: '100%' }}>
+        <Line {...config} />
+      </div>
+    );
   };
 
   // ===============================

@@ -188,7 +188,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
     }
 
     return (
-      <div style={{ padding: '20px' }}>
+      <div style={{ padding: isMobile ? '12px' : '20px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           {funnelData.stages.map((stage, index) => {
             const color = themeStyles.funnelColors[index] || themeStyles.primaryColor;
@@ -196,48 +196,94 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
             
             return (
               <div key={stage.stage} style={{ width: '100%' }}>
-                <Row align="middle" gutter={[16, 0]}>
-                  {/* 阶段标签 */}
-                  <Col span={6}>
-                    <Text strong style={{ color: themeStyles.textPrimary }}>
-                      {getStatusLabel(stage.stage)}
-                    </Text>
-                  </Col>
-                  
-                  {/* 进度条 */}
-                  <Col span={12}>
-                    <Progress 
-                      percent={widthPercentage} 
-                      showInfo={false}
-                      strokeColor={color}
-                      trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
-                      strokeWidth={20}
-                    />
-                  </Col>
-                  
-                  {/* 数据统计 */}
-                  <Col span={6}>
-                    <Space size="large">
-                      <Tooltip title="客户数量">
-                        <Tag color={color} style={{ margin: 0 }}>
-                          {stage.count} 人
-                        </Tag>
-                      </Tooltip>
-                      <Tooltip title="占总数比例">
-                        <Text style={{ color: themeStyles.textSecondary, fontSize: '12px' }}>
-                          {stage.percentage.toFixed(1)}%
-                        </Text>
-                      </Tooltip>
+                {/* 移动端布局 */}
+                {isMobile ? (
+                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                    {/* 阶段标签和进度条 */}
+                    <div>
+                      <Text strong style={{ 
+                        color: themeStyles.textPrimary,
+                        fontSize: '14px',
+                        display: 'block',
+                        marginBottom: '8px'
+                      }}>
+                        {getStatusLabel(stage.stage)}
+                      </Text>
+                      <Progress 
+                        percent={widthPercentage} 
+                        showInfo={false}
+                        strokeColor={color}
+                        trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
+                        strokeWidth={16}
+                      />
+                    </div>
+                    
+                    {/* 数据统计放在下方 */}
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: '8px'
+                    }}>
+                      <Tag color={color} style={{ margin: 0, fontSize: '12px' }}>
+                        {stage.count} 人
+                      </Tag>
+                      <Text style={{ color: themeStyles.textSecondary, fontSize: '11px' }}>
+                        {stage.percentage.toFixed(1)}%
+                      </Text>
                       {stage.conversionRate !== undefined && (
-                        <Tooltip title="从上一阶段转化率">
-                          <Text style={{ color: themeStyles.successColor, fontSize: '12px' }}>
-                            转化率 {stage.conversionRate.toFixed(1)}%
+                        <Text style={{ color: themeStyles.successColor, fontSize: '11px' }}>
+                          转化率 {stage.conversionRate.toFixed(1)}%
+                        </Text>
+                      )}
+                    </div>
+                  </Space>
+                ) : (
+                  /* 桌面端布局 */
+                  <Row align="middle" gutter={[16, 0]}>
+                    {/* 阶段标签 */}
+                    <Col span={6}>
+                      <Text strong style={{ color: themeStyles.textPrimary }}>
+                        {getStatusLabel(stage.stage)}
+                      </Text>
+                    </Col>
+                    
+                    {/* 进度条 */}
+                    <Col span={12}>
+                      <Progress 
+                        percent={widthPercentage} 
+                        showInfo={false}
+                        strokeColor={color}
+                        trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
+                        strokeWidth={20}
+                      />
+                    </Col>
+                    
+                    {/* 数据统计 */}
+                    <Col span={6}>
+                      <Space size="large">
+                        <Tooltip title="客户数量">
+                          <Tag color={color} style={{ margin: 0 }}>
+                            {stage.count} 人
+                          </Tag>
+                        </Tooltip>
+                        <Tooltip title="占总数比例">
+                          <Text style={{ color: themeStyles.textSecondary, fontSize: '12px' }}>
+                            {stage.percentage.toFixed(1)}%
                           </Text>
                         </Tooltip>
-                      )}
-                    </Space>
-                  </Col>
-                </Row>
+                        {stage.conversionRate !== undefined && (
+                          <Tooltip title="从上一阶段转化率">
+                            <Text style={{ color: themeStyles.successColor, fontSize: '12px' }}>
+                              转化率 {stage.conversionRate.toFixed(1)}%
+                            </Text>
+                          </Tooltip>
+                        )}
+                      </Space>
+                    </Col>
+                  </Row>
+                )}
               </div>
             );
           })}
@@ -246,30 +292,39 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
         {/* 总体统计 */}
         <Divider style={{ borderColor: themeStyles.borderColor }} />
         <Row gutter={[16, 16]}>
-          <Col span={8}>
+          <Col xs={24} sm={8}>
             <Statistic
               title="总新增客户"
               value={funnelData.totalNewCustomers}
               prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />}
-              valueStyle={{ color: themeStyles.textPrimary }}
+              valueStyle={{ 
+                color: themeStyles.textPrimary,
+                fontSize: isMobile ? '18px' : '24px'
+              }}
             />
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={8}>
             <Statistic
               title="最终报名"
               value={funnelData.finalEnrolledCount}
               prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />}
-              valueStyle={{ color: themeStyles.textPrimary }}
+              valueStyle={{ 
+                color: themeStyles.textPrimary,
+                fontSize: isMobile ? '18px' : '24px'
+              }}
             />
           </Col>
-          <Col span={8}>
+          <Col xs={24} sm={8}>
             <Statistic
               title="整体转化率"
               value={funnelData.overallConversionRate}
               suffix="%"
               precision={1}
               prefix={<FunnelPlotOutlined style={{ color: themeStyles.warningColor }} />}
-              valueStyle={{ color: themeStyles.textPrimary }}
+              valueStyle={{ 
+                color: themeStyles.textPrimary,
+                fontSize: isMobile ? '18px' : '24px'
+              }}
             />
           </Col>
         </Row>

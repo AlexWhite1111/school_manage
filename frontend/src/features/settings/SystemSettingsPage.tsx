@@ -37,6 +37,7 @@ import {
   type User 
 } from '@/api/authApi';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useResponsive } from '@/hooks/useResponsive';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -49,6 +50,7 @@ const SystemSettingsPage: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>(''); // 搜索关键词
   const navigate = useNavigate();
   const { isSuperAdmin, getRoleDisplayName } = usePermissions();
+  const { isMobile } = useResponsive();
 
   // 权限检查
   if (!isSuperAdmin()) {
@@ -166,15 +168,20 @@ const SystemSettingsPage: React.FC = () => {
       dataIndex: 'id',
       key: 'id',
       width: 80,
+      responsive: ['lg'] as any,
     },
     {
       title: '用户名',
       dataIndex: 'username',
       key: 'username',
       render: (username: string, record: User) => (
-        <Space>
-          <UserOutlined />
-          <Text strong>{username}</Text>
+        <Space direction={isMobile ? 'vertical' : 'horizontal'} size="small">
+          <Space>
+            <UserOutlined />
+            <Text strong style={{ fontSize: isMobile ? '13px' : '14px' }}>
+              {username}
+            </Text>
+          </Space>
           {!record.isActive && <Tag color="red">已停用</Tag>}
         </Space>
       ),
@@ -183,8 +190,11 @@ const SystemSettingsPage: React.FC = () => {
       title: '昵称',
       dataIndex: 'displayName',
       key: 'displayName',
+      responsive: ['md'] as any,
       render: (displayName: string, record: User) => (
-        <Text>{displayName || record.username}</Text>
+        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+          {displayName || record.username}
+        </Text>
       ),
     },
     {
@@ -194,7 +204,8 @@ const SystemSettingsPage: React.FC = () => {
       render: (role: UserRole, record: User) => (
         <Select
           value={role}
-          style={{ width: 120 }}
+          style={{ width: isMobile ? 100 : 120 }}
+          size={isMobile ? 'small' : 'middle'}
           onChange={(newRole) => handleRoleChange(record.id, newRole)}
           disabled={record.role === UserRole.SUPER_ADMIN}
         >
@@ -208,18 +219,29 @@ const SystemSettingsPage: React.FC = () => {
       title: '邮箱',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => email || '-',
+      responsive: ['lg'] as any,
+      render: (email: string) => (
+        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+          {email || '-'}
+        </Text>
+      ),
     },
     {
       title: '手机',
       dataIndex: 'phone',
       key: 'phone',
-      render: (phone: string) => phone || '-',
+      responsive: ['lg'] as any,
+      render: (phone: string) => (
+        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+          {phone || '-'}
+        </Text>
+      ),
     },
     {
       title: '最后登录',
       dataIndex: 'lastLoginAt',
       key: 'lastLoginAt',
+      responsive: ['xl'] as any,
       render: (date: string) => {
         if (!date) return '从未登录';
         return new Date(date).toLocaleString('zh-CN');
@@ -236,53 +258,81 @@ const SystemSettingsPage: React.FC = () => {
           disabled={record.role === UserRole.SUPER_ADMIN}
           checkedChildren="启用"
           unCheckedChildren="停用"
+          size={isMobile ? 'small' : 'default'}
         />
       ),
     },
     {
       title: '操作',
       key: 'actions',
+      width: isMobile ? 80 : 120,
       render: (_: any, record: User) => (
-        <Space>
-          <Button
-            type="text"
-            size="small"
-            icon={<SafetyOutlined />}
-            onClick={() => handleResetPassword(record.id, record.username)}
-            disabled={record.role === UserRole.SUPER_ADMIN}
-          >
-            重置密码
-          </Button>
-        </Space>
+        <Button
+          type="text"
+          size="small"
+          icon={<SafetyOutlined />}
+          onClick={() => handleResetPassword(record.id, record.username)}
+          disabled={record.role === UserRole.SUPER_ADMIN}
+          style={{ fontSize: isMobile ? '12px' : '14px' }}
+        >
+          {isMobile ? '重置' : '重置密码'}
+        </Button>
       ),
     },
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Title level={2}>系统设置</Title>
+    <div style={{ padding: isMobile ? '16px' : '24px' }}>
+      <Title level={2} style={{ fontSize: isMobile ? '20px' : '28px' }}>
+        系统设置
+      </Title>
       
       {/* 统计信息 */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card>
-            <Statistic title="总用户数" value={stats.total} prefix={<UserOutlined />} />
+      <Row gutter={[16, 16]} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Col xs={12} sm={6} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Statistic 
+              title="总用户数" 
+              value={stats.total} 
+              prefix={<UserOutlined />}
+              valueStyle={{ fontSize: isMobile ? '18px' : '24px' }}
+            />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="活跃用户" value={stats.active} valueStyle={{ color: '#3f8600' }} />
+        <Col xs={12} sm={6} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Statistic 
+              title="活跃用户" 
+              value={stats.active} 
+              valueStyle={{ 
+                color: '#3f8600',
+                fontSize: isMobile ? '18px' : '24px'
+              }}
+            />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="停用用户" value={stats.inactive} valueStyle={{ color: '#cf1322' }} />
+        <Col xs={12} sm={6} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Statistic 
+              title="停用用户" 
+              value={stats.inactive} 
+              valueStyle={{ 
+                color: '#cf1322',
+                fontSize: isMobile ? '18px' : '24px'
+              }}
+            />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Descriptions title="角色分布" size="small" column={1}>
-              <Descriptions.Item label="超级管理员">{stats.roleStats[UserRole.SUPER_ADMIN]}</Descriptions.Item>
+        <Col xs={12} sm={6} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Descriptions 
+              title="角色分布" 
+              size="small" 
+              column={1}
+              labelStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+              contentStyle={{ fontSize: isMobile ? '11px' : '12px' }}
+            >
+              <Descriptions.Item label="超管">{stats.roleStats[UserRole.SUPER_ADMIN]}</Descriptions.Item>
               <Descriptions.Item label="管理员">{stats.roleStats[UserRole.MANAGER]}</Descriptions.Item>
               <Descriptions.Item label="教师">{stats.roleStats[UserRole.TEACHER]}</Descriptions.Item>
               <Descriptions.Item label="学生">{stats.roleStats[UserRole.STUDENT]}</Descriptions.Item>
@@ -292,14 +342,22 @@ const SystemSettingsPage: React.FC = () => {
       </Row>
 
       {/* 用户管理 */}
-      <Card title="用户管理">
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <Space size="middle">
-            <Text>角色筛选：</Text>
+      <Card title="用户管理" size={isMobile ? 'small' : 'default'}>
+        <div style={{ 
+          marginBottom: 16, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: isMobile ? 'flex-start' : 'center', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 16 
+        }}>
+          <Space size="middle" wrap>
+            <Text style={{ fontSize: isMobile ? '13px' : '14px' }}>角色筛选：</Text>
             <Select
               value={selectedRole}
               onChange={setSelectedRole}
-              style={{ width: 150 }}
+              style={{ width: isMobile ? 120 : 150 }}
+              size={isMobile ? 'small' : 'middle'}
             >
               <Option value="ALL">全部用户</Option>
               <Option value={UserRole.SUPER_ADMIN}>超级管理员</Option>
@@ -309,28 +367,31 @@ const SystemSettingsPage: React.FC = () => {
             </Select>
           </Space>
 
-          <Space size="middle">
+          <Space size="middle" wrap style={{ width: isMobile ? '100%' : 'auto' }}>
             <Input
-              placeholder="搜索用户名、昵称、邮箱、手机号"
+              placeholder={isMobile ? "搜索用户" : "搜索用户名、昵称、邮箱、手机号"}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               allowClear
-              style={{ width: 300 }}
+              style={{ width: isMobile ? '100%' : 280 }}
+              size={isMobile ? 'small' : 'middle'}
               prefix={<SearchOutlined />}
             />
             <Button 
               icon={<ReloadOutlined />}
               onClick={loadUsers}
               loading={loading}
+              size={isMobile ? 'small' : 'middle'}
             >
-              刷新
+              {isMobile ? '刷新' : '刷新'}
             </Button>
             <Button 
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => navigate('/register')}
+              size={isMobile ? 'small' : 'middle'}
             >
-              新增用户
+              {isMobile ? '新增' : '新增用户'}
             </Button>
           </Space>
         </div>
@@ -342,12 +403,15 @@ const SystemSettingsPage: React.FC = () => {
           loading={loading}
           pagination={{
             total: filteredUsers.length, // 显示过滤后的总数
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
+            pageSize: isMobile ? 5 : 10,
+            showSizeChanger: !isMobile,
+            showQuickJumper: !isMobile,
             showTotal: (total) => `共 ${total} 个用户`,
+            size: isMobile ? 'small' : undefined,
+            simple: isMobile,
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: isMobile ? 800 : 1000 }}
+          size={isMobile ? 'small' : 'default'}
         />
       </Card>
     </div>

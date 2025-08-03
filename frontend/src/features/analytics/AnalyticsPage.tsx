@@ -22,6 +22,7 @@ import CustomerAnalyticsTab from './components/CustomerAnalyticsTab';
 import StudentAnalyticsTab from './components/StudentAnalyticsTab';
 import { calculateTimeRangeParams, createCustomTimeRangeParams } from '@/api/analyticsApi';
 import type { AnalyticsTimeRangeParams } from '@/types/api';
+import { useResponsive } from '@/hooks/useResponsive';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -35,6 +36,7 @@ const AnalyticsPage: React.FC = () => {
   // 状态管理
   // ===============================
   
+  const { isMobile } = useResponsive();
   const [activeTab, setActiveTab] = useState<'customer' | 'student'>('customer');
   const [timeRangeType, setTimeRangeType] = useState<'7' | '15' | '30' | '90' | '180' | '365' | 'custom'>('90');
   const [customDateRange, setCustomDateRange] = useState<[Dayjs, Dayjs] | null>(null);
@@ -119,13 +121,17 @@ const AnalyticsPage: React.FC = () => {
       const compPeriod = `${formatDate(timeParams.compareWith.startDate)} 至 ${formatDate(timeParams.compareWith.endDate)}`;
       const compType = timeParams.compareWith.type === 'previous_period' ? '上一周期' : '去年同期';
       return (
-        <Text type="secondary">
-          分析周期：{mainPeriod} | 对比周期：{compPeriod} ({compType})
+        <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+          分析周期：{mainPeriod} {!isMobile && '|'} {isMobile && <br />}对比周期：{compPeriod} ({compType})
         </Text>
       );
     }
 
-    return <Text type="secondary">分析周期：{mainPeriod}</Text>;
+    return (
+      <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+        分析周期：{mainPeriod}
+      </Text>
+    );
   };
 
   // ===============================
@@ -136,7 +142,7 @@ const AnalyticsPage: React.FC = () => {
     {
       key: 'customer',
       label: (
-        <span>
+        <span style={{ fontSize: isMobile ? '14px' : '16px' }}>
           <BarChartOutlined />
           客户分析
         </span>
@@ -153,7 +159,7 @@ const AnalyticsPage: React.FC = () => {
     {
       key: 'student',
       label: (
-        <span>
+        <span style={{ fontSize: isMobile ? '14px' : '16px' }}>
           <CalendarOutlined />
           学生成长分析
         </span>
@@ -176,28 +182,33 @@ const AnalyticsPage: React.FC = () => {
   return (
     <div style={{ padding: 0 }}>
       {/* 页面标题 */}
-      <div style={{ marginBottom: '24px' }}>
-        <Title level={2} style={{ margin: 0 }}>
+      <div style={{ marginBottom: isMobile ? '16px' : '24px' }}>
+        <Title level={2} style={{ margin: 0, fontSize: isMobile ? '20px' : '28px' }}>
           数据分析中心
         </Title>
-        <Text type="secondary">
+        <Text type="secondary" style={{ fontSize: isMobile ? '13px' : '16px' }}>
           深度分析客户转化和学生成长数据，为业务决策提供数据支持
         </Text>
       </div>
 
       {/* 全局控制器 */}
-      <Card style={{ marginBottom: '24px' }}>
+      <Card style={{ marginBottom: isMobile ? '16px' : '24px' }}>
         <Row gutter={[16, 16]} align="middle">
           {/* 时间范围选择 */}
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col xs={24} sm={12} md={8} lg={6} xl={6}>
             <div>
-              <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+              <Text strong style={{ 
+                display: 'block', 
+                marginBottom: '8px',
+                fontSize: isMobile ? '13px' : '14px'
+              }}>
                 时间范围
               </Text>
               <Select
                 value={timeRangeType}
                 onChange={handleTimeRangeChange}
                 style={{ width: '100%' }}
+                size={isMobile ? 'middle' : 'large'}
               >
                 <Option value="7">最近7天</Option>
                 <Option value="15">最近15天</Option>
@@ -212,9 +223,13 @@ const AnalyticsPage: React.FC = () => {
 
           {/* 自定义日期选择器 */}
           {timeRangeType === 'custom' && (
-            <Col xs={24} sm={12} md={8} lg={6}>
+            <Col xs={24} sm={12} md={8} lg={6} xl={6}>
               <div>
-                <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                <Text strong style={{ 
+                  display: 'block', 
+                  marginBottom: '8px',
+                  fontSize: isMobile ? '13px' : '14px'
+                }}>
                   自定义日期
                 </Text>
                 <RangePicker
@@ -222,15 +237,22 @@ const AnalyticsPage: React.FC = () => {
                   onChange={handleCustomDateChange}
                   style={{ width: '100%' }}
                   format="YYYY-MM-DD"
+                  size={isMobile ? 'middle' : 'large'}
+                  placement={isMobile ? 'bottomLeft' : 'bottomLeft'}
+                  getPopupContainer={(trigger) => trigger.parentElement || document.body}
                 />
               </div>
             </Col>
           )}
 
           {/* 对比功能开关 */}
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col xs={24} sm={12} md={8} lg={6} xl={6}>
             <div>
-              <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+              <Text strong style={{ 
+                display: 'block', 
+                marginBottom: '8px',
+                fontSize: isMobile ? '13px' : '14px'
+              }}>
                 时间对比
               </Text>
               <Switch
@@ -244,15 +266,20 @@ const AnalyticsPage: React.FC = () => {
 
           {/* 对比类型选择 */}
           {enableComparison && (
-            <Col xs={24} sm={12} md={8} lg={6}>
+            <Col xs={24} sm={12} md={8} lg={6} xl={6}>
               <div>
-                <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                <Text strong style={{ 
+                  display: 'block', 
+                  marginBottom: '8px',
+                  fontSize: isMobile ? '13px' : '14px'
+                }}>
                   对比类型
                 </Text>
                 <Select
                   value={comparisonType}
                   onChange={setComparisonType}
                   style={{ width: '100%' }}
+                  size={isMobile ? 'middle' : 'large'}
                 >
                   <Option value="previous_period">上一周期</Option>
                   <Option value="same_period_last_year">去年同期</Option>
@@ -262,12 +289,16 @@ const AnalyticsPage: React.FC = () => {
           )}
 
           {/* 刷新按钮 */}
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col xs={24} sm={12} md={8} lg={6} xl={6}>
             <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
               <Button
                 icon={<ReloadOutlined />}
                 onClick={handleRefresh}
-                style={{ marginTop: '25px' }}
+                style={{ 
+                  marginTop: '25px',
+                  fontSize: isMobile ? '13px' : '14px'
+                }}
+                size={isMobile ? 'middle' : 'large'}
               >
                 刷新数据
               </Button>
@@ -278,7 +309,7 @@ const AnalyticsPage: React.FC = () => {
         {/* 时间范围描述 */}
         <div style={{ 
           marginTop: '16px', 
-          padding: '12px', 
+          padding: isMobile ? '8px' : '12px', 
           borderRadius: '6px',
           backgroundColor: 'var(--ant-color-fill-tertiary)',
           border: '1px solid var(--ant-color-border)'
@@ -294,7 +325,10 @@ const AnalyticsPage: React.FC = () => {
           onChange={handleTabChange}
           items={tabItems}
           size="large"
-          tabBarStyle={{ marginBottom: '24px' }}
+          tabBarStyle={{ 
+            marginBottom: isMobile ? '16px' : '24px',
+            fontSize: isMobile ? '14px' : '16px'
+          }}
         />
       </Card>
     </div>
