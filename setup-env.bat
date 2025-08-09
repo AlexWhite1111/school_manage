@@ -39,7 +39,9 @@ if "%deploy_type%"=="1" (
 if "%deploy_type%"=="2" (
     echo.
     echo 🔍 正在获取您的公网IP...
-    for /f "delims=" %%i in ('powershell -Command "(Invoke-WebRequest -Uri 'http://ifconfig.me/ip' -UseBasicParsing).Content.Trim()" 2^>nul') do set AUTO_IP=%%i
+    powershell -Command "(Invoke-WebRequest -Uri 'http://ifconfig.me/ip' -UseBasicParsing).Content.Trim()" > temp_ip.txt 2>nul
+    set /p AUTO_IP=<temp_ip.txt
+    del temp_ip.txt 2>nul
     
     if defined AUTO_IP (
         echo ✅ 检测到公网IP: !AUTO_IP!

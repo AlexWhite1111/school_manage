@@ -387,22 +387,12 @@ docker compose ps
 
 echo.
 echo 2️⃣ 检查后端API健康:
-curl -s http://localhost:3000/health
-if errorlevel 1 (
-    echo ❌ 后端API无响应
-) else (
-    echo.
-    echo ✅ 后端API正常
-)
+REM 使用PowerShell进行HTTP检查 (Windows兼容)
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:3000/health' -TimeoutSec 5 -UseBasicParsing; Write-Host '✅ 后端API正常 - 状态码:' $response.StatusCode } catch { Write-Host '❌ 后端API无响应或错误:' $_.Exception.Message }"
 
 echo.
 echo 3️⃣ 检查前端服务:
-curl -s -o nul -w "%%{http_code}" http://localhost:5173
-if errorlevel 1 (
-    echo ❌ 前端服务无响应
-) else (
-    echo ✅ 前端服务正常
-)
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:5173' -TimeoutSec 5 -UseBasicParsing; Write-Host '✅ 前端服务正常 - 状态码:' $response.StatusCode } catch { Write-Host '❌ 前端服务无响应或错误:' $_.Exception.Message }"
 
 echo.
 echo 4️⃣ 检查数据库连接:

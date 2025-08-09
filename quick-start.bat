@@ -2,6 +2,7 @@
 chcp 65001 >nul 2>&1
 title 教育CRM系统 - 快速启动
 
+:start
 cls
 echo.
 echo ===============================================
@@ -59,7 +60,7 @@ if "%choice%"=="0" (
     goto end
 )
 
-echo ❌ 无效选择
+echo ❌ 无效选择，请重新输入
 timeout /t 2 >nul
 goto start
 
@@ -101,4 +102,3 @@ goto start
 :end
 echo.
 echo 👋 感谢使用教育CRM系统！
-echo.
