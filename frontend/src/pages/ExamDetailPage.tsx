@@ -812,8 +812,8 @@ const ExamDetailPage: React.FC = () => {
           showIcon
           action={
             <Space>
-              <Button size="small" onClick={loadExamData}>重试</Button>
-              <Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack} />
+              <Button size="small" onClick={() => loadExamData()}>重试</Button>
+              <Button size="small" icon={<ArrowLeftOutlined />} onClick={() => handleBack()} />
             </Space>
           }
         />
