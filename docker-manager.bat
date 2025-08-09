@@ -6,75 +6,120 @@ setlocal enabledelayedexpansion
 cls
 echo.
 echo ===============================================
-echo       🐳 教育CRM系统 Docker管理器 v2.0
+echo       🐳 教育CRM系统 Docker管理器 v3.0
 echo ===============================================
 echo.
-echo 📋 系统管理:
-echo   [1] 🚀 完整部署 (新系统)
-echo   [2] 📊 查看服务状态
-echo   [3] 🔄 重启所有服务
-echo   [4] 🛑 停止所有服务
-echo   [5] 🗑️  完全清理 (删除所有数据)
+echo 🌟 新功能: 
+echo   - 环境配置向导 (setup-env.bat)
+echo   - 一键部署脚本 (deploy.bat)
+echo   - 增强的Windows兼容性
+echo.
+echo 📋 快速操作:
+echo   [1] 🚀 一键部署 (推荐新用户)
+echo   [2] ⚙️  环境配置向导
+echo   [3] 📊 查看服务状态
+echo   [4] 🔄 重启所有服务
+echo   [5] 🛑 停止所有服务
+echo.
+echo 🔧 高级管理:
+echo   [6] 🗑️  完全清理 (删除所有数据)
 echo.
 echo 💾 数据库管理:
-echo   [6] 🔄 重置数据库结构
-echo   [7] 📥 运行数据库迁移
-echo   [8] 🎛️  打开数据库管理界面
+echo   [7] 🔄 重置数据库结构
+echo   [8] 📥 运行数据库迁移
+echo   [9] 🎛️  打开数据库管理界面
 echo.
 echo 🌱 数据初始化:
-echo   [9] 👤 仅导入管理员账户
-echo   [10] 🏷️  仅导入标签配置
-echo   [11] 🧠 仅导入Growth配置
-echo   [12] 🎭 导入演示数据 (包含测试学生)
+echo   [10] 👤 仅导入管理员账户
+echo   [11] 🏷️  仅导入标签配置
+echo   [12] 🧠 仅导入Growth配置
+echo   [13] 🎭 导入演示数据 (包含测试学生)
 echo.
 echo 🧹 数据清理:
-echo   [13] 👥 清除所有客户数据
-echo   [14] 📚 清除所有学生数据
-echo   [15] 📝 清除所有成长日志
-echo   [16] 📊 清除所有考试数据
+echo   [14] 👥 清除所有客户数据
+echo   [15] 📚 清除所有学生数据
+echo   [16] 📝 清除所有成长日志
+echo   [17] 📊 清除所有考试数据
 echo.
 echo 🔧 维护工具:
-echo   [17] 📋 查看详细日志
-echo   [18] 🔍 系统健康检查
-echo   [19] 📦 重新构建服务
-echo   [20] 💻 进入后端容器
+echo   [18] 📋 查看详细日志
+echo   [19] 🔍 系统健康检查
+echo   [20] 📦 重新构建服务
+echo   [21] 💻 进入后端容器
 echo.
 echo   [0] 🚪 退出
 echo.
 echo ===============================================
 
-set /p choice=🎯 请选择操作 (0-20): 
+set /p choice=🎯 请选择操作 (0-21): 
 
-if "%choice%"=="1" goto deploy_full
-if "%choice%"=="2" goto show_status
-if "%choice%"=="3" goto restart_services
-if "%choice%"=="4" goto stop_services
-if "%choice%"=="5" goto cleanup_all
+if "%choice%"=="1" goto quick_deploy
+if "%choice%"=="2" goto setup_env
+if "%choice%"=="3" goto show_status
+if "%choice%"=="4" goto restart_services
+if "%choice%"=="5" goto stop_services
+if "%choice%"=="6" goto cleanup_all
 
-if "%choice%"=="6" goto reset_database
-if "%choice%"=="7" goto run_migration
-if "%choice%"=="8" goto open_db_studio
+if "%choice%"=="7" goto reset_database
+if "%choice%"=="8" goto run_migration
+if "%choice%"=="9" goto open_db_studio
 
-if "%choice%"=="9" goto seed_admin_only
-if "%choice%"=="10" goto seed_tags_only
-if "%choice%"=="11" goto seed_growth_only
-if "%choice%"=="12" goto seed_demo_data
+if "%choice%"=="10" goto seed_admin_only
+if "%choice%"=="11" goto seed_tags_only
+if "%choice%"=="12" goto seed_growth_only
+if "%choice%"=="13" goto seed_demo_data
 
-if "%choice%"=="13" goto clear_customers
-if "%choice%"=="14" goto clear_students
-if "%choice%"=="15" goto clear_growth_logs
-if "%choice%"=="16" goto clear_exam_data
+if "%choice%"=="14" goto clear_customers
+if "%choice%"=="15" goto clear_students
+if "%choice%"=="16" goto clear_growth_logs
+if "%choice%"=="17" goto clear_exam_data
 
-if "%choice%"=="17" goto show_logs
-if "%choice%"=="18" goto health_check
-if "%choice%"=="19" goto rebuild_services
-if "%choice%"=="20" goto enter_backend
+if "%choice%"=="18" goto show_logs
+if "%choice%"=="19" goto health_check
+if "%choice%"=="20" goto rebuild_services
+if "%choice%"=="21" goto enter_backend
 
 if "%choice%"=="0" goto exit_script
 
 echo ❌ 无效选择，请重新输入
 timeout /t 2 >nul
 goto main_menu
+
+:quick_deploy
+echo.
+echo 🚀 一键部署 (推荐)
+echo ===============================================
+echo.
+echo ℹ️  这将使用 deploy.bat 脚本进行智能部署
+echo ℹ️  如果没有 .env 文件，会自动启动配置向导
+echo.
+set /p confirm=❓ 确认执行一键部署? (Y/n): 
+if /i "!confirm!"=="n" goto main_menu
+
+if exist deploy.bat (
+    echo ✅ 启动一键部署脚本...
+    call deploy.bat
+) else (
+    echo ❌ 未找到 deploy.bat 脚本，使用传统部署...
+    goto deploy_full
+)
+goto pause_return
+
+:setup_env
+echo.
+echo ⚙️  环境配置向导
+echo ===============================================
+echo.
+if exist setup-env.bat (
+    echo ✅ 启动环境配置向导...
+    call setup-env.bat
+) else (
+    echo ❌ 未找到 setup-env.bat 脚本
+    echo ℹ️  将使用手动配置方式...
+    echo.
+    goto deploy_full
+)
+goto pause_return
 
 :deploy_full
 echo.
