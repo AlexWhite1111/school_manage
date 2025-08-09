@@ -62,121 +62,16 @@ router.post('/attendance-records', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * @route   POST /api/growth-logs
- * @desc    记录单条学生成长标签
- * @access  Private
- */
-router.post('/growth-logs', async (req: Request, res: Response) => {
-  try {
-    const { enrollmentId, tagId } = req.body;
-
-    // 输入验证
-    if (!enrollmentId || !Number.isInteger(enrollmentId)) {
-      return res.status(400).json({
-        message: '班级注册ID不能为空且必须为整数'
-      });
-    }
-
-    if (!tagId || !Number.isInteger(tagId)) {
-      return res.status(400).json({
-        message: '标签ID不能为空且必须为整数'
-      });
-    }
-
-    const log = await StudentLogService.recordGrowthLog(enrollmentId, tagId);
-    res.status(201).json(log);
-
-  } catch (error) {
-    console.error('记录成长标签路由错误:', error);
-    
-    if (error instanceof Error) {
-      if (error.message === '学生不在该班级中') {
-        return res.status(404).json({
-          message: '学生不在该班级中'
-        });
-      }
-      
-      if (error.message === '标签不存在') {
-        return res.status(404).json({
-          message: '标签不存在'
-        });
-      }
-    }
-    
-    res.status(500).json({
-      message: '记录成长标签失败'
-    });
-  }
-});
-
-/**
- * @route   GET /api/students/:publicId/report
- * @desc    获取指定学生的个人成长报告
- * @access  Private
- */
-router.get('/students/:publicId/report', async (req: Request, res: Response) => {
-  try {
-    const publicId = req.params.publicId;
-    const { startDate, endDate } = req.query;
-
-    // 输入验证
-    if (!publicId || typeof publicId !== 'string') {
-      return res.status(400).json({
-        message: '无效的学生学号'
-      });
-    }
-
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        message: '开始日期和结束日期不能为空'
-      });
-    }
-
-    // 验证日期格式
-    const start = new Date(startDate as string);
-    const end = new Date(endDate as string);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({
-        message: '日期格式无效'
-      });
-    }
-
-    if (start > end) {
-      return res.status(400).json({
-        message: '开始日期不能晚于结束日期'
-      });
-    }
-
-    // 设置结束日期到当天的最后一刻
-    end.setHours(23, 59, 59, 999);
-
-    const report = await StudentLogService.getStudentGrowthReportByPublicId(publicId, start, end);
-    res.status(200).json(report);
-
-  } catch (error) {
-    console.error('获取成长报告路由错误:', error);
-    
-    if (error instanceof Error) {
-      if (error.message === '学生不存在') {
-        return res.status(404).json({
-          message: '学生不存在'
-        });
-      }
-      
-      if (error.message === '学生未加入任何班级') {
-        return res.status(400).json({
-          message: '学生未加入任何班级'
-        });
-      }
-    }
-    
-    res.status(500).json({
-      message: '获取成长报告失败'
-    });
-  }
-});
+// ================================
+// 已废弃的成长标签功能 - 已迁移到Growth模块
+// ================================
+// 注意：以下端点已废弃，请使用新的Growth API：
+// POST /api/growth-logs - 记录成长标签
+// GET /api/students/:publicId/report - 获取成长报告
+// 
+// 新的API端点：
+// POST /api/growth/logs - 记录成长标签
+// GET /api/growth/students/by-public-id/:publicId/summary - 获取成长概况
 
 /**
  * @route   GET /api/students/growth-stats?ids=1,2,3

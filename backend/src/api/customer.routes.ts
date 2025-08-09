@@ -18,6 +18,18 @@ router.get('/', async (req: Request, res: Response) => {
     // 1. 从 req.query 中解析筛选和分页参数
     const { status, search, page, limit, unclassed, excludeClassId } = req.query;
 
+    // 🔍 安全处理搜索参数
+    let safeSearch: string | undefined = undefined;
+    if (search && typeof search === 'string') {
+      // 清理和验证搜索字符串
+      const cleanSearch = search.trim();
+      if (cleanSearch.length > 0 && cleanSearch.length <= 100) { // 限制长度
+        // 过滤掉可能危险的字符，但保留中文、字母、数字、空格、常用标点
+        safeSearch = cleanSearch.replace(/[<>'"\\;{}()]/g, '');
+        console.log(`🔍 搜索参数: 原始="${search}" 清理后="${safeSearch}"`);
+      }
+    }
+
     // 解析状态参数，支持逗号分隔的多状态
     let statusFilter: any = undefined;
     if (status) {
@@ -27,23 +39,31 @@ router.get('/', async (req: Request, res: Response) => {
 
     const filters = {
       status: statusFilter,
-      search: search as string,
+      search: safeSearch, // 使用清理后的搜索参数
       page: page ? parseInt(page as string) : undefined,
       limit: limit ? parseInt(limit as string) : undefined,
-      unclassed: unclassed === 'true', // 2. 解析 unclassed 参数
-      excludeClassId: excludeClassId ? parseInt(excludeClassId as string) : undefined // 3. 解析 excludeClassId 参数
+      unclassed: unclassed === 'true',
+      excludeClassId: excludeClassId ? parseInt(excludeClassId as string) : undefined
     };
+
+    console.log(`📋 客户查询参数:`, JSON.stringify(filters, null, 2));
 
     // 2. 调用 customerService.getCustomers
     const customers = await customerService.getCustomers(filters);
+
+    console.log(`✅ 客户查询成功: 返回 ${customers.length} 条记录`);
 
     // 3. 响应成功 (200) 并返回客户列表
     res.status(200).json(customers);
 
   } catch (error) {
-    console.error('获取客户列表路由错误:', error);
+    console.error('❌ 获取客户列表路由错误:', error);
+    console.error('❌ 错误堆栈:', error instanceof Error ? error.stack : 'Unknown error');
+    console.error('❌ 请求参数:', req.query);
+    
     res.status(500).json({
-      message: '获取客户列表失败'
+      message: '获取客户列表失败',
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     });
   }
 });
@@ -86,20 +106,29 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    if (!customerData.parents || !Array.isArray(customerData.parents) || customerData.parents.length === 0) {
+    if (!customerData.parents || !Array.isArray(customerData.parents)) {
+      customerData.parents = [];
+    }
+
+    // 清洗家长信息：允许不填写姓名，但至少需要一位家长的关系与联系方式
+    const sanitizedParents = (customerData.parents as any[])
+      .filter(p => p && (p.relationship || p.phone || p.name))
+      .map(p => ({
+        name: (p.name || '').toString().trim(),
+        relationship: (p.relationship || '').toString().trim(),
+        phone: (p.phone || '').toString().replace(/\D/g, ''),
+        wechatId: (p.wechatId || '').toString().trim() || undefined
+      }))
+      // 仅保留关系和联系方式至少有其一的记录（强制保存需要关系+电话的可在前端控制）
+      .filter(p => p.relationship && p.phone);
+
+    if (sanitizedParents.length === 0) {
       return res.status(400).json({
-        message: '至少需要提供一个家长信息'
+        message: '请至少提供一位家长的关系和联系方式'
       });
     }
 
-    // 验证家长信息
-    for (const parent of customerData.parents) {
-      if (!parent.name || !parent.relationship || !parent.phone) {
-        return res.status(400).json({
-          message: '家长姓名、关系和联系方式不能为空'
-        });
-      }
-    }
+    customerData.parents = sanitizedParents;
 
     // 3. 调用 customerService.createCustomer
     const newCustomer = await customerService.createCustomer(customerData);
@@ -111,6 +140,42 @@ router.post('/', async (req: Request, res: Response) => {
     console.error('创建客户路由错误:', error);
     res.status(500).json({
       message: '创建客户失败'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/customers/public/:publicId
+ * @desc    通过publicId获取单个客户的完整档案
+ * @access  Private
+ */
+router.get('/public/:publicId', async (req: Request, res: Response) => {
+  try {
+    // 1. 从 req.params.publicId 中获取客户publicId
+    const publicId = req.params.publicId;
+
+    if (!publicId || typeof publicId !== 'string') {
+      return res.status(400).json({
+        message: '无效的客户publicId'
+      });
+    }
+
+    // 2. 调用 customerService.getCustomerByPublicId
+    const customer = await customerService.getCustomerByPublicId(publicId);
+
+    // 3. 根据结果响应成功 (200) 或未找到 (404)
+    if (customer) {
+      res.status(200).json(customer);
+    } else {
+      res.status(404).json({
+        message: '客户不存在'
+      });
+    }
+
+  } catch (error) {
+    console.error('通过publicId获取客户档案路由错误:', error);
+    res.status(500).json({
+      message: '通过publicId获取客户档案失败'
     });
   }
 });

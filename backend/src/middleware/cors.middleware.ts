@@ -15,18 +15,14 @@ const developmentCorsOptions: cors.CorsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001', 
-      'http://localhost:5173',  // Vite默认端口
-      'http://localhost:5174',  // Vite备用端口
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-      // 特定IP地址
-      'http://198.18.0.1:5173',
-      'http://198.18.0.1:5174',
-      'http://192.168.0.216:5173',
-      'http://192.168.0.216:5174',
-      // 允许本地局域网IP访问
+      // 开发环境：支持所有517x端口 (Vite开发服务器)
+      /^http:\/\/localhost:517[0-9]$/,
+      /^http:\/\/127\.0\.0\.1:517[0-9]$/,
+      // 特定网络IP的517x端口支持
+      /^http:\/\/198\.18\.0\.1:517[0-9]$/,
+      /^http:\/\/192\.168\.0\.216:517[0-9]$/,
+      /^http:\/\/172\.23\.16\.1:517[0-9]$/,
+      // 允许本地局域网IP访问（任意端口）
       /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
       /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
       /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
@@ -70,14 +66,20 @@ const developmentCorsOptions: cors.CorsOptions = {
  */
 const productionCorsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
-    
-    // 生产环境必须明确指定允许的源
-    if (!origin && process.env.NODE_ENV === 'production') {
-      return callback(new Error('生产环境必须指定Origin'));
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
+
+    // 同源请求（浏览器不会发送 Origin）放行
+    if (!origin) {
+      return callback(null, true);
     }
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    // 未配置白名单时，临时放行所有来源，避免生产事故（建议尽快在 deploy.env 中设置 ALLOWED_ORIGINS）
+    if (allowedOrigins.length === 0) {
+      console.warn('警告: 未配置 ALLOWED_ORIGINS，已临时放开所有来源');
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.error(`生产环境CORS拒绝: ${origin}`);

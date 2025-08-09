@@ -56,10 +56,17 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getGradeLabel, getSourceChannelLabel } from '@/utils/enumMappings';
 
-import type { ClassStudent, Class, Customer } from '@/types/api';
+import type { ClassStudent, Class, Customer, Exam, ExamType, Subject } from '@/types/api';
 import * as studentLogApi from '@/api/studentLogApi';
-import GrowthTagManager from './components/GrowthTagManager';
-import { PREDEFINED_POSITIVE_TAGS, PREDEFINED_NEGATIVE_TAGS } from '@/constants/predefinedTags';
+import * as examApi from '@/api/examApi';
+import { exportGrowthLogsCsv, downloadFile as downloadBlob, generateTimestampedFilename } from '@/api/export';
+import { CreateExamModal, ExamHistoryModal } from './components/ExamManagementModals';
+import StudentCard from './components/StudentCard';
+import EnhancedGrowthTagSelector from './components/EnhancedGrowthTagSelector';
+import EnhancedGrowthTagManager from './components/EnhancedGrowthTagManager';
+import { useGrowthData } from '@/hooks/useGrowthData';
+import type { GrowthTag } from '@/api/growthApi';
+import { marginStyles } from '@/utils/styleUtils';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -78,189 +85,8 @@ const STUDENT_STATUS_LABELS: Record<string, { label: string; color: string }> = 
 };
 
 // ================================
-// 成长表现选择弹窗组件
+// 原有的GrowthTagSelector已被EnhancedGrowthTagSelector替换
 // ================================
-interface GrowthTagSelectorProps {
-  open: boolean;
-  student: ClassStudent;
-  growthTags: any[];
-  onSelect: (student: ClassStudent, tagId: number) => void;
-  onCancel: () => void;
-}
-
-const GrowthTagSelector: React.FC<GrowthTagSelectorProps> = ({
-  open,
-  student,
-  growthTags,
-  onSelect,
-  onCancel
-}) => {
-  const { theme } = useThemeStore();
-  const { isMobile } = useResponsive();
-  const screens = useBreakpoint();
-
-  const positiveTags = growthTags.filter(tag => tag.type === 'GROWTH_POSITIVE');
-  const negativeTags = growthTags.filter(tag => tag.type === 'GROWTH_NEGATIVE');
-
-  const handleTagClick = (tagId: number) => {
-    onSelect(student, tagId);
-    onCancel();
-  };
-
-  const renderTagGroup = (tags: any[], title: string, icon: React.ReactNode, color: string) => (
-    <div style={{ marginBottom: '24px' }}>
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        marginBottom: '16px',
-        paddingBottom: '8px',
-        borderBottom: `2px solid ${color}20`
-      }}>
-        {icon}
-        <Text strong style={{ 
-          fontSize: '16px', 
-          marginLeft: '8px',
-          color: color
-        }}>
-          {title}
-        </Text>
-        <Badge 
-          count={tags.length} 
-          style={{ 
-            backgroundColor: color,
-            marginLeft: '8px'
-          }} 
-          size="small"
-        />
-      </div>
-      <div style={{ 
-        display: 'grid',
-        gridTemplateColumns: isMobile 
-          ? 'repeat(2, 1fr)' 
-          : screens.lg 
-            ? 'repeat(4, 1fr)' 
-            : 'repeat(3, 1fr)',
-        gap: '12px'
-      }}>
-        {tags.map(tag => (
-          <Button
-            key={tag.id}
-            onClick={() => handleTagClick(tag.id)}
-            style={{
-              height: 'auto',
-              padding: '12px 16px',
-              textAlign: 'left',
-              whiteSpace: 'normal',
-              wordBreak: 'break-word',
-              backgroundColor: theme === 'dark' ? '#1f1f1f' : '#ffffff',
-              borderColor: color,
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderRadius: '8px',
-              transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '56px'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = `${color}10`;
-              e.currentTarget.style.borderColor = color;
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = `0 4px 12px ${color}30`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = theme === 'dark' ? '#1f1f1f' : '#ffffff';
-              e.currentTarget.style.borderColor = color;
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <Text style={{ 
-              fontSize: '14px',
-              fontWeight: 500,
-              color: theme === 'dark' ? '#ffffff' : '#000000',
-              lineHeight: '1.4'
-            }}>
-              {tag.text}
-            </Text>
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-
-  return (
-    <Modal
-      title={
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <Avatar 
-            size={40}
-            style={{ 
-              backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
-                             student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1'
-            }}
-          >
-            {student.name?.slice(-2) || '学生'}
-          </Avatar>
-          <div>
-            <Text strong style={{ fontSize: '16px' }}>
-              {student.name} - 成长表现记录
-            </Text>
-            <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
-              请选择今日的表现词条
-            </div>
-          </div>
-        </div>
-      }
-      open={open}
-      onCancel={onCancel}
-      footer={[
-        <Button key="cancel" onClick={onCancel} size="large">
-          取消
-        </Button>
-      ]}
-      width={isMobile ? '95%' : 900}
-      centered
-      styles={{
-        body: { 
-          padding: '24px',
-          maxHeight: '70vh',
-          overflow: 'auto'
-        }
-      }}
-      destroyOnClose
-    >
-      <div style={{ padding: '8px 0' }}>
-        {renderTagGroup(
-          positiveTags, 
-          '正面表现', 
-          <SmileOutlined style={{ fontSize: '18px', color: '#52c41a' }} />,
-          '#52c41a'
-        )}
-        
-        {renderTagGroup(
-          negativeTags, 
-          '需要改进', 
-          <FrownOutlined style={{ fontSize: '18px', color: '#ff4d4f' }} />,
-          '#ff4d4f'
-        )}
-        
-        {positiveTags.length === 0 && negativeTags.length === 0 && (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="暂无成长标签，请先在系统中添加标签"
-            style={{ margin: '40px 0' }}
-          />
-        )}
-      </div>
-    </Modal>
-  );
-};
 
 // ================================
 // 创建班级弹窗组件
@@ -632,7 +458,7 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
                         <Space split={<Divider type="vertical" />} size="small">
                           {student.school && (
                             <Text type="secondary" style={{ fontSize: '13px' }}>
-                              <BookOutlined style={{ marginRight: '4px' }} />
+                              <BookOutlined style={{ marginInlineEnd: '4px' }} />
                               {student.school}
                             </Text>
                           )}
@@ -793,234 +619,7 @@ const ReassignStudentModal: React.FC<ReassignStudentModalProps> = ({
   );
 };
 
-// ================================
-// 学生卡片组件
-// ================================
-interface StudentCardProps {
-  student: ClassStudent;
-  selectedRowKeys: React.Key[];
-  attendanceLoading: { [key: number]: string | null };
-  isCompleted: boolean;
-  onSelect: (enrollmentId: number, checked: boolean) => void;
-  onAttendance: (student: ClassStudent, status: string) => void;
-  onGrowthRecord: (student: ClassStudent) => void;
-  onMarkCompleted: (enrollmentId: number) => void;
-  onReassignToClass: (student: ClassStudent) => void;
-  onViewDetail: (student: ClassStudent) => void;
-}
-
-const StudentCard: React.FC<StudentCardProps> = ({
-  student,
-  selectedRowKeys,
-  attendanceLoading,
-  isCompleted,
-  onSelect,
-  onAttendance,
-  onGrowthRecord,
-  onMarkCompleted,
-  onReassignToClass,
-  onViewDetail
-}) => {
-  const { theme } = useThemeStore();
-  const { isMobile } = useResponsive();
-
-  const studentActions = [
-    {
-      key: 'view',
-      icon: <EyeOutlined />,
-      label: '查看详情',
-      onClick: () => onViewDetail(student)
-    },
-    {
-      key: 'divider1',
-      type: 'divider' as const
-    },
-    ...(isCompleted ? [
-      {
-        key: 'reassign',
-        icon: <UserSwitchOutlined />,
-        label: '重新分配班级',
-        onClick: () => onReassignToClass(student)
-      }
-    ] : [
-      {
-        key: 'complete',
-        icon: <BookFilled />,
-        label: '标记为已完课',
-        onClick: () => onMarkCompleted(student.enrollmentId)
-      }
-    ])
-  ];
-
-  return (
-    <Card
-      size="small"
-      title={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Space>
-            <Checkbox
-              checked={selectedRowKeys.includes(student.enrollmentId)}
-              onChange={(e) => onSelect(student.enrollmentId, e.target.checked)}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <Avatar 
-              size={isMobile ? 28 : 32}
-              style={{ 
-                backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
-                               student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1',
-                opacity: isCompleted ? 0.6 : 1,
-                fontSize: isMobile ? '12px' : '14px'
-              }}
-            >
-              {student.name?.slice(-2) || '学生'}
-            </Avatar>
-            <span style={{ 
-              opacity: isCompleted ? 0.6 : 1,
-              fontSize: isMobile ? '13px' : '14px',
-              fontWeight: 500
-            }}>
-              {student.name}
-            </span>
-            {isCompleted && (
-              <Tag color="orange" style={{ fontSize: isMobile ? '10px' : '12px' }}>已完课</Tag>
-            )}
-          </Space>
-          <Dropdown 
-            menu={{ items: studentActions }}
-            trigger={['click']}
-            placement="bottomRight"
-          >
-            <Button
-              type="text"
-              size="small"
-              icon={<MoreOutlined />}
-              style={{
-                fontSize: isMobile ? '12px' : '14px'
-              }}
-            />
-          </Dropdown>
-        </div>
-      }
-      style={{
-        height: isMobile ? '200px' : '220px',
-        borderColor: selectedRowKeys.includes(student.enrollmentId) ? '#1890ff' : undefined,
-        opacity: isCompleted ? 0.8 : 1
-      }}
-      bodyStyle={{ padding: isMobile ? '8px' : '12px' }}
-    >
-      {/* 学生信息 */}
-      <div style={{ 
-        marginBottom: isMobile ? '8px' : '12px', 
-        fontSize: isMobile ? '11px' : '12px', 
-        color: '#8c8c8c' 
-      }}>
-        <Space split={<Divider type="vertical" />} size="small">
-          {student.school && <span>{student.school}</span>}
-          {student.grade && (
-            <span>{getGradeLabel(student.grade)}</span>
-          )}
-        </Space>
-      </div>
-
-      {/* 签到按钮 */}
-      <div style={{ marginBottom: isMobile ? '8px' : '12px' }}>
-        <Space direction="vertical" size="small" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', gap: isMobile ? '3px' : '4px' }}>
-            <Button 
-              size="small" 
-              disabled={isCompleted}
-              style={{ 
-                flex: 1, 
-                fontSize: isMobile ? '10px' : '11px',
-                height: isMobile ? '26px' : '28px'
-              }}
-              type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'PRESENT' ? 'primary' : 'default'}
-              loading={attendanceLoading[student.enrollmentId] === 'PRESENT'}
-              onClick={() => onAttendance(student, 'PRESENT')}
-            >
-              出席
-            </Button>
-            <Button 
-              size="small" 
-              disabled={isCompleted}
-              style={{ 
-                flex: 1, 
-                fontSize: isMobile ? '10px' : '11px',
-                height: isMobile ? '26px' : '28px'
-              }}
-              type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'LATE' ? 'primary' : 'default'}
-              loading={attendanceLoading[student.enrollmentId] === 'LATE'}
-              onClick={() => onAttendance(student, 'LATE')}
-            >
-              迟到
-            </Button>
-          </div>
-          <div style={{ display: 'flex', gap: isMobile ? '3px' : '4px' }}>
-            <Button 
-              size="small" 
-              disabled={isCompleted}
-              style={{ 
-                flex: 1, 
-                fontSize: isMobile ? '10px' : '11px',
-                height: isMobile ? '26px' : '28px'
-              }}
-              type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'ABSENT' ? 'primary' : 'default'}
-              loading={attendanceLoading[student.enrollmentId] === 'ABSENT'}
-              onClick={() => onAttendance(student, 'ABSENT')}
-            >
-              请假
-            </Button>
-            <Button 
-              size="small" 
-              disabled={isCompleted}
-              style={{ 
-                flex: 1, 
-                fontSize: isMobile ? '10px' : '11px',
-                height: isMobile ? '26px' : '28px'
-              }}
-              type={student.todayAttendance?.[new Date().getHours() < 12 ? 'AM' : 'PM'] === 'NO_SHOW' ? 'primary' : 'default'}
-              loading={attendanceLoading[student.enrollmentId] === 'NO_SHOW'}
-              onClick={() => onAttendance(student, 'NO_SHOW')}
-            >
-              缺席
-            </Button>
-          </div>
-        </Space>
-      </div>
-
-      {/* 成长表现选择 */}
-      <div style={{ 
-        borderTop: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`, 
-        paddingTop: isMobile ? '6px' : '8px'
-      }}>
-        <div style={{ 
-          fontSize: isMobile ? '10px' : '11px', 
-          color: theme === 'dark' ? '#a0a0a0' : '#8c8c8c', 
-          marginBottom: isMobile ? '4px' : '6px'
-        }}>
-          成长表现
-        </div>
-        <Button
-          size="small"
-          disabled={isCompleted}
-          style={{ 
-            width: '100%',
-            height: isMobile ? '28px' : '32px',
-            borderRadius: '6px',
-            borderStyle: 'dashed',
-            borderColor: isCompleted ? '#d9d9d9' : '#1890ff',
-            color: isCompleted ? '#bfbfbf' : '#1890ff',
-            fontSize: isMobile ? '11px' : '12px'
-          }}
-          icon={<StarOutlined />}
-          onClick={() => onGrowthRecord(student)}
-        >
-          记录表现
-        </Button>
-      </div>
-    </Card>
-  );
-};
+// StudentCard组件已移动到独立文件 ./components/StudentCard.tsx
 
 // ================================
 // 主组件：学生成长日志页面
@@ -1042,10 +641,10 @@ const StudentLogPage: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [classStudentsMap, setClassStudentsMap] = useState<Record<number, ClassStudent[]>>({});
   
-  // 分页状态
+  // 分页状态 - 响应式调整每页数量
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 16, // 默认每页16个学生卡片 (4x4网格)
+    pageSize: isMobile ? 8 : 12, // 移动端8个，桌面端12个
     total: 0,
   });
   
@@ -1089,12 +688,28 @@ const StudentLogPage: React.FC = () => {
   const [addStudentsLoading, setAddStudentsLoading] = useState(false);
   const [reassignStudentLoading, setReassignStudentLoading] = useState(false);
   const [attendanceLoading, setAttendanceLoading] = useState<{ [key: number]: string | null }>({});
-  const [growthTags, setGrowthTags] = useState<any[]>([]);
+  // Growth数据管理 - 使用新的Hook替换原有状态
+  const {
+    growthTags,
+    loading: growthLoading,
+    recordGrowthLog: recordGrowthLogApi,
+    loadGrowthTags
+  } = useGrowthData();
   
   // 成长标签选择弹窗状态
   const [growthTagSelectorOpen, setGrowthTagSelectorOpen] = useState(false);
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<ClassStudent | null>(null);
+  
+  // 考试管理相关状态
+  const [examModalVisible, setExamModalVisible] = useState(false);
+  const [examHistoryVisible, setExamHistoryVisible] = useState(false);
+  const [examCreateLoading, setExamCreateLoading] = useState(false);
+  const [examMetadata, setExamMetadata] = useState<{
+    subjects: Array<{ value: string; label: string }>;
+    examTypes: Array<{ value: string; label: string }>;
+  } | null>(null);
+  const [classExams, setClassExams] = useState<Exam[]>([]);
 
   // 搜索防抖
   const debouncedSearchKeyword = useDebounce(searchKeyword, 300);
@@ -1109,7 +724,8 @@ const StudentLogPage: React.FC = () => {
       Object.values(s.todayAttendance).some(status => status === 'PRESENT')
     ).length;
     const completedCount = students.filter(s => completedStudents.has(s.enrollmentId)).length;
-    const todayGrowthLogs = Math.floor(Math.random() * 30 + 10);
+    // 去除随机“今日成长记录数”，等待真实统计API接入
+    const todayGrowthLogs = 0;
 
     return {
       totalClasses,
@@ -1198,26 +814,12 @@ const StudentLogPage: React.FC = () => {
     }
   }, [classes, completedStudents, antMessage]);
 
-  const loadGrowthTags = useCallback(async () => {
-    try {
-      const tags = await studentLogApi.getGrowthTags('all');
-      const allowedSet = new Set<string>([...PREDEFINED_POSITIVE_TAGS, ...PREDEFINED_NEGATIVE_TAGS]);
-      const growthTagsOnly = tags.filter(tag => {
-        const isGrowthType = tag.type === 'GROWTH_POSITIVE' || tag.type === 'GROWTH_NEGATIVE';
-        if (!isGrowthType) return false;
-        if (!tag.isPredefined) return true; // 全局自定义或个人标签
-        return allowedSet.has(tag.text); // 仅保留工作流文档允许的预设词
-      });
-      setGrowthTags(growthTagsOnly);
-    } catch (error) {
-      console.error('加载成长标签失败:', error);
-    }
-  }, []);
+  // 原有的loadGrowthTags函数已被Hook替换，删除重复定义
 
-  // 初始化
+  // 初始化 - Growth标签通过Hook自动加载
   useEffect(() => {
-    Promise.all([loadClasses(), loadGrowthTags()]);
-  }, [loadClasses, loadGrowthTags]);
+    loadClasses();
+  }, [loadClasses]);
 
   useEffect(() => {
     if (classes.length > 0) {
@@ -1371,25 +973,37 @@ const StudentLogPage: React.FC = () => {
     }
   };
 
-  const handleGrowthRecord = async (student: ClassStudent, tagId: number) => {
+  // 增强版Growth记录处理函数 - 支持权重和上下文
+  const handleEnhancedGrowthRecord = async (
+    student: ClassStudent, 
+    tagId: number, 
+    weight?: number, 
+    context?: string
+  ) => {
     if (completedStudents.has(student.enrollmentId)) {
       antMessage.warning('已完课学生无法记录成长表现');
       return;
     }
 
     try {
-      await studentLogApi.recordGrowthLog({
+      await recordGrowthLogApi({
         enrollmentId: student.enrollmentId,
-        tagId
+        tagId,
+        weight,
+        context
       });
       
-      const tag = growthTags.find(t => t.id === tagId);
-      antMessage.success(`添加"${tag?.text}"成功`);
+      // 刷新学生列表以显示最新数据
       loadStudents(selectedClassId, debouncedSearchKeyword);
     } catch (error) {
-      console.error('添加成长记录失败:', error);
-      antMessage.error('添加成长记录失败');
+      console.error('记录成长日志失败:', error);
+      // 错误信息通过Hook已经显示，这里不重复显示
     }
+  };
+
+  // 保留原有函数以兼容其他调用（如果有的话）
+  const handleGrowthRecord = async (student: ClassStudent, tagId: number) => {
+    return handleEnhancedGrowthRecord(student, tagId);
   };
 
   const handleOpenGrowthTagSelector = (student: ClassStudent) => {
@@ -1400,6 +1014,137 @@ const StudentLogPage: React.FC = () => {
     setSelectedStudent(student);
     setGrowthTagSelectorOpen(true);
   };
+
+  // ================================
+  // 考试管理处理函数
+  // ================================
+  
+  // 加载考试元数据
+  const loadExamMetadata = useCallback(async () => {
+    try {
+      const metadata = await examApi.getExamMetadata();
+      setExamMetadata(metadata);
+    } catch (error) {
+      console.error('加载考试元数据失败:', error);
+      antMessage.error('加载考试元数据失败');
+    }
+  }, [antMessage]);
+
+  // 加载班级考试列表
+  const loadClassExams = useCallback(async (classId: number, filters?: any) => {
+    try {
+      const exams = await examApi.getClassExams(classId, filters);
+      setClassExams(exams);
+    } catch (error) {
+      console.error('加载班级考试失败:', error);
+      antMessage.error('加载班级考试失败');
+    }
+  }, [antMessage]);
+
+  // 创建考试
+  const handleCreateExam = useCallback(async (values: any) => {
+    if (!selectedClassId || selectedClassId === 'all' || selectedClassId === 'completed') {
+      antMessage.error('请先选择具体班级');
+      return;
+    }
+
+    // 验证所选班级是否存在
+    const classIdNum = parseInt(selectedClassId);
+    const selectedClass = classes.find(c => c.id === classIdNum);
+    if (!selectedClass) {
+      antMessage.error('所选班级无效，请重新选择班级');
+      return;
+    }
+
+    setExamCreateLoading(true);
+    try {
+      const result = await examApi.createExam(values);
+      antMessage.success(`考试创建成功！为 ${result.studentCount} 名学生创建了 ${result.subjectCount} 个科目的成绩记录`);
+      setExamModalVisible(false);
+      
+      // 重新加载班级考试列表
+      await loadClassExams(parseInt(selectedClassId));
+      
+      // 自动跳转到考试详情页面
+      navigate(`/student-log/exam/${result.exam.id}`);
+    } catch (error: any) {
+      console.error('创建考试失败:', error);
+      antMessage.error(error.message || '创建考试失败');
+    } finally {
+      setExamCreateLoading(false);
+    }
+  }, [selectedClassId, antMessage, loadClassExams, classes]);
+
+  // 打开往期考试弹窗
+  const handleOpenExamHistory = useCallback(async () => {
+    if (!selectedClassId || selectedClassId === 'all' || selectedClassId === 'completed') {
+      antMessage.error('请先选择具体班级');
+      return;
+    }
+
+    setExamHistoryVisible(true);
+    await loadClassExams(parseInt(selectedClassId));
+  }, [selectedClassId, antMessage, loadClassExams]);
+
+  // 处理考试搜索  
+  const handleExamSearch = useCallback(async (filters: {
+    name?: string;
+    examType?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    if (!selectedClassId || selectedClassId === 'all' || selectedClassId === 'completed') {
+      return;
+    }
+
+    try {
+      // 转换examType为正确的枚举类型
+      const examFilters: any = { ...filters };
+      if (filters.examType) {
+        examFilters.examType = filters.examType as any;
+      }
+      await loadClassExams(parseInt(selectedClassId), examFilters);
+    } catch (error) {
+      console.error('搜索考试失败:', error);
+      antMessage.error('搜索考试失败');
+    }
+  }, [selectedClassId, loadClassExams, antMessage]);
+
+  // 查看考试详情
+  const handleExamClick = useCallback((exam: Exam) => {
+    navigate(`/student-log/exam/${exam.id}`, {
+      state: { from: '/student-log' }
+    });
+  }, [navigate]);
+
+  // 删除考试
+  const handleDeleteExam = useCallback(async (examId: number) => {
+    confirm({
+      title: '确认删除考试',
+      content: '删除后将无法恢复，但已录入的成绩数据会保留。确定要删除这场考试吗？',
+      okText: '确定删除',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await examApi.deleteExam(examId);
+          antMessage.success('考试删除成功');
+          
+          // 重新加载班级考试列表
+          if (selectedClassId && selectedClassId !== 'all' && selectedClassId !== 'completed') {
+            await loadClassExams(parseInt(selectedClassId));
+          }
+        } catch (error: any) {
+          console.error('删除考试失败:', error);
+          antMessage.error(error.message || '删除考试失败');
+        }
+      }
+    });
+  }, [selectedClassId, antMessage, loadClassExams]);
+
+  // 初始化考试元数据
+  useEffect(() => {
+    loadExamMetadata();
+  }, [loadExamMetadata]);
 
   const handleMarkCompleted = useCallback((enrollmentId: number) => {
     confirm({
@@ -1502,9 +1247,8 @@ const StudentLogPage: React.FC = () => {
 
   const handleExport = useCallback(async () => {
     try {
-      const blob = await studentLogApi.exportGrowthLogs();
-      const filename = studentLogApi.generateTimestampedFilename('学生成长记录', 'csv');
-      studentLogApi.downloadFile(blob, filename);
+      const blob = await exportGrowthLogsCsv();
+      downloadBlob(blob, generateTimestampedFilename('学生成长记录'));
       antMessage.success('数据导出成功');
     } catch (error) {
       console.error('导出数据失败:', error);
@@ -1606,7 +1350,7 @@ const StudentLogPage: React.FC = () => {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 页面标题 */}
         <div>
-          <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
+          <Title level={2} style={{ margin: '0 0 8px 0' }}>
             学生成长日志
           </Title>
           <Text type="secondary">
@@ -1757,6 +1501,36 @@ const StudentLogPage: React.FC = () => {
                     fontSize: isMobile ? '13px' : '16px'
                   }}
                 />
+                
+                {/* 考试管理 - 只在选择具体班级时显示 */}
+                {selectedClassId !== 'all' && selectedClassId !== 'completed' && (
+                  <>
+                    <Divider />
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Button
+                        type="primary"
+                        icon={<BookOutlined />}
+                        onClick={() => setExamModalVisible(true)}
+                        block
+                        size={isMobile ? 'small' : 'middle'}
+                        style={{
+                          backgroundColor: '#52c41a',
+                          borderColor: '#52c41a'
+                        }}
+                      >
+                        添加考试记录
+                      </Button>
+                      <Button
+                        icon={<BarChartOutlined />}
+                        onClick={handleOpenExamHistory}
+                        block
+                        size={isMobile ? 'small' : 'middle'}
+                      >
+                        查看往期考试
+                      </Button>
+                    </Space>
+                  </>
+                )}
               </Card>
 
               {/* 数据追踪报告 */}
@@ -1878,40 +1652,50 @@ const StudentLogPage: React.FC = () => {
                 />
               ) : (
                 <>
-                  {/* 学生列表 */}
-                  <List
-                    grid={{
-                      gutter: isMobile ? 12 : 16,
-                      xs: 1,
-                      sm: 1,
-                      md: 2,
-                      lg: 2,
-                      xl: 3,
-                      xxl: 4
-                    }}
-                    dataSource={paginatedStudents}
-                    renderItem={(student) => (
-                      <List.Item>
-                        <StudentCard
-                          student={student}
-                          selectedRowKeys={selectedRowKeys}
-                          attendanceLoading={attendanceLoading}
-                          isCompleted={completedStudents.has(student.enrollmentId)}
-                          onSelect={(enrollmentId, checked) => {
-                            const newSelectedRowKeys = checked
-                              ? [...selectedRowKeys, enrollmentId]
-                              : selectedRowKeys.filter(key => key !== enrollmentId);
-                            setSelectedRowKeys(newSelectedRowKeys);
-                          }}
-                          onAttendance={handleAttendance}
-                          onGrowthRecord={handleOpenGrowthTagSelector}
-                          onMarkCompleted={handleMarkCompleted}
-                          onReassignToClass={handleReassignToClass}
-                          onViewDetail={(student) => navigate(`/student-log/report/${student.id}`)}
-                        />
-                      </List.Item>
-                    )}
-                  />
+                  {/* 学生卡片网格 */}
+                  <Row 
+                    gutter={[
+                      isMobile ? 8 : 16, 
+                      isMobile ? 12 : 16
+                    ]}
+                    style={{ margin: 0 }}
+                  >
+                    {paginatedStudents.map((student) => (
+                      <Col
+                        key={student.enrollmentId}
+                        xs={24}
+                        sm={12}
+                        md={12}
+                        lg={8}
+                        xl={6}
+                        xxl={6}
+                        style={{ 
+                          display: 'flex',
+                          marginBottom: isMobile ? 8 : 12
+                        }}
+                      >
+                        <div style={{ width: '100%' }}>
+                          <StudentCard
+                            student={student}
+                            selectedRowKeys={selectedRowKeys}
+                            attendanceLoading={attendanceLoading}
+                            isCompleted={completedStudents.has(student.enrollmentId)}
+                            onSelect={(enrollmentId, checked) => {
+                              const newSelectedRowKeys = checked
+                                ? [...selectedRowKeys, enrollmentId]
+                                : selectedRowKeys.filter(key => key !== enrollmentId);
+                              setSelectedRowKeys(newSelectedRowKeys);
+                            }}
+                            onAttendance={handleAttendance}
+                            onGrowthRecord={handleOpenGrowthTagSelector}
+                            onMarkCompleted={handleMarkCompleted}
+                            onReassignToClass={handleReassignToClass}
+                            onViewDetail={(student) => navigate(`/student-log/report/${student.publicId}`)}
+                          />
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
 
                   {/* 分页组件 */}
                   {students.length > pagination.pageSize && (
@@ -1932,7 +1716,7 @@ const StudentLogPage: React.FC = () => {
                           `${range[0]}-${range[1]} / ${total}` :
                           `第 ${range[0]}-${range[1]} 条，共 ${total} 名学生`
                         }
-                        pageSizeOptions={['8', '16', '24', '32']}
+                        pageSizeOptions={isMobile ? ['4', '8', '12'] : ['8', '12', '16', '24']}
                         style={{ 
                           padding: isMobile ? '8px 0' : '16px 0'
                         }}
@@ -2031,22 +1815,52 @@ const StudentLogPage: React.FC = () => {
           }}
         />
 
-        {/* 成长标签选择弹窗 */}
+        {/* 增强版成长标签选择弹窗 */}
         {selectedStudent && (
-          <GrowthTagSelector
+          <EnhancedGrowthTagSelector
             open={growthTagSelectorOpen}
-            student={selectedStudent as any}
+            student={selectedStudent}
             growthTags={growthTags}
-            onSelect={handleGrowthRecord}
+            onSelect={handleEnhancedGrowthRecord}
             onCancel={() => setGrowthTagSelectorOpen(false)}
           />
         )}
 
-        <GrowthTagManager
+        {/* 增强版Growth标签管理器 */}
+        <EnhancedGrowthTagManager
           open={tagManagerOpen}
-          tags={growthTags}
           onClose={() => setTagManagerOpen(false)}
-          onTagsUpdate={(tags)=>setGrowthTags(tags)}
+        />
+
+        {/* 考试管理Modal组件 */}
+        <CreateExamModal
+          open={examModalVisible}
+          loading={examCreateLoading}
+          classId={selectedClassId !== 'all' && selectedClassId !== 'completed' ? parseInt(selectedClassId) : 0}
+          className={
+            selectedClassId !== 'all' && selectedClassId !== 'completed' 
+              ? classes.find(c => c.id.toString() === selectedClassId)?.name || ''
+              : ''
+          }
+          examMetadata={examMetadata}
+          onOk={handleCreateExam}
+          onCancel={() => setExamModalVisible(false)}
+        />
+
+        <ExamHistoryModal
+          open={examHistoryVisible}
+          classId={parseInt(selectedClassId || '0')}
+          className={
+            selectedClassId !== 'all' && selectedClassId !== 'completed'
+              ? classes.find(c => c.id.toString() === selectedClassId)?.name || ''
+              : ''
+          }
+          exams={classExams}
+          loading={loading}
+          onCancel={() => setExamHistoryVisible(false)}
+          onExamClick={handleExamClick}
+          onDeleteExam={handleDeleteExam}
+          onSearch={handleExamSearch}
         />
       </Space>
     </div>

@@ -116,16 +116,11 @@ const LoginPage: React.FC = () => {
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
-            欢迎登录
+            自然教育
           </Title>
           <Text type="secondary">
             请输入您的账号信息
           </Text>
-          <div style={{ marginTop: 12, padding: '8px 16px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: '4px' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              💡 演示账号: <strong>admin</strong> / <strong>Bai==1001</strong>
-            </Text>
-          </div>
         </div>
 
         <Form
@@ -199,4 +194,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

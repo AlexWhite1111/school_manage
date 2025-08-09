@@ -1,12 +1,11 @@
 // src/services/excel.service.ts
 import * as XLSX from 'xlsx';
 import * as ExcelJS from 'exceljs';
-import { PrismaClient, CustomerStatus, Gender, Grade, SourceChannel } from '@prisma/client';
+import { CustomerStatus, Gender, Grade, SourceChannel } from '@prisma/client';
 import { generateUniquePublicId } from '../utils/idGenerator';
 import path from 'path';
 import fs from 'fs';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/database';
 
 // ================================
 // 数据模板和映射
@@ -354,11 +353,7 @@ export async function exportCustomersToExcel(filters?: {
           orderBy: { createdAt: 'desc' },
           take: 1
         },
-        enrollments: {
-          include: {
-            growthLogs: true
-          }
-        }
+        enrollments: true
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -369,10 +364,7 @@ export async function exportCustomersToExcel(filters?: {
       const parent1 = parents[0];
       const parent2 = parents[1];
       
-      const totalGrowthLogs = customer.enrollments.reduce(
-        (sum, enrollment) => sum + enrollment.growthLogs.length, 
-        0
-      );
+      const totalGrowthLogs = 0; // Growth logs removed
       
       const lastActivity = customer.communicationLogs[0]?.createdAt || customer.createdAt;
       

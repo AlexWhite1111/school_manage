@@ -3,7 +3,6 @@
 // It is responsible for setting up middleware (CORS, Helmet, JSON parser) and mounting the API routes.
 
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import apiRoutes from './api';
@@ -21,7 +20,7 @@ app.use(helmet());
 app.use(networkInfoMiddleware);
 app.use(detectNetworkType);
 
-// 动态CORS配置
+// 动态CORS配置（集中在 cors.middleware.ts 使用 cors 包）
 app.use(dynamicCors);
 
 // Body parsing middleware

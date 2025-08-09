@@ -1,6 +1,7 @@
 // src/api/finance.routes.ts
 import { Router, Request, Response } from 'express';
 import * as FinanceService from '../services/finance.service';
+import * as AnalyticsService from '../services/analytics.service';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -28,21 +29,54 @@ router.get('/student-summaries', async (req: Request, res: Response) => {
 });
 
 /**
- * @route   GET /api/finance/students/:id/details
- * @desc    获取单个学生的详细财务信息
+ * @route   GET /api/finance/students/public/:publicId/details
+ * @desc    通过publicId获取单个学生的详细财务信息
  * @access  Private
  */
-router.get('/students/:id/details', async (req: Request, res: Response) => {
+router.get('/students/public/:publicId/details', async (req: Request, res: Response) => {
   try {
-    const studentId = parseInt(req.params.id, 10);
+    const publicId = req.params.publicId;
 
-    if (isNaN(studentId)) {
+    if (!publicId || typeof publicId !== 'string') {
       return res.status(400).json({
-        message: '无效的学生ID'
+        message: '无效的学生publicId'
       });
     }
 
-    const details = await FinanceService.getStudentFinanceDetails(studentId);
+    const details = await FinanceService.getStudentFinanceDetailsByPublicId(publicId);
+    res.status(200).json(details);
+
+  } catch (error) {
+    console.error('通过publicId获取学生财务详情路由错误:', error);
+    
+    if (error instanceof Error && error.message === '学生不存在') {
+      return res.status(404).json({
+        message: '学生不存在'
+      });
+    }
+    
+    res.status(500).json({
+      message: '通过publicId获取学生财务详情失败'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/finance/students/by-public-id/:publicId/details
+ * @desc    获取单个学生的详细财务信息
+ * @access  Private
+ */
+router.get('/students/by-public-id/:publicId/details', async (req: Request, res: Response) => {
+  try {
+    const { publicId } = req.params;
+
+    if (!publicId || typeof publicId !== 'string') {
+      return res.status(400).json({
+        message: '无效的学生公开ID'
+      });
+    }
+
+    const details = await FinanceService.getStudentFinanceDetailsByPublicId(publicId);
     res.status(200).json(details);
 
   } catch (error) {
@@ -67,12 +101,12 @@ router.get('/students/:id/details', async (req: Request, res: Response) => {
  */
 router.post('/orders', async (req: Request, res: Response) => {
   try {
-    const { studentId, name, totalDue, dueDate, coursePeriodStart, coursePeriodEnd } = req.body;
+    const { publicId, name, totalDue, dueDate, coursePeriodStart, coursePeriodEnd } = req.body;
 
     // 输入验证
-    if (!studentId || !Number.isInteger(studentId)) {
+    if (!publicId || typeof publicId !== 'string') {
       return res.status(400).json({
-        message: '学生ID不能为空且必须为整数'
+        message: '学生公开ID不能为空'
       });
     }
 
@@ -108,7 +142,7 @@ router.post('/orders', async (req: Request, res: Response) => {
     }
 
     const orderData = { name: name.trim(), totalDue, dueDate, coursePeriodStart, coursePeriodEnd };
-    const newOrder = await FinanceService.createOrderForStudent(studentId, orderData);
+    const newOrder = await FinanceService.createOrderForStudentByPublicId(publicId, orderData);
     res.status(201).json(newOrder);
 
   } catch (error) {
@@ -373,3 +407,24 @@ router.delete('/payments/:paymentId', async (req: Request, res: Response) => {
 });
 
 export default router; 
+
+// 兼容路由：提供 /api/finance/summary，等价于 /api/analytics/finance/summary
+router.get('/summary', async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: '开始日期和结束日期不能为空' });
+    }
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: '日期格式无效' });
+    }
+    console.log('📈 兼容财务汇总请求参数:', { startDate, endDate });
+    const data = await AnalyticsService.getFinanceAnalyticsSummary({ startDate: start, endDate: end });
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('获取兼容财务分析汇总错误:', error);
+    res.status(500).json({ message: '获取财务分析汇总失败' });
+  }
+});

@@ -202,9 +202,7 @@ const ProfilePage: React.FC = () => {
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate(-1)}
             style={{ marginBottom: 16 }}
-          >
-            返回
-          </Button>
+          />
           <Title level={2}>个人中心</Title>
         </div>
 

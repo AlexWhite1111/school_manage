@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Result } from 'antd';
-import { LockOutlined, SafetyOutlined } from '@ant-design/icons';
+import { LockOutlined, SafetyOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { resetPassword } from '@/api/authApi';
 
@@ -183,7 +183,9 @@ const ResetPasswordPage: React.FC = () => {
 
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
-            <Link to="/login" style={{ color: '#1890ff' }}>返回登录</Link>
+            <Link to="/login" style={{ color: '#1890ff' }}>
+              <ArrowLeftOutlined /> 登录
+            </Link>
             {' · '}
             <Link to="/forgot-password" style={{ color: '#1890ff' }}>重新获取令牌</Link>
           </Text>

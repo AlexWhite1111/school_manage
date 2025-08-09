@@ -126,9 +126,8 @@ export const registerUser = async (data: RegisterUserRequest): Promise<User> => 
  * 请求密码重置
  * @route POST /auth/forgot-password
  */
-export const forgotPassword = async (data: ForgotPasswordRequest): Promise<{ resetToken: string }> => {
-  const response = await apiClient.post<{ message: string; resetToken: string }>('/auth/forgot-password', data);
-  return { resetToken: response.data.resetToken };
+export const forgotPassword = async (data: ForgotPasswordRequest): Promise<void> => {
+  await apiClient.post<{ message: string }>('/auth/forgot-password', data);
 };
 
 /**

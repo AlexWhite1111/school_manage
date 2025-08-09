@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "prisma/seed.ts"],
+  "include": ["src/**/*", "prisma/seed-growth.ts", "prisma/seed-admin.ts"],
   "exclude": ["node_modules"]
 } 

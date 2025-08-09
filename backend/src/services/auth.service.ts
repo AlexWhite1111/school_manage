@@ -1,12 +1,12 @@
 // src/services/auth.service.ts
 // 该文件包含用户认证的核心业务逻辑，例如处理登录请求。
 
-import { PrismaClient, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
+import { prisma } from '../utils/database';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../utils/jwt';
 import crypto from 'crypto';
 
-const prisma = new PrismaClient();
 
 /**
  * @description 处理用户登录逻辑

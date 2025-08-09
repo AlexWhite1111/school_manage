@@ -1,6 +1,7 @@
 // src/services/analytics.service.ts
 import { CustomerStatus, TagType } from '@prisma/client';
 import { prisma } from '../utils/database';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // ================================
 // 接口定义
@@ -18,6 +19,23 @@ interface StudentGrowthFilters {
   endDate: Date;
   classId?: number;
   gradeLevel?: string;
+}
+
+interface FinanceFilters {
+  startDate: Date;
+  endDate: Date;
+}
+
+interface FinanceSummary {
+  keyMetrics: {
+    totalReceived: number;
+    totalDue: number;
+    totalOutstanding: number;
+  };
+  revenueTrend: Array<{ date: string; amount: number }>;
+  dueTrend: Array<{ date: string; amount: number }>;
+  outstandingByStatus: Array<{ status: 'PAID_FULL' | 'PARTIAL_PAID' | 'UNPAID'; count: number }>;
+  topDebtors: Array<{ studentId: number; studentName: string; totalOwed: number }>;
 }
 
 // ================================
@@ -451,24 +469,138 @@ export const getStudentGrowthAnalysis = async (studentId: number, filters: Stude
   };
 };
 
+// ================================
+// 财务分析
+// ================================
+
+/**
+ * 获取财务分析汇总
+ */
+export const getFinanceAnalyticsSummary = async (
+  filters: FinanceFilters
+) => {
+  const { startDate, endDate } = filters;
+
+  // 1) 收入（收款）趋势和总额
+  const payments = await prisma.payment.findMany({
+    where: {
+      paymentDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
+
+  const totalReceivedDecimal = payments.reduce((sum, p) => sum.plus(p.amount), new Decimal(0));
+
+  const revenueMap = new Map<string, Decimal>();
+  payments.forEach((p) => {
+    const day = p.paymentDate.toISOString().split('T')[0];
+    if (!revenueMap.has(day)) revenueMap.set(day, new Decimal(0));
+    revenueMap.set(day, revenueMap.get(day)!.plus(p.amount));
+  });
+
+  const revenueTrend = Array.from(revenueMap.entries())
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([date, amount]) => ({ date, amount: parseFloat(amount.toString()) }));
+
+  // 2) 应收趋势和总额（按订单到期日统计）
+  const ordersDueInRange = await prisma.financialOrder.findMany({
+    where: {
+      dueDate: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
+
+  const totalDueDecimal = ordersDueInRange.reduce(
+    (sum, o) => sum.plus(o.totalDue),
+    new Decimal(0)
+  );
+
+  const dueMap = new Map<string, Decimal>();
+  ordersDueInRange.forEach((o) => {
+    if (!o.dueDate) return;
+    const day = o.dueDate.toISOString().split('T')[0];
+    if (!dueMap.has(day)) dueMap.set(day, new Decimal(0));
+    dueMap.set(day, dueMap.get(day)!.plus(o.totalDue));
+  });
+
+  const dueTrend = Array.from(dueMap.entries())
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([date, amount]) => ({ date, amount: parseFloat(amount.toString()) }));
+
+  // 3) 欠款与状态分布、Top 欠款学生
+  const allOrders = await prisma.financialOrder.findMany({
+    include: { payments: true, student: true },
+  });
+
+  let totalOutstanding = new Decimal(0);
+  const statusCount: Record<'PAID_FULL' | 'PARTIAL_PAID' | 'UNPAID', number> = {
+    PAID_FULL: 0,
+    PARTIAL_PAID: 0,
+    UNPAID: 0,
+  };
+
+  const studentOwedMap = new Map<number, { name: string; owed: Decimal }>();
+
+  allOrders.forEach((order) => {
+    const paid = order.payments.reduce((s, p) => s.plus(p.amount), new Decimal(0));
+    const remaining = order.totalDue.minus(paid);
+    if (remaining.greaterThan(0)) totalOutstanding = totalOutstanding.plus(remaining);
+
+    let status: 'PAID_FULL' | 'PARTIAL_PAID' | 'UNPAID' = 'UNPAID';
+    if (remaining.lessThanOrEqualTo(0)) status = 'PAID_FULL';
+    else if (paid.greaterThan(0)) status = 'PARTIAL_PAID';
+    statusCount[status]++;
+
+    // 聚合学生欠款
+    const studentId = order.studentId;
+    const studentName = (order as any).student?.name || `学生${studentId}`;
+    if (!studentOwedMap.has(studentId)) {
+      studentOwedMap.set(studentId, { name: studentName, owed: new Decimal(0) });
+    }
+    if (remaining.greaterThan(0)) {
+      const entry = studentOwedMap.get(studentId)!;
+      entry.owed = entry.owed.plus(remaining);
+    }
+  });
+
+  const outstandingByStatus = (['PAID_FULL', 'PARTIAL_PAID', 'UNPAID'] as const).map(
+    (k) => ({ status: k, count: statusCount[k] })
+  );
+
+  const topDebtors = Array.from(studentOwedMap.entries())
+    .map(([id, { name, owed }]) => ({
+      studentId: id,
+      studentName: name,
+      totalOwed: parseFloat(owed.toString()),
+    }))
+    .filter((s) => s.totalOwed > 0)
+    .sort((a, b) => b.totalOwed - a.totalOwed)
+    .slice(0, 10);
+
+  return {
+    keyMetrics: {
+      totalReceived: parseFloat(totalReceivedDecimal.toString()),
+      totalDue: parseFloat(totalDueDecimal.toString()),
+      totalOutstanding: parseFloat(totalOutstanding.toString()),
+    },
+    revenueTrend,
+    dueTrend,
+    outstandingByStatus,
+    topDebtors,
+  };
+};
+
 /**
  * 获取学生成长分析数据（通过publicId）
  * TODO: 暂时使用原函数，等Prisma类型问题解决后启用
  */
 export const getStudentGrowthAnalysisByPublicId = async (publicId: string, filters: StudentGrowthFilters) => {
   try {
-    let customer = null;
-
-    // 如果传入的是纯数字且位数较少，尝试按ID查找
-    if (/^\d+$/.test(publicId) && publicId.length <= 9) {
-      const numericId = Number(publicId);
-      customer = await prisma.customer.findUnique({ where: { id: numericId } });
-    }
-
-    // 若未找到，再按 publicId 查找
-    if (!customer) {
-      customer = await prisma.customer.findFirst({ where: { publicId } });
-    }
+    const customer = await prisma.customer.findFirst({ where: { publicId } });
     
     if (!customer) {
       throw new Error('学生不存在');
@@ -493,6 +625,7 @@ export const getStudentsForAnalytics = async () => {
     },
     select: {
       id: true,
+      publicId: true,
       name: true,
       enrollments: {
         include: {
@@ -511,6 +644,7 @@ export const getStudentsForAnalytics = async () => {
 
   return students.map(student => ({
     id: student.id,
+    publicId: student.publicId,
     name: student.name,
     classNames: student.enrollments.map(e => e.class.name),
   }));

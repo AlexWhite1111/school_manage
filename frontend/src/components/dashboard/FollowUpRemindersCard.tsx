@@ -20,7 +20,7 @@ export interface FollowUpCustomer {
 export interface FollowUpRemindersCardProps {
   customers?: FollowUpCustomer[];
   loading?: boolean;
-  onCustomerClick?: (customerId: number) => void;
+  onCustomerClick?: (customer: FollowUpCustomer) => void;
 }
 
 // 客户状态颜色映射
@@ -120,7 +120,7 @@ const FollowUpRemindersCard: React.FC<FollowUpRemindersCardProps> = ({
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
-                onClick={() => onCustomerClick?.(customer.id)}
+                onClick={() => onCustomerClick?.(customer)}
               >
                 <List.Item.Meta
                   avatar={

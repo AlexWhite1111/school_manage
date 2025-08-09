@@ -5,13 +5,14 @@ import { Router, Request, Response } from 'express';
 import * as GlobalService from '../services/global.service';
 import { authMiddleware } from '../middleware/auth.middleware';
 import multer from 'multer';
+import path from 'path';
 import { CustomerStatus } from '@prisma/client';
 
 const router = Router();
 
 // 配置multer用于文件上传
 const upload = multer({ 
-  dest: 'uploads/',
+  dest: path.join(process.cwd(), 'uploads'),
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB限制
   },
@@ -105,61 +106,7 @@ router.post('/import/customers', upload.single('file'), async (req: Request, res
   }
 });
 
-/**
- * @route   GET /api/export/growth-logs
- * @desc    导出学生成长记录的CSV
- * @access  Private
- */
-router.get('/export/growth-logs', async (req: Request, res: Response) => {
-  try {
-    const { studentId, classId, startDate, endDate } = req.query;
 
-    // 验证ID参数
-    if (studentId && isNaN(parseInt(studentId as string))) {
-      return res.status(400).json({
-        message: '无效的学生ID'
-      });
-    }
-
-    if (classId && isNaN(parseInt(classId as string))) {
-      return res.status(400).json({
-        message: '无效的班级ID'
-      });
-    }
-
-    // 验证日期参数
-    if (startDate && isNaN(new Date(startDate as string).getTime())) {
-      return res.status(400).json({
-        message: '开始日期格式无效'
-      });
-    }
-
-    if (endDate && isNaN(new Date(endDate as string).getTime())) {
-      return res.status(400).json({
-        message: '结束日期格式无效'
-      });
-    }
-
-    const filters = {
-      studentId: studentId as string,
-      classId: classId as string,
-      startDate: startDate as string,
-      endDate: endDate as string
-    };
-
-    const csv = await GlobalService.exportGrowthLogsToCsv(filters);
-    
-    res.header('Content-Type', 'text/csv; charset=utf-8');
-    res.header('Content-Disposition', 'attachment; filename="growth-logs.csv"');
-    res.send(csv);
-
-  } catch (error) {
-    console.error('导出成长记录CSV路由错误:', error);
-    res.status(500).json({
-      message: '导出成长记录CSV失败'
-    });
-  }
-});
 
 /**
  * @route   GET /api/export/finance

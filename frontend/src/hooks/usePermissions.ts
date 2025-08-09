@@ -102,6 +102,7 @@ export const usePermissions = () => {
       '/crm': [UserRole.SUPER_ADMIN, UserRole.MANAGER],
       '/finance': [UserRole.SUPER_ADMIN, UserRole.MANAGER],
       '/reports': [UserRole.SUPER_ADMIN, UserRole.MANAGER],
+      '/analytics': [UserRole.SUPER_ADMIN, UserRole.MANAGER],
       
       // 教师及以上可访问
       '/student-log': [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TEACHER],
@@ -155,7 +156,7 @@ export const usePermissions = () => {
       {
         key: 'reports',
         label: '数据报告',
-        path: '/reports',
+        path: '/analytics',
         roles: [UserRole.SUPER_ADMIN, UserRole.MANAGER]
       },
       {

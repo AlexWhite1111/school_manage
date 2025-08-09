@@ -3,13 +3,33 @@
 // It initializes the Express app, sets up middleware, and starts the server.
 
 import app from './app';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './utils/database';
+import { networkInterfaces } from 'os';
 
-const prisma = new PrismaClient();
 
 // Get port from environment or default to 3000 (标准配置)
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0'; // 监听所有网络接口，支持内网访问
+
+// Function to get local network IP addresses
+function getNetworkIPs() {
+  const nets = networkInterfaces();
+  const ips: string[] = [];
+  
+  for (const name of Object.keys(nets)) {
+    const netInterface = nets[name];
+    if (!netInterface) continue;
+    
+    for (const net of netInterface) {
+      // Skip internal (i.e. 127.0.0.1) and non-IPv4 addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        ips.push(net.address);
+      }
+    }
+  }
+  
+  return ips;
+}
 
 // Function to test database connection
 async function testDatabaseConnection() {
@@ -31,17 +51,39 @@ async function startServer() {
     
     // Start the HTTP server
     const server = app.listen(PORT, HOST, () => {
+      const networkIPs = getNetworkIPs();
+      const primaryIP = networkIPs[0] || 'localhost';
+      
       console.log('🚀 Education CRM Backend Server Started');
       console.log(`📍 Server is running on http://${HOST}:${PORT}`);
       console.log(`🏠 Local access: http://localhost:${PORT}`);
-              console.log(`🌐 Network access: http://198.18.0.1:${PORT}`);
-        console.log(`🏥 Health check: http://198.18.0.1:${PORT}/health`);
-        console.log(`📚 API endpoints: http://198.18.0.1:${PORT}/api`);
-        console.log(`🌟 Environment: ${process.env.NODE_ENV || 'development'}`);
-        console.log('---------------------------------------------------');
-        console.log('📱 在同一WiFi网络的其他设备上访问:');
-        console.log(`   前端: http://198.18.0.1:5173`);
-        console.log(`   后端API: http://198.18.0.1:3000/api`);
+      
+      // Display all available network IPs
+      if (networkIPs.length > 0) {
+        console.log('🌐 Network access:');
+        networkIPs.forEach((ip, index) => {
+          const prefix = index === 0 ? '   🎯 主要地址' : '   📍 备用地址';
+          console.log(`${prefix}: http://${ip}:${PORT}`);
+        });
+        console.log(`🏥 Health check: http://${primaryIP}:${PORT}/health`);
+        console.log(`📚 API endpoints: http://${primaryIP}:${PORT}/api`);
+      } else {
+        console.log('⚠️  No network interfaces found, only localhost available');
+      }
+      
+      console.log(`🌟 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log('---------------------------------------------------');
+      console.log('📱 移动设备访问 (确保在同一WiFi网络):');
+      if (networkIPs.length > 0) {
+        console.log(`   🎨 前端界面: http://${primaryIP}:5173+ (自动选择端口)`);
+        console.log(`   🔧 后端API: http://${primaryIP}:${PORT}/api`);
+        console.log(`   ❤️  健康检查: http://${primaryIP}:${PORT}/health`);
+        console.log('💡 生成二维码访问:');
+        console.log(`   前端地址: 查看前端启动日志获取实际端口`);
+        console.log('   💡 注意：前端会自动选择可用端口(5173/5174/5175等)');
+      } else {
+        console.log(`   仅本机访问: 查看前端启动日志获取实际端口`);
+      }
       console.log('---------------------------------------------------');
     });
 

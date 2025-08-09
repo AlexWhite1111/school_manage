@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Button, Menu, Typography } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  BulbOutlined, 
-  BulbFilled, 
+  SunOutlined, 
+  MoonOutlined, 
   MenuFoldOutlined, 
   MenuUnfoldOutlined,
   DashboardOutlined,
@@ -82,7 +82,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (pathname.startsWith('/customers') || pathname.startsWith('/crm')) return 'crm';
     if (pathname.startsWith('/finance')) return 'finance';
     if (pathname.startsWith('/students') || pathname.startsWith('/student-log')) return 'student-log';
-    if (pathname.startsWith('/reports')) return 'reports';
+    if (pathname.startsWith('/reports') || pathname.startsWith('/analytics')) return 'reports';
     if (pathname.startsWith('/settings')) return 'settings';
     return 'dashboard';
   };
@@ -136,8 +136,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         trigger={null}
         collapsible
         collapsed={collapsed}
-        width={250}
-        collapsedWidth={isMobile ? 0 : 80}
+        width={220}
+        collapsedWidth={isMobile ? 0 : 70}
         // ✅ **核心修复**：只保留这部分样式修改，解决动画冲突
         style={{
           overflow: 'auto',
@@ -194,7 +194,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 fontWeight: 600,
                 marginLeft: '12px'
               }}>
-                教培管理系统
+                自然教育
               </Text>
             )}
           </div>
@@ -217,7 +217,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* 主布局容器 */}
       <Layout style={{ 
-        marginLeft: isMobile ? 0 : (collapsed ? 80 : 250),
+        marginLeft: isMobile ? 0 : (collapsed ? 70 : 220),
         transition: 'margin-left 0.2s cubic-bezier(0.23, 1, 0.32, 1)', // ✅ **核心修复**：与Sider动画同步
       }}>
         {/* 顶部导航栏 */}
@@ -269,7 +269,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               color: '#1890ff',
               display: isSmall ? 'none' : 'inline' // 超小屏隐藏标题
             }}>
-              教培管理系统
+              自然教育
             </Text>
           </div>
 
@@ -278,13 +278,18 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Button
               type="text"
               shape="circle"
-              icon={theme === 'light' ? <BulbOutlined /> : <BulbFilled />}
+              icon={theme === 'light' ? <SunOutlined /> : <MoonOutlined />}
               onClick={toggleTheme}
               style={{
-                fontSize: '16px',
-                width: 40,
-                height: 40,
+                fontSize: '18px',
+                width: 44,
+                height: 44,
                 color: theme === 'dark' ? '#fadb14' : '#1890ff',
+                background: theme === 'light' 
+                  ? 'rgba(24, 144, 255, 0.1)' 
+                  : 'rgba(250, 219, 20, 0.1)',
+                border: `1px solid ${theme === 'dark' ? 'rgba(250, 219, 20, 0.3)' : 'rgba(24, 144, 255, 0.3)'}`,
+                transition: 'all 0.3s ease',
               }}
               title={theme === 'light' ? '切换到暗色模式' : '切换到亮色模式'}
             />
@@ -318,7 +323,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           fontSize: '12px',
           display: isSmall ? 'none' : 'block' // 超小屏隐藏页脚
         }}>
-          {import.meta.env.VITE_APP_TITLE || 'Admin System'} ©{new Date().getFullYear()}
+          教育CRM系统 ©{new Date().getFullYear()}
         </Footer>
       </Layout>
 
@@ -368,4 +373,4 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-export default AppLayout; 
+export default AppLayout;

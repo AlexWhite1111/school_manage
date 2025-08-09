@@ -7,7 +7,9 @@ import type {
   AnalyticsKeyMetrics,
   CustomerAnalyticsParams,
   StudentGrowthAnalyticsParams,
-  AnalyticsTimeRangeParams
+  AnalyticsTimeRangeParams,
+  FinanceAnalyticsSummary,
+  FinanceAnalyticsParams
 } from '@/types/api';
 
 // ================================
@@ -136,16 +138,16 @@ export const getCustomerKeyMetrics = async (params: CustomerAnalyticsParams): Pr
 
 /**
  * 获取学生成长分析数据
- * @route GET /analytics/student-growth/:studentId
+ * @route GET /analytics/student-growth/by-public-id/:publicId
  */
 export const getStudentGrowthAnalytics = async (
-  studentId: number, 
+  publicId: string, 
   params: StudentGrowthAnalyticsParams
 ): Promise<StudentGrowthAnalytics> => {
   try {
     const flatParams = flattenStudentAnalyticsParams(params);
     const response = await apiClient.get<StudentGrowthAnalytics>(
-      `/analytics/student-growth/${studentId}`, 
+      `/analytics/student-growth/by-public-id/${publicId}`, 
       { params: flatParams }
     );
     console.log('📊 获取学生成长分析数据成功:', response.data);
@@ -160,13 +162,40 @@ export const getStudentGrowthAnalytics = async (
  * 获取所有可用的学生列表（用于分析页面的学生选择器）
  * @route GET /analytics/students
  */
-export const getStudentsForAnalytics = async (): Promise<{ id: number; name: string; classNames: string[] }[]> => {
+export const getStudentsForAnalytics = async (): Promise<{ id: number; publicId: string; name: string; classNames: string[] }[]> => {
   try {
-    const response = await apiClient.get<{ id: number; name: string; classNames: string[] }[]>('/analytics/students');
+    const response = await apiClient.get<{ id: number; publicId: string; name: string; classNames: string[] }[]>('/analytics/students');
     console.log('📊 获取分析用学生列表成功:', response.data);
     return response.data;
   } catch (error) {
     console.error('获取分析用学生列表失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 获取财务分析汇总
+ * @route GET /analytics/finance/summary
+ */
+export const getFinanceAnalyticsSummary = async (
+  params: FinanceAnalyticsParams
+): Promise<FinanceAnalyticsSummary> => {
+  try {
+    const response = await apiClient.get<FinanceAnalyticsSummary>('/analytics/finance/summary', { params });
+    return response.data;
+  } catch (error) {
+    // 兼容旧后端：404时回退到 /finance/summary
+    // @ts-expect-error 兼容统一ApiError结构
+    if (error && error.code === 404) {
+      try {
+        const fallback = await apiClient.get<FinanceAnalyticsSummary>('/finance/summary', { params });
+        return fallback.data;
+      } catch (e) {
+        console.error('获取财务分析汇总失败(兼容路径回退也失败):', e);
+        throw e;
+      }
+    }
+    console.error('获取财务分析汇总失败:', error);
     throw error;
   }
 };

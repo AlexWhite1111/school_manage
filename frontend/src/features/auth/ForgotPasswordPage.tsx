@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Result } from 'antd';
-import { UserOutlined, MailOutlined } from '@ant-design/icons';
+import { UserOutlined, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '@/api/authApi';
 
@@ -14,14 +14,12 @@ const ForgotPasswordPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [resetTokenSent, setResetTokenSent] = useState(false);
-  const [resetToken, setResetToken] = useState<string>('');
 
   const handleSubmit = async (values: ForgotPasswordForm) => {
     setLoading(true);
     
     try {
-      const result = await forgotPassword(values);
-      setResetToken(result.resetToken);
+      await forgotPassword(values);
       setResetTokenSent(true);
       message.success('密码重置请求已发送');
     } catch (error: any) {
@@ -59,16 +57,8 @@ const ForgotPasswordPage: React.FC = () => {
             title="重置请求已发送"
             subTitle={
               <div>
-                <Paragraph>
-                  我们已经为您生成了密码重置令牌。在正式环境中，这将通过邮件发送给您。
-                </Paragraph>
-                <Paragraph>
-                  <Text strong>演示令牌：</Text>
-                  <Text code copyable>{resetToken}</Text>
-                </Paragraph>
-                <Paragraph>
-                  请复制此令牌并前往重置密码页面使用。
-                </Paragraph>
+                <Paragraph>我们已经为您生成了密码重置令牌，并会通过邮箱发送给您。</Paragraph>
+                <Paragraph>请前往邮箱查收并继续完成密码重置。</Paragraph>
               </div>
             }
             extra={[
@@ -76,7 +66,7 @@ const ForgotPasswordPage: React.FC = () => {
                 <Button type="primary">前往重置密码</Button>
               </Link>,
               <Link to="/login" key="back">
-                <Button>返回登录</Button>
+                <Button icon={<ArrowLeftOutlined />}>登录</Button>
               </Link>
             ]}
           />
@@ -146,7 +136,9 @@ const ForgotPasswordPage: React.FC = () => {
 
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
-            <Link to="/login" style={{ color: '#1890ff' }}>返回登录</Link>
+            <Link to="/login" style={{ color: '#1890ff' }}>
+              <ArrowLeftOutlined /> 登录
+            </Link>
             {' · '}
             <Link to="/reset-password" style={{ color: '#1890ff' }}>已有重置令牌？</Link>
           </Text>

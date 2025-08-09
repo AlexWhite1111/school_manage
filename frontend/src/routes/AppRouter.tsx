@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/components/layout/AppLayout';
@@ -21,17 +21,45 @@ import FinanceDetailPage from '@/pages/FinanceDetailPage';
 
 // 学生日志模块组件
 import StudentLogMainPage from '@/features/student-log/StudentLogPage';
-import StudentGrowthReport from '@/features/student-log/components/StudentGrowthReport';
 import StudentListView from '@/features/student-log/components/StudentListView';
+import ExamDetailPage from '@/pages/ExamDetailPage';
 
 // 数据分析模块组件
 import AnalyticsPage from '@/features/analytics/AnalyticsPage';
+import SubjectTrendPage from '@/pages/SubjectTrendPage';
+import ExamSubjectDetailPage from '@/pages/ExamSubjectDetailPage';
+import StudentTrendPage from '@/pages/StudentTrendPage';
+
+// 成长分析模块组件 - 已合并到AllInOneStudentReport
+
+// 统一成长报告组件 - 已合并到AllInOneStudentReport
 
 // 系统设置页面
 import SystemSettingsPage from '@/features/settings/SystemSettingsPage';
 
-// Showcase页面
-import ShowcasePage from '@/pages/_showcase/ShowcasePage';
+// Showcase页面（已移除路由，避免演示页在生产环境暴露）
+
+// ✅ REMOVED: UnifiedGrowthTestPage - test page no longer needed
+
+// All-in-One学生报告组件
+import AllInOneStudentReport from '@/components/AllInOneStudentReport';
+
+// 路由包装器组件
+const AllInOneStudentReportWrapper: React.FC = () => {
+  const { publicId } = useParams<{ publicId: string }>();
+  const navigate = useNavigate();
+  
+  if (!publicId) {
+    return <div>参数错误：缺少学生ID</div>;
+  }
+  
+  return (
+    <AllInOneStudentReport 
+      publicId={publicId}
+      onBack={() => navigate(-1)}
+    />
+  );
+};
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -90,6 +118,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredPage 
 
   // 如果指定了页面权限要求，检查权限
   if (requiredPage && !canAccessPage(requiredPage)) {
+    console.log('🚫 权限检查失败，重定向到fallback:', { requiredPage, fallbackPath: getFallbackPath() });
     return <Navigate to={getFallbackPath()} replace />;
   }
   
@@ -142,8 +171,10 @@ const AppRouter: React.FC = () => {
         </PublicRoute>
       } />
       
-      {/* Showcase路由 - 调试用 */}
-      <Route path="/showcase" element={<ShowcasePage />} />
+      {/* Showcase路由已移除 */}
+      
+      {/* 统一成长报告测试页面 */}
+      {/* ✅ REMOVED: /test/unified-growth route - test page deleted */}
       
       {/* 保护路由 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -162,7 +193,7 @@ const AppRouter: React.FC = () => {
           <CrmDetailPage />
         </ProtectedRoute>
       } />
-      <Route path="/crm/:id" element={
+      <Route path="/crm/:publicId" element={
         <ProtectedRoute requiredPage="/crm">
           <CrmDetailPage />
         </ProtectedRoute>
@@ -174,7 +205,7 @@ const AppRouter: React.FC = () => {
           <FinancePage />
         </ProtectedRoute>
       } />
-      <Route path="/finance/students/:studentId" element={
+      <Route path="/finance/students/:publicId" element={
         <ProtectedRoute requiredPage="/finance">
           <FinanceDetailPage />
         </ProtectedRoute>
@@ -191,11 +222,35 @@ const AppRouter: React.FC = () => {
           <StudentListView title="数据追踪 - 学生列表" />
         </ProtectedRoute>
       } />
-      <Route path="/student-log/report/:studentId" element={
+      <Route path="/student-log/report/:publicId" element={
         <ProtectedRoute>
-          <StudentGrowthReport />
+          <AllInOneStudentReportWrapper />
         </ProtectedRoute>
       } />
+      <Route path="/student-log/exam/:examId" element={
+        <ProtectedRoute requiredPage="/student-log">
+          <ExamDetailPage />
+        </ProtectedRoute>
+      } />
+      {/* 考试科目详情页面 - 移到student-log下 */}
+      <Route path="/student-log/exam-subject/:examId/:subject" element={
+        <ProtectedRoute>
+          <ExamSubjectDetailPage />
+        </ProtectedRoute>
+      } />
+      {/* 学生考试科目趋势页面 - 使用正确的URL结构 */}
+      <Route path="/student-log/exam-subject/:examId/:subject/:publicId" element={
+        <ProtectedRoute>
+          <StudentTrendPage />
+        </ProtectedRoute>
+      } />
+      
+      {/* 学生成长报告页面 - 已合并到 /student-log/report/:publicId */}
+      
+      {/* =================================== */}
+      {/* ✅ 统一学生成长报告 - 唯一入口 */}
+      {/* 合并了所有原来的三个页面功能 */}
+      {/* =================================== */}
       <Route path="/profile" element={
         <ProtectedRoute>
           <ProfilePage />
@@ -204,6 +259,16 @@ const AppRouter: React.FC = () => {
       <Route path="/reports" element={
         <ProtectedRoute requiredPage="/reports">
           <AnalyticsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/analytics" element={
+        <ProtectedRoute requiredPage="/analytics">
+          <AnalyticsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/subject-trend/:classId/:subject" element={
+        <ProtectedRoute requiredPage="/analytics">
+          <SubjectTrendPage />
         </ProtectedRoute>
       } />
       <Route path="/settings" element={

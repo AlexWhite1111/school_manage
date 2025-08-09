@@ -21,7 +21,7 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   transactionOptions: {
     maxWait: 5000, // 最大等待时间
     timeout: 10000, // 事务超时时间
-  },
+  }
 });
 
 // 在开发环境中将实例保存到全局变量

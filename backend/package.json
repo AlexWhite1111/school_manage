@@ -4,17 +4,17 @@
   "description": "Backend for the CRM application",
   "main": "dist/src/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/src/server.js",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate",
-    "prisma:seed": "ts-node prisma/seed.ts",
-    "db:init": "ts-node scripts/init-db.ts",
-    "db:seed-test": "ts-node scripts/seed-test-data.ts",
-    "db:reset": "prisma migrate reset --force",
-    "db:setup": "npm run prisma:migrate && npm run db:init",
-    "db:setup-test": "npm run prisma:migrate && npm run db:seed-test"
+    "dev": "ts-node src/server.ts",
+    "seed-demo": "ts-node prisma/seed-demo.ts",
+    "seed:config": "ts-node prisma/seed-config.ts",
+    "seed-admin": "ts-node prisma/seed-admin.ts",
+    "seed:growth-config": "ts-node init-growth-config.ts",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset --force --skip-seed"
   },
   "keywords": [],
   "author": "",
@@ -28,9 +28,12 @@
     "express-validator": "^7.2.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mathjs": "^14.6.0",
+    "ml-matrix": "^6.12.1",
     "multer": "^2.0.2",
     "papaparse": "^5.5.3",
     "pg": "^8.11.3",
+    "pinyin": "^4.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -43,12 +46,10 @@
     "@types/node": "^20.10.4",
     "@types/papaparse": "^5.3.16",
     "@types/pg": "^8.10.9",
-    "prisma": "^5.7.0",
+    "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   },
-  "prisma": {
-    "seed": "ts-node scripts/seed-test-data.ts"
-  }
+  "prisma": {}
 }

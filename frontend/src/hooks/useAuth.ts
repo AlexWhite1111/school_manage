@@ -105,8 +105,16 @@ export const useAuth = () => {
       const token = loginResponse.token;
 
       // 先保存 token，避免后续 /users/me 请求缺少 Authorization 头部导致 401
-      // 使用一个占位用户对象，仅包含必需字段，待会儿会用真实数据覆盖
-      useAuthStore.getState().setAuthData(token, { id: -1, username });
+      // 使用一个最小占位用户对象，补齐必要字段，待会儿用真实数据覆盖
+      useAuthStore.getState().setAuthData(token, {
+        id: -1,
+        uuid: '',
+        username,
+        role: 'STUDENT',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      } as unknown as User);
 
       // 获取用户信息
       const userInfo = await authApi.getCurrentUser();

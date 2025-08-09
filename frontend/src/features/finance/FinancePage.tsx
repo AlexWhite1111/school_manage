@@ -352,7 +352,7 @@ const FinancePage: React.FC = () => {
   }, []);
 
   const handleViewDetail = useCallback((student: StudentFinanceSummary) => {
-    navigate(`/finance/students/${student.studentId}`);
+                    navigate(`/finance/students/${student.publicId}`);
   }, [navigate]);
 
   const handleExport = useCallback(async () => {

@@ -26,13 +26,15 @@ import {
   DeleteOutlined, 
   DownOutlined, 
   UpOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import {
   getStudentFinanceDetails,
+  getStudentFinanceDetailsByPublicId,
   createOrder,
   updateOrder,
   deleteOrder,
@@ -54,11 +56,12 @@ const { TextArea } = Input;
 const { Title, Text } = Typography;
 
 interface FinanceDetailViewProps {
-  studentId: number;
+  studentId?: number;
+  studentPublicId?: string;
   onBack?: () => void;
 }
 
-const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack }) => {
+const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studentPublicId, onBack }) => {
   const { isMobile } = useResponsive();
   const { message: messageApi } = App.useApp();
   const navigate = useNavigate();
@@ -120,9 +123,20 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack
 
   // 获取学生财务详情
   const loadStudentData = async () => {
+    if (!studentId && !studentPublicId) return;
+    
     setLoading(true);
     try {
-      const data = await getStudentFinanceDetails(studentId);
+      let data: StudentFinanceDetails;
+      
+      if (studentPublicId) {
+        data = await getStudentFinanceDetailsByPublicId(studentPublicId);
+      } else if (studentId) {
+        data = await getStudentFinanceDetails(String(studentId));
+      } else {
+        return;
+      }
+      
       setStudentData(data);
     } catch (error) {
       console.error('获取学生财务详情失败:', error);
@@ -134,7 +148,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack
 
   useEffect(() => {
     loadStudentData();
-  }, [studentId]);
+  }, [studentId, studentPublicId]);
 
   // 格式化金额（处理字符串格式的Decimal）
   const formatAmount = (amount: string | number) => {
@@ -187,9 +201,11 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack
 
   // 创建订单
   const handleCreateOrder = async (values: any) => {
+    if (!studentData?.student?.id) return;
+    
     try {
       const orderData: CreateOrderRequest = {
-        studentId,
+        studentId: studentData.student.id,
         name: values.name,
         totalDue: values.totalDue,
         coursePeriodStart: values.coursePeriod?.[0]?.format('YYYY-MM-DD'),
@@ -434,9 +450,12 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack
               财务详情 - {studentData.student.name}
             </Title>
             {onBack && (
-              <Button type="link" onClick={onBack} style={{ padding: 0, marginTop: 8 }}>
-                ← 返回财务中心
-              </Button>
+              <Button 
+                type="link" 
+                icon={<ArrowLeftOutlined />}
+                onClick={onBack} 
+                style={{ padding: 0, marginTop: 8 }}
+              />
             )}
           </div>
           
@@ -466,8 +485,8 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, onBack
               height: 'fit-content'
             }}
             onClick={() => {
-              console.log('点击学生档案，学生ID:', studentData.student.id);
-              navigate(`/crm/${studentData.student.id}`);
+              console.log('点击学生档案，学生publicId:', studentData.student.publicId);
+              navigate(`/crm/${studentData.student.publicId}`);
             }}
             bodyStyle={{ padding: '20px' }}
           >

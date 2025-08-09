@@ -4,7 +4,7 @@ import { SearchOutlined, EyeOutlined, ExportOutlined, PlusOutlined } from '@ant-
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { getStudentFinanceSummaries, type StudentFinanceSummary } from '@/api/financeApi';
-import { exportFinance } from '@/api/globalApi';
+import { exportFinanceCsv as exportFinance } from '@/api/export';
 import { useResponsive } from '@/hooks/useResponsive';
 import { getGradeLabel } from '@/utils/enumMappings';
 import apiClient from '@/lib/apiClient';
@@ -91,11 +91,11 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
   };
 
   // 查看学生详情
-  const handleViewDetails = (studentId: number) => {
+  const handleViewDetails = (student: StudentFinanceSummary) => {
     if (onStudentSelect) {
-      onStudentSelect(studentId);
+      onStudentSelect(student.studentId);
     } else {
-      navigate(`/finance/students/${studentId}`);
+      navigate(`/finance/students/${student.publicId}`);
     }
   };
 
@@ -245,7 +245,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
           <Button 
             type="link" 
             size="small"
-            onClick={() => handleViewDetails(record.studentId)}
+            onClick={() => handleViewDetails(record)}
             style={{ padding: 0, fontSize: '14px', fontWeight: 500 }}
           >
             {name}
@@ -371,7 +371,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
           type="text"
           size="small"
           icon={<EyeOutlined />}
-          onClick={() => handleViewDetails(record.studentId)}
+          onClick={() => handleViewDetails(record)}
         >
           {!isMobile && '查看详情'}
         </Button>

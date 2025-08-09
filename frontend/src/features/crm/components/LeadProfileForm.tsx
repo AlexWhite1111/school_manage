@@ -15,13 +15,16 @@ import {
   List,
   Popconfirm,
   Spin,
-  App
+  App,
+  Affix,
+  Collapse
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  SaveOutlined
+  SaveOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -40,65 +43,34 @@ const { TextArea } = Input;
 const { Option } = Select;
 const { useApp } = App;
 
-// 家庭画像标签分类配置
+// 家庭画像标签分类配置（仅定义分类与标题；标签项从后端加载）
 const TAG_CATEGORIES = [
-  {
-    key: 'FAMILY_JOB',
-    title: '家长职业与工作情况',
-    predefined: ['全职妈妈', '双职工家庭', '自由职业', '企业高管', '公务员']
-  },
-  {
-    key: 'FAMILY_INCOME', 
-    title: '家庭经济与收入层次',
-    predefined: ['中等收入', '高收入', '经济压力较大']
-  },
-  {
-    key: 'FAMILY_EDUCATION_CONCEPT',
-    title: '家庭教育观念', 
-    predefined: ['应试导向', '素质教育', '兴趣优先', '重视全面发展']
-  },
-  {
-    key: 'FAMILY_FOCUS',
-    title: '家庭关注重点',
-    predefined: ['成绩提升', '习惯养成', '心理健康', '特长发展']
-  },
-  {
-    key: 'FAMILY_ROLE',
-    title: '父母角色与强势程度',
-    predefined: ['母亲主导', '父亲主导', '父母平衡', '隔代抚养']
-  },
-  {
-    key: 'CHILD_PERSONALITY',
-    title: '孩子性格特征', 
-    predefined: ['外向', '内向', '敏感', '独立', '依赖']
-  },
-  {
-    key: 'CHILD_ACADEMIC_LEVEL',
-    title: '孩子学习成绩水平',
-    predefined: ['优异', '中等', '需提升', '偏科']
-  },
-  {
-    key: 'CHILD_DISCIPLINE',
-    title: '孩子服从与自律程度',
-    predefined: ['自律性强', '需督促', '易分心', '主动性高']
-  }
+  { key: 'FAMILY_JOB', title: '家长职业与工作情况' },
+  { key: 'FAMILY_INCOME', title: '家庭经济与收入层次' },
+  { key: 'FAMILY_EDUCATION_CONCEPT', title: '家庭教育观念' },
+  { key: 'FAMILY_FOCUS', title: '家庭关注重点' },
+  { key: 'FAMILY_ROLE', title: '父母角色与强势程度' },
+  { key: 'CHILD_PERSONALITY', title: '孩子性格特征' },
+  { key: 'CHILD_ACADEMIC_LEVEL', title: '孩子学习成绩水平' },
+  { key: 'CHILD_DISCIPLINE', title: '孩子服从与自律程度' }
 ];
 
 interface LeadProfileFormProps {
-  customerId?: number;
+  customerPublicId?: string; // 🔧 统一：只使用publicId，移除customerId
   onSave?: (customer: Customer) => void;
 }
 
-const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave }) => {
+const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onSave }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { message: antMessage } = useApp();
   const { isMobile, isSmall } = useResponsive();
   
-  // 状态管理
-  const [loading, setLoading] = useState(!!customerId);
+  // 状态管理 - 🔧 统一：使用publicId逻辑，但内部仍需customerId用于API调用
+  const [loading, setLoading] = useState(!!customerPublicId);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [customerId, setCustomerId] = useState<number | undefined>(undefined); // 内部使用的数据库ID
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [allTags, setAllTags] = useState<TagType[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
@@ -110,14 +82,24 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
   // 动态家长管理
   const [parentCount, setParentCount] = useState(1); // 默认显示1个家长表单
 
-  // 加载客户数据
+  // 加载客户数据 - 🔧 统一：只通过publicId加载
   const loadCustomerData = async () => {
-    if (!customerId) return;
+    console.log('🔍 LeadProfileForm.loadCustomerData 被调用', { customerPublicId });
+    
+    if (!customerPublicId) {
+      console.log('❌ 没有publicId，跳过加载（新建客户模式）');
+      return;
+    }
     
     try {
       setLoading(true);
-      const customerData = await crmApi.getCustomerById(customerId);
+      console.log('📥 开始通过publicId加载客户数据...', customerPublicId);
+      
+      const customerData = await crmApi.getCustomerByPublicId(customerPublicId);
+      
+      console.log('✅ 成功获取客户数据:', customerData);
       setCustomer(customerData);
+      setCustomerId(customerData.id); // 设置内部customerId用于后续API调用
       setSelectedTagIds(customerData.tags || []);
       setCommunicationLogs(customerData.communicationLogs || []);
       
@@ -155,34 +137,64 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
   // 初始化
   useEffect(() => {
     loadTags();
-    if (customerId) {
+    if (customerPublicId) {
       loadCustomerData();
     }
-  }, [customerId]);
+  }, [customerPublicId]);
 
-  // 保存基础信息和家庭画像
+  // 保存基础信息和家庭画像 - 🔧 修复：正确判断创建vs更新逻辑
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
       setSaving(true);
+
+      // 清洗家长信息：过滤掉完全空白的家长条目，并标准化字段
+      const rawParents = Array.isArray(values.parents) ? values.parents : [];
+      const sanitizedParents = rawParents
+        .filter((p: any) => p && (p.name || p.relationship || p.phone))
+        .map((p: any) => ({
+          name: (p.name || '').trim(),
+          relationship: (p.relationship || '').trim(),
+          phone: (p.phone || '').toString().replace(/\D/g, ''),
+          wechatId: (p.wechatId || '').trim() || undefined
+        }));
+
+      // 至少需要一位家长，且第一位家长需完整：关系、联系方式（姓名不再必填）
+      if (
+        sanitizedParents.length === 0 ||
+        !sanitizedParents[0].relationship ||
+        !sanitizedParents[0].phone
+      ) {
+        antMessage.error('请至少填写一位家长的关系和联系方式');
+        setSaving(false);
+        return;
+      }
 
       const requestData: Partial<CreateCustomerRequest> = {
         ...values,
         birthDate: values.birthDate?.format('YYYY-MM-DD'),
         firstContactDate: values.firstContactDate?.format('YYYY-MM-DD'),
         nextFollowUpDate: values.nextFollowUpDate?.format('YYYY-MM-DD'),
-        tags: selectedTagIds
+        tags: selectedTagIds || [],
+        parents: sanitizedParents
       };
 
       let updatedCustomer: Customer;
+      
+      // 🔧 修复：正确判断是更新还是创建
       if (customerId) {
+        console.log('🔄 更新现有客户:', customerId);
         updatedCustomer = await crmApi.updateCustomer(customerId, requestData);
+        antMessage.success(`客户 ${updatedCustomer.name} 的信息已成功更新！`);
       } else {
+        console.log('✨ 创建新客户');
         updatedCustomer = await crmApi.createCustomer(requestData as CreateCustomerRequest);
+        // 🔧 修复：创建成功后设置customerId，防止后续保存时重复创建
+        setCustomerId(updatedCustomer.id);
+        antMessage.success(`客户 ${updatedCustomer.name} 已成功创建！`);
       }
 
       setCustomer(updatedCustomer);
-      antMessage.success(`客户 **${updatedCustomer.name}** 的信息已成功保存！`);
       
       if (onSave) {
         onSave(updatedCustomer);
@@ -190,21 +202,27 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
       
     } catch (error: any) {
       console.error('保存客户信息失败:', error);
-      antMessage.error('信息保存失败，请检查网络后重试。');
+      const msg = error?.message || error?.data?.message || '信息保存失败，请检查网络后重试。';
+      antMessage.error(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  // 删除客户
+  // 删除客户 - 🔧 修复：使用正确的customerId状态
   const handleDelete = async () => {
-    if (!customerId || !customer) return;
+    if (!customerId || !customer) {
+      console.warn('⚠️ 删除操作被阻止：缺少客户ID或客户信息', { customerId, customer: !!customer });
+      antMessage.error('无法删除客户：客户信息不完整');
+      return;
+    }
     
     try {
       setDeleting(true);
+      console.log('🗑️ 开始删除客户:', customerId, customer.name);
       await crmApi.deleteCustomer(customerId);
       
-      antMessage.success(`客户 **${customer.name}** 已成功删除`);
+      antMessage.success(`客户 ${customer.name} 已成功删除`);
       
       // 删除成功后返回客户列表页面
       navigate('/crm');
@@ -217,13 +235,65 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
     }
   };
 
-  // 处理标签选择
+  // 将最新选中标签持久化到后端（存在customerId时实时保存）
+  const persistSelectedTags = async (newIds: number[]) => {
+    setSelectedTagIds(newIds);
+    if (customerId) {
+      try {
+        await crmApi.updateCustomer(customerId, { tags: newIds });
+        // 不打断用户操作，不弹出提示
+      } catch (e) {
+        console.error('实时保存标签失败:', e);
+      }
+    }
+  };
+
+  // 处理标签选择（已有标签）
   const handleTagToggle = (tagId: number, checked: boolean) => {
-    setSelectedTagIds(prev => 
-      checked 
-        ? [...prev, tagId]
-        : prev.filter(id => id !== tagId)
-    );
+    setSelectedTagIds(prev => {
+      const newIds = checked ? [...prev, tagId] : prev.filter(id => id !== tagId);
+      // 实时保存
+      persistSelectedTags(newIds);
+      return newIds;
+    });
+  };
+
+  // 处理预设词条：如果已存在则切换；否则创建个人标签后选中
+  const handlePredefinedToggle = async (text: string, type: TagTypeEnum, checked: boolean) => {
+    const siblings = allTags.filter(t => t.type === type && t.text === text);
+    if (siblings.length > 0) {
+      // 选择优先级最高的一个
+      const preferred = [...siblings].sort((a, b) => {
+        // 预置优先，其次全局，最后个人
+        const score = (t: TagType) => (t.isPredefined ? 3 : !t.isPersonal ? 2 : 1);
+        return score(b as any) - score(a as any);
+      })[0];
+      handleToggleByText(text, type, preferred.id, checked);
+      return;
+    }
+    if (!checked) return;
+    try {
+      const newTag = await crmApi.createTag({ text, type, isPersonal: true });
+      setAllTags(prev => [...prev, newTag]);
+      const newIds = [...selectedTagIds, newTag.id];
+      await persistSelectedTags(newIds);
+    } catch (e) {
+      console.error('创建预设词条个人标签失败:', e);
+    }
+  };
+
+  // 基于“同名词条”进行选择切换：确保同名只保留一个选中实例（优先级：预置>全局>个人）
+  const handleToggleByText = (text: string, type: TagTypeEnum, preferredId: number, checked: boolean) => {
+    const idsOfSameText = allTags
+      .filter(t => t.type === type && t.text === text)
+      .map(t => t.id);
+    setSelectedTagIds(prev => {
+      const withoutSame = prev.filter(id => !idsOfSameText.includes(id));
+      if (checked) {
+        return [...withoutSame, preferredId];
+      }
+      return withoutSame;
+    });
   };
 
   // 创建自定义标签（乐观更新策略）
@@ -278,13 +348,25 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
     }
   };
 
-  // ========== 沟通纪要管理（即时保存）==========
+  // 默认词条只用于“高亮展示”已存在的后端标签；不承担创建职责
+
+  // ========== 沟通纪要管理（即时保存）========== 🔧 修复：使用正确的customerId状态
 
   // 添加新纪要
   const handleAddNewLog = async () => {
-    if (!newLogContent.trim() || !customerId) return;
+    if (!newLogContent.trim()) {
+      antMessage.warning('请输入沟通内容');
+      return;
+    }
+    
+    if (!customerId) {
+      console.warn('⚠️ 添加沟通纪要被阻止：缺少客户ID', { customerId });
+      antMessage.error('无法添加沟通纪要：请先保存客户信息');
+      return;
+    }
 
     try {
+      console.log('📝 开始添加沟通纪要:', customerId, newLogContent.trim());
       const newLog = await crmApi.createCommunicationLog(customerId, {
         content: newLogContent.trim()
       });
@@ -346,10 +428,18 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
 
   // 渲染家庭画像标签区域
   const renderFamilyPortraitTags = () => {
-    return TAG_CATEGORIES.map(category => {
+      return TAG_CATEGORIES.map(category => {
       const categoryTags = allTags.filter(tag => tag.type === category.key);
-      const predefinedTags = categoryTags.filter(tag => tag.isPredefined);
-      const customTags = categoryTags.filter(tag => !tag.isPredefined);
+
+      // 去重：同名只显示一个，优先级：预置 > 全局 > 个人
+      const prioritized = [
+        ...categoryTags.filter(t => t.isPredefined),
+        ...categoryTags.filter(t => !t.isPredefined && !t.isPersonal),
+        ...categoryTags.filter(t => t.isPersonal)
+      ];
+      const byText = new Map<string, TagType>();
+      prioritized.forEach(t => { if (!byText.has(t.text)) byText.set(t.text, t as TagType); });
+      const dedupedTags = Array.from(byText.values());
 
       return (
         <Card key={category.key} size="small" style={{ marginBottom: 16 }}>
@@ -358,27 +448,19 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
           </Title>
           
           <Space size={[8, 8]} wrap>
-            {/* 预设标签 */}
-            {predefinedTags.map(tag => (
-              <Tag.CheckableTag
-                key={tag.id}
-                checked={selectedTagIds.includes(tag.id)}
-                onChange={(checked) => handleTagToggle(tag.id, checked)}
-              >
-                {tag.text}
-              </Tag.CheckableTag>
-            ))}
-            
-            {/* 自定义标签 */}
-            {customTags.map(tag => (
-              <Tag.CheckableTag
-                key={tag.id}
-                checked={selectedTagIds.includes(tag.id)}
-                onChange={(checked) => handleTagToggle(tag.id, checked)}
-              >
-                {tag.text}
-              </Tag.CheckableTag>
-            ))}
+            {dedupedTags.map(tag => {
+                const idsOfSameText = categoryTags.filter(t => t.text === tag.text).map(t => t.id);
+                const isChecked = idsOfSameText.some(id => selectedTagIds.includes(id));
+                return (
+                  <Tag.CheckableTag
+                    key={tag.id}
+                    checked={isChecked}
+                    onChange={(checked) => handleToggleByText(tag.text, category.key as TagTypeEnum, tag.id, checked)}
+                  >
+                    {tag.text}
+                  </Tag.CheckableTag>
+                );
+              })}
             
             {/* 自定义标签输入 - 优化后 */}
             <Input
@@ -388,7 +470,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
               onPressEnter={(e) => {
                 const value = e.currentTarget.value;
                 if (value.trim()) {
-                  handleCreateCustomTag(value, category.key as TagTypeEnum);
+                  handleCreateCustomTag(value.trim(), category.key as TagTypeEnum);
                   e.currentTarget.value = '';
                 }
               }}
@@ -413,66 +495,91 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
   return (
     <div style={{ padding: '0' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {/* 页面标题 */}
+        {/* 页面标题 - 🔧 修复：动态显示标题 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
-              客户档案 - {customer?.name || '新客户'}
+              {customerPublicId ? `客户档案 - ${customer?.name || '加载中...'}` : '新建客户'}
             </Title>
             <Text type="secondary">
-              页面默认为编辑模式，所有字段均可直接修改
+              {customerPublicId 
+                ? '页面默认为编辑模式，所有字段均可直接修改'
+                : '填写客户基础信息，点击保存创建新客户档案'
+              }
             </Text>
           </div>
           
-          <Space>
-            <Button onClick={() => navigate('/crm')}>
-              返回
-            </Button>
-            {customerId && customer && (
-              <Popconfirm
-                title="确认删除客户"
-                description={
-                  <div style={{ maxWidth: '280px' }}>
-                    <Text>确定要删除客户 <Text strong>"{customer.name}"</Text> 吗？</Text>
-                    <br />
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      此操作将永久删除该客户的所有信息，包括沟通记录、标签关联等，且无法恢复。
-                    </Text>
-                  </div>
-                }
-                onConfirm={handleDelete}
-                okText="确认删除"
-                cancelText="取消"
-                okType="danger"
-                placement="bottomRight"
-                icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
-              >
+          {/* 移动端吸顶操作条 */}
+          {isMobile ? (
+            <Affix offsetTop={8}>
+              <Space>
                 <Button 
-                  danger
-                  icon={<DeleteOutlined />}
-                  loading={deleting}
-                  disabled={saving || deleting}
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => navigate('/crm')}
+                />
+                <Button 
+                  type="primary" 
+                  icon={<SaveOutlined />}
+                  loading={saving}
+                  onClick={handleSave}
+                  disabled={deleting}
                 >
-                  删除客户
+                  {customerPublicId ? '保存' : '创建'}
                 </Button>
-              </Popconfirm>
-            )}
-            <Button 
-              type="primary" 
-              icon={<SaveOutlined />}
-              loading={saving}
-              onClick={handleSave}
-              size="large"
-              disabled={deleting}
-            >
-              确认保存
-            </Button>
-          </Space>
+              </Space>
+            </Affix>
+          ) : (
+            <Space>
+              <Button 
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/crm')}
+              />
+              {customerPublicId && customerId && customer && (
+                <Popconfirm
+                  title="确认删除客户"
+                  description={
+                    <div style={{ maxWidth: '280px' }}>
+                      <Text>确定要删除客户 <Text strong>"{customer.name}"</Text> 吗？</Text>
+                      <br />
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        此操作将永久删除该客户的所有信息，包括沟通记录、标签关联等，且无法恢复。
+                      </Text>
+                    </div>
+                  }
+                  onConfirm={handleDelete}
+                  okText="确认删除"
+                  cancelText="取消"
+                  okType="danger"
+                  placement="bottomRight"
+                  icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
+                >
+                  <Button 
+                    danger
+                    icon={<DeleteOutlined />}
+                    loading={deleting}
+                    disabled={saving || deleting}
+                  >
+                    删除客户
+                  </Button>
+                </Popconfirm>
+              )}
+              <Button 
+                type="primary" 
+                icon={<SaveOutlined />}
+                loading={saving}
+                onClick={handleSave}
+                size="large"
+                disabled={deleting}
+              >
+                {customerPublicId ? '保存修改' : '创建客户'}
+              </Button>
+            </Space>
+          )}
         </div>
 
         <Row gutter={[24, 24]}>
           {/* 基础信息区 */}
-          <Col xs={24} lg={14}>
+          <Col xs={24} lg={14} style={isMobile ? { paddingBottom: 64 } : undefined}>
             <Card title="基础信息" style={{ height: '100%' }}>
               <Form
                 form={form}
@@ -482,9 +589,23 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
                   status: 'POTENTIAL'
                 }}
               >
+                {/* 移动端快速操作提示 */}
+                {isMobile && (
+                  <div style={{
+                    margin: '8px 0 12px',
+                    padding: '8px 10px',
+                    background: 'var(--ant-color-fill-secondary)',
+                    border: '1px dashed var(--ant-color-border-secondary)',
+                    borderRadius: 8,
+                    color: 'var(--ant-color-text-tertiary)',
+                    fontSize: 12
+                  }}>
+                    保存按钮已固定在底部，填写完成后直接点击保存
+                  </div>
+                )}
                 {/* 孩子信息 */}
                 <Title level={4}>1. 孩子信息</Title>
-                <Row gutter={16}>
+                <Row gutter={[12, 12]}>
                   <Col xs={24} sm={12}>
                     <Form.Item
                       label={<span><Text type="danger">*</Text> 孩子姓名</span>}
@@ -505,7 +626,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
                   </Col>
                 </Row>
 
-                <Row gutter={16}>
+                <Row gutter={[12, 12]}>
                   <Col xs={24} sm={12}>
                     <Form.Item label="出生年月" name="birthDate">
                       <DatePicker style={{ width: '100%' }} picker="date" placeholder="选择出生日期" />
@@ -518,7 +639,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
                   </Col>
                 </Row>
 
-                <Row gutter={16}>
+                <Row gutter={[12, 12]}>
                   <Col xs={24} sm={12}>
                     <Form.Item label="年级" name="grade">
                       <Select placeholder="请选择年级" allowClear>
@@ -570,14 +691,13 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
                       )}
                     </div>
                     
-                <Row gutter={16}>
+                <Row gutter={[12, 12]}>
                   <Col xs={24} sm={12}>
                     <Form.Item
-                      label={<span><Text type="danger">*</Text> 家长姓名</span>}
-                          name={['parents', index, 'name']}
-                          rules={[{ required: index === 0, message: '请输入家长姓名' }]}
+                      label="家长姓名"
+                      name={['parents', index, 'name']}
                     >
-                      <Input placeholder="请输入家长姓名" />
+                      <Input placeholder="选填：家长姓名" />
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={12}>
@@ -640,9 +760,8 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
                 <Row gutter={16}>
                   <Col xs={24} sm={12}>
                     <Form.Item
-                      label={<span><Text type="danger">*</Text> 家庭住址或所在区域</span>}
+                      label="家庭住址或所在区域"
                       name="address"
-                      rules={[{ required: true, message: '请输入地址信息' }]}
                     >
                       <TextArea 
                         rows={3} 
@@ -712,30 +831,47 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
             </Card>
           </Col>
 
-          {/* 家庭画像区 */}
+          {/* 家庭画像区 - 移动端用折叠收纳减少首屏拥挤 */}
           <Col xs={24} lg={10}>
-            <Card title="家庭画像" style={{ height: '100%' }}>
-              <div 
-                style={{ 
-                  maxHeight: isMobile ? '400px' : 'none',
-                  minHeight: isMobile ? '300px' : 'auto',
-                  overflowY: isMobile ? 'auto' : 'visible',
-                  paddingRight: isMobile ? '4px' : '8px',
-                  // 移动端滚动条样式 - 隐藏但保持功能
-                  ...(isMobile && {
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none'
-                  })
-                }}
-                className={isMobile ? "custom-scrollbar" : ""}
-              >
-                {renderFamilyPortraitTags()}
-              </div>
-            </Card>
+            {isMobile ? (
+              <Collapse
+                bordered={false}
+                defaultActiveKey={['portrait']}
+                items={[{
+                  key: 'portrait',
+                  label: '家庭画像',
+                  children: (
+                    <div
+                      style={{
+                        maxHeight: '400px',
+                        minHeight: '280px',
+                        overflowY: 'auto',
+                        paddingRight: '4px'
+                      }}
+                      className="custom-scrollbar"
+                    >
+                      {renderFamilyPortraitTags()}
+                    </div>
+                  )
+                }]}
+              />
+            ) : (
+              <Card title="家庭画像" style={{ height: '100%' }}>
+                <div 
+                  style={{ 
+                    maxHeight: 'none',
+                    overflowY: 'visible',
+                    paddingRight: '8px'
+                  }}
+                >
+                  {renderFamilyPortraitTags()}
+                </div>
+              </Card>
+            )}
           </Col>
         </Row>
 
-        {/* 沟通纪要区 */}
+        {/* 沟通纪要区 - 🔧 统一：只有已保存的客户才能添加沟通纪要 */}
         {customerId && (
           <Card title="沟通纪要" extra={
             <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -952,43 +1088,43 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerId, onSave })
           </Card>
         )}
 
-        {/* 页面页脚信息 */}
-        {customer && (
-          <div style={{ 
-            position: 'relative',
-            marginTop: isSmall ? '16px' : '24px',
-            paddingTop: isSmall ? '12px' : '16px'
-          }}>
-            {/* 左下角时间信息 */}
+        {/* 底部吸底操作条（移动端） */}
+        {isMobile && (
+          <Affix offsetBottom={8}>
             <div style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '4px',
-              color: 'var(--ant-color-text-tertiary)',
-              fontSize: '11px',
-              fontFamily: 'Monaco, Consolas, monospace'
+              gap: 12,
+              background: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'saturate(180%) blur(8px)',
+              border: '1px solid var(--ant-color-border-secondary)',
+              borderRadius: 12,
+              padding: '8px 12px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
             }}>
-              <span style={{
-                fontSize: '8px',
-                color: 'var(--ant-color-text-quaternary)'
-              }}>
-                •
-              </span>
-              <span>
-                {dayjs(customer.updatedAt).format(isSmall ? 'MM-DD HH:mm' : 'YYYY-MM-DD HH:mm')}
-              </span>
-              <span style={{
-                marginLeft: '8px',
-                fontSize: '10px',
-                color: 'var(--ant-color-text-quaternary)'
-              }}>
-                #{customer.id}
-              </span>
+              <Button 
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/crm')}
+              />
+              <Space>
+                {customerPublicId && customerId && customer && (
+                  <Popconfirm
+                    title="确认删除客户"
+                    onConfirm={handleDelete}
+                    okText="删除"
+                    cancelText="取消"
+                    okType="danger"
+                  >
+                    <Button danger icon={<DeleteOutlined />} loading={deleting} disabled={saving || deleting} />
+                  </Popconfirm>
+                )}
+                <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
+                  {customerPublicId ? '保存' : '创建'}
+                </Button>
+              </Space>
             </div>
-          </div>
+          </Affix>
         )}
       </Space>
     </div>

@@ -15,11 +15,15 @@ import {
 import { 
   CalendarOutlined, 
   BarChartOutlined, 
-  ReloadOutlined 
+  ReloadOutlined,
+  BookOutlined,
+  FundOutlined
 } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import CustomerAnalyticsTab from './components/CustomerAnalyticsTab';
 import StudentAnalyticsTab from './components/StudentAnalyticsTab';
+import ExamAnalyticsTab from './components/ExamAnalyticsTab';
+import FinanceAnalyticsTab from './components/FinanceAnalyticsTab';
 import { calculateTimeRangeParams, createCustomTimeRangeParams } from '@/api/analyticsApi';
 import type { AnalyticsTimeRangeParams } from '@/types/api';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -37,7 +41,7 @@ const AnalyticsPage: React.FC = () => {
   // ===============================
   
   const { isMobile } = useResponsive();
-  const [activeTab, setActiveTab] = useState<'customer' | 'student'>('customer');
+  const [activeTab, setActiveTab] = useState<'customer' | 'student' | 'exam' | 'finance'>('customer');
   const [timeRangeType, setTimeRangeType] = useState<'7' | '15' | '30' | '90' | '180' | '365' | 'custom'>('90');
   const [customDateRange, setCustomDateRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [enableComparison, setEnableComparison] = useState<boolean>(false);
@@ -103,7 +107,7 @@ const AnalyticsPage: React.FC = () => {
   };
 
   const handleTabChange = (key: string) => {
-    setActiveTab(key as 'customer' | 'student');
+    setActiveTab(key as 'customer' | 'student' | 'exam' | 'finance');
   };
 
   // ===============================
@@ -138,14 +142,18 @@ const AnalyticsPage: React.FC = () => {
   // 选项卡配置
   // ===============================
 
+  const renderTabLabel = (icon: React.ReactNode, text: string) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: isMobile ? '14px' : '16px' }}>
+      {icon}
+      <span>{text}</span>
+    </span>
+  );
+
   const tabItems = [
     {
       key: 'customer',
       label: (
-        <span style={{ fontSize: isMobile ? '14px' : '16px' }}>
-          <BarChartOutlined />
-          客户分析
-        </span>
+        renderTabLabel(<BarChartOutlined style={{ fontSize: isMobile ? 16 : 18 }} />, '客户分析')
       ),
       children: timeParams ? (
         <CustomerAnalyticsTab 
@@ -159,13 +167,38 @@ const AnalyticsPage: React.FC = () => {
     {
       key: 'student',
       label: (
-        <span style={{ fontSize: isMobile ? '14px' : '16px' }}>
-          <CalendarOutlined />
-          学生成长分析
-        </span>
+        renderTabLabel(<CalendarOutlined style={{ fontSize: isMobile ? 16 : 18 }} />, '学生成长分析')
       ),
       children: timeParams ? (
         <StudentAnalyticsTab 
+          timeParams={timeParams} 
+          refreshKey={refreshKey}
+        />
+      ) : (
+        <Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '50px' }} />
+      ),
+    },
+    {
+      key: 'exam',
+      label: (
+        renderTabLabel(<BookOutlined style={{ fontSize: isMobile ? 16 : 18 }} />, '考试分析')
+      ),
+      children: timeParams ? (
+        <ExamAnalyticsTab 
+          timeParams={timeParams} 
+          refreshKey={refreshKey}
+        />
+      ) : (
+        <Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '50px' }} />
+      ),
+    },
+    {
+      key: 'finance',
+      label: (
+        renderTabLabel(<FundOutlined style={{ fontSize: isMobile ? 16 : 18 }} />, '财务分析')
+      ),
+      children: timeParams ? (
+        <FinanceAnalyticsTab 
           timeParams={timeParams} 
           refreshKey={refreshKey}
         />

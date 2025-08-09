@@ -1,6 +1,6 @@
 import apiClient from '@/lib/apiClient';
 
-// Dashboard 摘要数据类型定义 (基于 API 文档)
+// Dashboard 摘要数据类型定义 (扩展版本)
 export interface DashboardSummaryResponse {
   financial: {
     monthlyReceived: number;      // 本月实收
@@ -13,7 +13,44 @@ export interface DashboardSummaryResponse {
     sourceChannel: string;
     nextFollowUpDate: string;
     phone?: string;
+    parentName?: string;
+    parentRelationship?: string;
+    status?: string;
   }[];
+  overview: {
+    totalStudents: number;        // 总学生数
+    totalClasses: number;         // 总班级数
+    activeExams: number;          // 活跃考试数
+    pendingFollowUps: number;     // 待跟进客户数
+  };
+  customerStats: {
+    totalCustomers: number;       // 总客户数
+    newThisMonth: number;         // 本月新增客户
+    conversionRate: number;       // 转化率
+    statusDistribution: { status: string; count: number; percentage: number }[];
+  };
+  attendance: {
+    todayAttendanceRate: number;  // 今日出勤率
+    weeklyAttendanceRate: number; // 本周出勤率
+    totalPresentToday: number;    // 今日出勤人数
+    totalAbsentToday: number;     // 今日缺勤人数
+  };
+  examStats: {
+    recentExams: number;          // 最近考试数量
+    upcomingExams: number;        // 即将到来的考试
+    averageScore: number;         // 平均分数
+    subjectPerformance: { subject: string; averageScore: number; examCount: number }[];
+  };
+  growthActivity: {
+    totalGrowthLogs: number;      // 总成长记录数
+    positiveLogsThisWeek: number; // 本周正面记录
+    negativeLogsThisWeek: number; // 本周负面记录
+    mostActiveClasses: { className: string; logsCount: number }[];
+  };
+  quickStats: {
+    topSourceChannels: { channel: string; count: number; percentage: number }[];
+    recentActivities: { type: string; description: string; timestamp: string }[];
+  };
 }
 
 /**

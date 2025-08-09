@@ -233,8 +233,8 @@ const StudentListView: React.FC<StudentListViewProps> = ({
     if (onStudentSelect) {
       onStudentSelect(student);
     } else {
-      // 使用publicId而不是数字ID进行导航
-      navigate(`/student-log/report/${student.publicId || student.id}`);
+      // 统一使用publicId进行导航
+      navigate(`/student-log/report/${student.publicId}`);
     }
   };
 

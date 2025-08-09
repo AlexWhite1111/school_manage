@@ -86,6 +86,21 @@ export const getCustomerById = async (id: number): Promise<Customer> => {
 };
 
 /**
+ * 通过publicId获取单个客户详情
+ * @route GET /customers/public/:publicId
+ */
+export const getCustomerByPublicId = async (publicId: string): Promise<Customer> => {
+  try {
+    const response = await apiClient.get<Customer>(`/customers/public/${publicId}`);
+    console.log('📄 通过publicId获取客户详情成功:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`通过publicId获取客户${publicId}详情失败:`, error);
+    throw error;
+  }
+};
+
+/**
  * 更新客户信息
  * @route PUT /customers/:id
  */

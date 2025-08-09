@@ -2,6 +2,7 @@
 // 该文件定义了认证模块的路由，例如登录和登出。
 
 import { Router, Request, Response } from 'express';
+import { authMiddleware, superAdminOnly } from '../middleware/auth.middleware';
 import { loginUser, registerUser, generateResetToken, resetPassword } from '../services/auth.service';
 
 const router = Router();
@@ -76,7 +77,7 @@ router.post('/logout', (req: Request, res: Response) => {
  * @desc    注册新用户（仅供超级管理员使用）
  * @access  Private (Super Admin only)
  */
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', authMiddleware, superAdminOnly, async (req: Request, res: Response) => {
   try {
     const { username, password, email, phone, role, linkedCustomerId } = req.body;
 
@@ -141,11 +142,9 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     const resetToken = await generateResetToken(identifier);
 
     if (resetToken) {
-      // 在实际应用中，这里应该发送邮件给用户
-      // 现在我们只是返回token（仅用于演示）
+      // 在实际应用中，这里应发送邮件给用户，不再将重置令牌返回给前端
       res.status(200).json({
-        message: '密码重置邮件已发送',
-        resetToken: resetToken // 实际应用中不应该返回token
+        message: '密码重置邮件已发送'
       });
     } else {
       res.status(404).json({

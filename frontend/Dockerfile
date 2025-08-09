@@ -31,11 +31,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # 复制Nginx配置
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# 创建nginx用户和组
-RUN addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
-
-# 设置权限
+# 设置权限（nginx用户已存在于基础镜像中）
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx && \

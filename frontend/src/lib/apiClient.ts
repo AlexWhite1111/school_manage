@@ -34,13 +34,23 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // 处理401未授权错误
+    // 处理401未授权错误（登录/注册等认证接口不触发整页跳转，避免闪屏）
     if (error.response?.status === 401) {
-      // 清除认证信息并跳转到登录页
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      const requestUrl: string = error.config?.url ?? '';
+      const isAuthEndpoint =
+        requestUrl.startsWith('/auth/login') ||
+        requestUrl.startsWith('/auth/register') ||
+        requestUrl.startsWith('/auth/forgot-password') ||
+        requestUrl.startsWith('/auth/reset-password');
+
+      if (!isAuthEndpoint) {
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+      // 对登录/注册接口，直接把错误抛给调用方处理（在页面内提示，不重定向）
     }
-    
+
     // 处理网络错误
     if (!error.response) {
       console.error('Network Error:', error.message);

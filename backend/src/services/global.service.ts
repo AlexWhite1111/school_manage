@@ -1,13 +1,12 @@
 // src/services/global.service.ts
 // 该文件包含全局操作的业务逻辑，例如数据的导入和导出。
 
-import { PrismaClient, CustomerStatus, Gender, TagType } from '@prisma/client';
+import { CustomerStatus, Gender, TagType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import Papa from 'papaparse';
 import fs from 'fs/promises';
 import { generateUniquePublicId } from '../utils/idGenerator';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/database';
 
 // ----------------------------------------
 // Service Functions
@@ -207,88 +206,7 @@ export const importCustomersFromCsv = async (filePath: string): Promise<any> => 
   }
 };
 
-/**
- * @description 导出学生成长记录为CSV
- * @param {any} filters - 筛选参数
- * @returns {Promise<string>} - 返回CSV格式的字符串
- */
-export const exportGrowthLogsToCsv = async (filters: {
-  studentId?: string;
-  classId?: string;
-  startDate?: string;
-  endDate?: string;
-}): Promise<string> => {
-  try {
-    // 构建查询条件
-    const where: any = {};
-    
-    if (filters.studentId) {
-      where.enrollment = {
-        studentId: parseInt(filters.studentId)
-      };
-    }
-    
-    if (filters.classId) {
-      where.enrollment = {
-        ...where.enrollment,
-        classId: parseInt(filters.classId)
-      };
-    }
 
-    if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        where.createdAt.gte = new Date(filters.startDate);
-      }
-      if (filters.endDate) {
-        const endDate = new Date(filters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        where.createdAt.lte = endDate;
-      }
-    }
-
-    // 获取成长记录数据
-    const growthLogs = await prisma.growthLog.findMany({
-      where,
-      include: {
-        tag: true,
-        enrollment: {
-          include: {
-            student: true,
-            class: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    // 转换为适合CSV导出的格式
-    const csvData = growthLogs.map(log => ({
-      '记录ID': log.id,
-      '学生姓名': log.enrollment.student.name,
-      '班级名称': log.enrollment.class.name,
-      '标签内容': log.tag.text,
-      '标签类型': log.tag.type,
-      '是否预定义标签': log.tag.isPredefined ? '是' : '否',
-      '记录时间': log.createdAt.toISOString(),
-      '记录日期': log.createdAt.toISOString().split('T')[0]
-    }));
-
-    // 转换为CSV字符串
-    const csv = Papa.unparse(csvData, {
-      header: true
-    });
-
-    console.log(`成功导出${growthLogs.length}条成长记录`);
-    return csv;
-
-  } catch (error) {
-    console.error('导出成长记录CSV时发生错误:', error);
-    throw new Error('导出成长记录CSV失败');
-  }
-};
 
 /**
  * @description 导出财务数据为CSV

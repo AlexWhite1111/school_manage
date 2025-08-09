@@ -9,6 +9,7 @@ import apiClient from '@/lib/apiClient';
  */
 export interface StudentFinanceSummary {
   studentId: number;           // 后端返回 studentId
+  publicId: string;            // 学生公共ID
   studentName: string;         // 后端返回 studentName
   school: string;              // ✅ 学校信息（确保不为null）
   grade?: string;              // ✅ 年级信息
@@ -78,6 +79,7 @@ export interface ParentInfo {
 export interface StudentFinanceDetails {
   student: {
     id: number;
+    publicId: string;
     name: string;
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
     birthDate?: string;
@@ -158,15 +160,30 @@ export const getStudentFinanceSummaries = async (): Promise<StudentFinanceSummar
 
 /**
  * 获取单个学生的详细财务信息
- * @route GET /finance/students/:id/details
+ * @route GET /finance/students/by-public-id/:publicId/details
  */
-export const getStudentFinanceDetails = async (studentId: number): Promise<StudentFinanceDetails> => {
+export const getStudentFinanceDetails = async (publicId: string): Promise<StudentFinanceDetails> => {
   try {
-    const response = await apiClient.get<StudentFinanceDetails>(`/finance/students/${studentId}/details`);
-    console.log(`💰 学生 ${studentId} 财务详情 API 响应:`, response.data);
+    const response = await apiClient.get<StudentFinanceDetails>(`/finance/students/by-public-id/${publicId}/details`);
+    console.log(`💰 学生 ${publicId} 财务详情 API 响应:`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`获取学生 ${studentId} 财务详情失败:`, error);
+    console.error(`获取学生 ${publicId} 财务详情失败:`, error);
+    throw error;
+  }
+};
+
+/**
+ * 通过publicId获取单个学生的详细财务信息
+ * @route GET /finance/students/public/:publicId/details
+ */
+export const getStudentFinanceDetailsByPublicId = async (publicId: string): Promise<StudentFinanceDetails> => {
+  try {
+    const response = await apiClient.get<StudentFinanceDetails>(`/finance/students/public/${publicId}/details`);
+    console.log(`💰 学生 ${publicId} 财务详情 API 响应:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`获取学生 ${publicId} 财务详情失败:`, error);
     throw error;
   }
 };

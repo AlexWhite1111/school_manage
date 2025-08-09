@@ -1,7 +1,6 @@
 // src/services/class.service.ts
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/database';
+ 
 
 // ----------------------------------------
 // Service Functions
@@ -109,18 +108,7 @@ export const getStudentsByClassId = async (classId: number, options: {
             timeSlot: 'asc'
           }
         },
-        // 如果需要最近标签，包含成长日志
-        ...(options.includeRecentTags && {
-          growthLogs: {
-            take: 10,
-            orderBy: {
-              createdAt: 'desc'
-            },
-            include: {
-              tag: true
-            }
-          }
-        })
+
       },
       orderBy: {
         student: {
@@ -223,16 +211,8 @@ export const getStudentsByClassId = async (classId: number, options: {
         PM: enrollment.attendanceRecords.find(record => record.timeSlot === 'PM')?.status || null
       };
 
-              // 构建最近成长标签
+              // Growth tags functionality removed
         let recentGrowthTags = undefined;
-        if (options.includeRecentTags && enrollment.growthLogs) {
-          recentGrowthTags = enrollment.growthLogs.map((log: any) => ({
-            id: log.tag.id,
-            text: log.tag.text,
-            type: log.tag.type,
-            createdAt: log.createdAt.toISOString()
-          }));
-        }
 
       // 构建其他班级信息
       const otherEnrollments = options.includeOtherEnrollments 
@@ -252,6 +232,7 @@ export const getStudentsByClassId = async (classId: number, options: {
         school: student.school,
         grade: student.grade,
         status: student.status,
+        publicId: student.publicId, // 重要：添加publicId字段
         enrollmentId: enrollment.id,
         enrollmentDate: enrollment.enrollmentDate?.toISOString(),
         todayAttendance,
@@ -468,14 +449,7 @@ export const deleteClass = async (classId: number) => {
     if (existingClass.enrollments.length > 0) {
       const enrollmentIds = existingClass.enrollments.map(e => e.id);
       
-      // 删除成长记录
-      await prisma.growthLog.deleteMany({
-        where: {
-          enrollmentId: {
-            in: enrollmentIds
-          }
-        }
-      });
+
 
       // 删除考勤记录
       await prisma.attendanceRecord.deleteMany({

@@ -1,11 +1,27 @@
 // src/services/customer.service.ts
 // 该文件包含所有与CRM相关的业务逻辑，如客户档案管理、沟通纪要等。
 
-import { PrismaClient, Customer, CommunicationLog, CustomerStatus, Grade, SourceChannel } from '@prisma/client';
+import { Customer, CommunicationLog, CustomerStatus, Grade, SourceChannel } from '@prisma/client';
 import * as tagService from './tag.service';
 import { generateUniquePublicId } from '../utils/idGenerator';
+const pinyin = require('pinyin');
+import { prisma } from '../utils/database';
 
-const prisma = new PrismaClient();
+// 拼音处理工具
+const getPinyinInitials = (text: string): string => {
+  try {
+    if (!text) return '';
+    const pinyinArray = pinyin(text, {
+      style: pinyin.STYLE_FIRST_LETTER,
+      heteronym: false,
+      segment: true
+    });
+    return pinyinArray.map((item: any) => item[0]).join('').toLowerCase();
+  } catch (error) {
+    console.warn('拼音转换失败:', error);
+    return '';
+  }
+};
 
 // 定义用于创建客户时的数据传输对象 (DTO)
 export interface CreateCustomerDto {
@@ -32,7 +48,7 @@ export interface CreateCustomerDto {
 export type UpdateCustomerDto = Partial<CreateCustomerDto>;
 
 /**
- * @description 获取客户列表，支持筛选和分页 - 性能优化版本
+ * @description 获取客户列表，支持筛选和分页 - 性能优化版本 + 拼音搜索
  * @param filters - 包含筛选条件的对象 (e.g., { status, search, page, limit })
  * @returns {Promise<Customer[]>} - 返回客户对象数组
  */
@@ -47,90 +63,113 @@ export const getCustomers = async (filters: {
   try {
     const { status, search, page = 1, limit = 50, unclassed, excludeClassId } = filters;
     
-    // 1. 构建 Prisma 查询条件，优化性能
+    console.log(`🔍 开始客户搜索: 状态=${status || '全部'}, 关键词="${search || '无'}", 页码=${page}, 限制=${limit}`);
+    
+    // 构建 Prisma 查询条件，优化性能
     const whereClause: any = {};
     
     // 状态筛选
     if (status) {
       if (Array.isArray(status)) {
-        whereClause.status = {
-          in: status
-        };
+        whereClause.status = { in: status };
       } else {
         whereClause.status = status;
       }
     }
     
-    // 优化模糊搜索 - 只在有搜索词时才添加复杂查询
+    // 🚀 优化搜索逻辑 - 智能多模式搜索 + 安全处理
     if (search && search.trim()) {
       const searchTerm = search.trim();
-      whereClause.OR = [
-        // 优先搜索主要字段
-        {
-          name: {
-            contains: searchTerm,
-            mode: 'insensitive'
-          }
-        },
-        {
-          school: {
-            contains: searchTerm,
-            mode: 'insensitive'
-          }
-        },
-        // 次要字段搜索
-        {
-          address: {
-            contains: searchTerm,
-            mode: 'insensitive'
-          }
-        },
-        {
-          sourceChannel: {
-            contains: searchTerm,
-            mode: 'insensitive'
-          }
-        },
-        {
-          grade: {
-            contains: searchTerm,
-            mode: 'insensitive'
-          }
-        },
-        // 关联表搜索 - 优化查询
-        {
-          parents: {
-            some: {
-              OR: [
-                {
-                  name: {
-                    contains: searchTerm,
-                    mode: 'insensitive'
-                  }
-                },
-                {
-                  phone: {
-                    contains: searchTerm,
-                    mode: 'insensitive'
-                  }
-                }
-              ]
+      console.log(`🔍 处理搜索关键词: "${searchTerm}"`);
+      
+      // 参数安全验证
+      if (searchTerm.length > 100) {
+        console.warn(`⚠️ 搜索关键词过长，已截断: ${searchTerm.substring(0, 100)}...`);
+        return []; // 返回空结果而不是抛出错误
+      }
+      
+      try {
+        // 检测是否为纯字母（可能是拼音首字母）
+        const isAlphaOnly = /^[a-zA-Z]+$/.test(searchTerm);
+        
+        const searchConditions: any[] = [
+          // 1. String类型字段搜索 - 支持contains操作
+          {
+            name: { contains: searchTerm, mode: 'insensitive' }
+          },
+          {
+            school: { contains: searchTerm, mode: 'insensitive' }
+          },
+          {
+            address: { contains: searchTerm, mode: 'insensitive' }
+          },
+          // 2. 关联字段搜索
+          {
+            parents: {
+              some: {
+                OR: [
+                  { name: { contains: searchTerm, mode: 'insensitive' } },
+                  { phone: { contains: searchTerm, mode: 'insensitive' } }
+                ]
+              }
             }
           }
+        ];
+
+        // 3. 枚举字段搜索 - 需要精确匹配或映射
+        // Grade枚举搜索
+        const gradeMapping: { [key: string]: string } = {
+          '初一': 'CHU_YI', '初1': 'CHU_YI', 'chu1': 'CHU_YI', 'cy': 'CHU_YI',
+          '初二': 'CHU_ER', '初2': 'CHU_ER', 'chu2': 'CHU_ER', 'ce': 'CHU_ER',
+          '初三': 'CHU_SAN', '初3': 'CHU_SAN', 'chu3': 'CHU_SAN', 'cs': 'CHU_SAN',
+          '高一': 'GAO_YI', '高1': 'GAO_YI', 'gao1': 'GAO_YI', 'gy': 'GAO_YI',
+          '高二': 'GAO_ER', '高2': 'GAO_ER', 'gao2': 'GAO_ER', 'ge': 'GAO_ER',
+          '高三': 'GAO_SAN', '高3': 'GAO_SAN', 'gao3': 'GAO_SAN', 'gs': 'GAO_SAN'
+        };
+
+        const matchedGrade = gradeMapping[searchTerm.toLowerCase()];
+        if (matchedGrade) {
+          searchConditions.push({
+            grade: { equals: matchedGrade }
+          });
         }
-      ];
+
+        // SourceChannel枚举搜索
+        const sourceChannelMapping: { [key: string]: string } = {
+          '家长推荐': 'JIAZHANG_TUIJIAN', '推荐': 'JIAZHANG_TUIJIAN', 'jz': 'JIAZHANG_TUIJIAN',
+          '朋友亲戚': 'PENGYOU_QINQI', '朋友': 'PENGYOU_QINQI', '亲戚': 'PENGYOU_QINQI', 'py': 'PENGYOU_QINQI',
+          '学生社交': 'XUESHENG_SHEJIAO', '社交': 'XUESHENG_SHEJIAO', 'xs': 'XUESHENG_SHEJIAO',
+          '广告传单': 'GUANGGAO_CHUANDAN', '传单': 'GUANGGAO_CHUANDAN', '广告': 'GUANGGAO_CHUANDAN', 'gg': 'GUANGGAO_CHUANDAN',
+          '地推宣传': 'DITUI_XUANCHUAN', '地推': 'DITUI_XUANCHUAN', '宣传': 'DITUI_XUANCHUAN', 'dt': 'DITUI_XUANCHUAN',
+          '微信公众号': 'WEIXIN_GONGZHONGHAO', '微信': 'WEIXIN_GONGZHONGHAO', '公众号': 'WEIXIN_GONGZHONGHAO', 'wx': 'WEIXIN_GONGZHONGHAO',
+          '抖音': 'DOUYIN', 'douyin': 'DOUYIN', 'dy': 'DOUYIN',
+          '其他媒体': 'QITA_MEITI', '媒体': 'QITA_MEITI', 'mt': 'QITA_MEITI',
+          '合作': 'HEZUO', 'hezuo': 'HEZUO', 'hz': 'HEZUO',
+          '其他': 'QITA', 'qita': 'QITA', 'qt': 'QITA'
+        };
+
+        const matchedSourceChannel = sourceChannelMapping[searchTerm.toLowerCase()];
+        if (matchedSourceChannel) {
+          searchConditions.push({
+            sourceChannel: { equals: matchedSourceChannel }
+          });
+        }
+
+        whereClause.OR = searchConditions;
+        console.log(`✅ 搜索条件构建完成，条件数量: ${searchConditions.length}${matchedGrade ? ' (含年级匹配)' : ''}${matchedSourceChannel ? ' (含渠道匹配)' : ''}`);
+        
+      } catch (searchError) {
+        console.error('❌ 搜索条件构建失败:', searchError);
+        throw new Error('搜索参数处理失败');
+      }
     }
 
     // 处理班级筛选逻辑
     if (excludeClassId) {
-      // 排除指定班级的学生（但可以包括在其他班级的学生）
       whereClause.enrollments = {
-        none: {
-          classId: excludeClassId
-        }
+        none: { classId: excludeClassId }
       };
     } else if (unclassed) {
-      // 只返回未加入任何班级的学生
       whereClause.enrollments = {
         none: {}
       };
@@ -139,10 +178,11 @@ export const getCustomers = async (filters: {
     // 分页逻辑
     const skip = (page - 1) * limit;
     
-    // 🚀 性能优化：分离查询，减少不必要的关联
+    console.log(`📊 执行数据库查询: skip=${skip}, take=${limit}`);
+    
+    // 🚀 数据库查询优化
     const customers = await prisma.customer.findMany({
       where: whereClause,
-      // 只包含必要的关联数据
       include: {
         parents: {
           select: {
@@ -151,32 +191,77 @@ export const getCustomers = async (filters: {
             phone: true,
             relationship: true
           },
-          take: 1 // 列表页只显示主要家长
+          take: 2 // 列表页显示前两个家长
         },
         tags: {
-          select: {
-            tagId: true
-          }
+          select: { tagId: true }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      },
+      orderBy: [
+        // 优化排序：搜索时按创建时间，无搜索时按更新时间
+        search ? { createdAt: 'desc' } : { updatedAt: 'desc' },
+        { id: 'desc' } // 添加稳定排序
+      ],
       skip: skip,
       take: limit
     });
     
-    // 转换tags数据格式：提取标签ID
-    const transformedCustomers = customers.map(customer => ({
+    console.log(`📊 数据库查询完成: 原始结果=${customers.length}条`);
+    
+    // 🎯 如果是拼音搜索且结果较少，进行二次筛选
+    let finalCustomers = customers;
+    if (search && /^[a-zA-Z]+$/.test(search.trim()) && customers.length < 10) {
+      try {
+        const pinyinFilter = search.toLowerCase();
+        console.log(`🔤 执行拼音二次筛选: "${pinyinFilter}"`);
+        
+        finalCustomers = customers.filter(customer => {
+          try {
+            const nameInitials = getPinyinInitials(customer.name);
+            const schoolInitials = customer.school ? getPinyinInitials(customer.school) : '';
+            const parentInitials = customer.parents.map(p => getPinyinInitials(p.name)).join('');
+            
+            return nameInitials.includes(pinyinFilter) || 
+                   schoolInitials.includes(pinyinFilter) || 
+                   parentInitials.includes(pinyinFilter);
+          } catch (pinyinError) {
+            console.warn(`⚠️ 客户${customer.id}拼音处理失败:`, pinyinError);
+            return false; // 跳过有问题的客户，不影响整体搜索
+          }
+        });
+        
+        console.log(`🔤 拼音筛选完成: ${finalCustomers.length}条`);
+      } catch (pinyinError) {
+        console.warn('⚠️ 拼音筛选整体失败，使用原始结果:', pinyinError);
+        // 拼音筛选失败时，仍然返回原始搜索结果
+      }
+    }
+    
+    // 转换tags数据格式
+    const transformedCustomers = finalCustomers.map(customer => ({
       ...customer,
       tags: customer.tags.map(ct => ct.tagId)
     }));
     
+    console.log(`🎉 客户搜索完成: 关键词="${search || '无'}", 状态="${status || '全部'}", 最终结果=${transformedCustomers.length}条`);
     return transformedCustomers;
     
   } catch (error) {
-    console.error('获取客户列表时发生错误:', error);
-    throw new Error('获取客户列表失败');
+    console.error('❌ 获取客户列表时发生错误:', error);
+    console.error('❌ 错误详情:', error instanceof Error ? error.stack : 'Unknown error');
+    console.error('❌ 查询参数:', JSON.stringify(filters, null, 2));
+    
+    // 更友好的错误处理
+    if (error instanceof Error) {
+      if (error.message.includes('搜索参数处理失败')) {
+        throw new Error('搜索关键词包含不支持的字符，请重新输入');
+      }
+      if (error.message.includes('database')) {
+        throw new Error('数据库连接异常，请稍后重试');
+      }
+    }
+    
+    throw new Error('获取客户列表失败，请检查输入参数');
   }
 };
 
@@ -305,7 +390,21 @@ export const createCustomer = async (data: CreateCustomerDto): Promise<Customer>
       return customer;
     });
 
-    // 5. 返回创建的客户对象（包含完整关联信息）
+    // 5. 如果客户状态为ENROLLED，自动创建学生账号
+    if (result.status === 'ENROLLED') {
+      console.log(`客户 ${result.name} 创建时状态为已报名，尝试创建学生账号...`);
+      try {
+        const { createStudentAccountForCustomer } = await import('./auth.service');
+        const studentAccount = await createStudentAccountForCustomer(result.id);
+        if (studentAccount) {
+          console.log(`成功为新客户 ${result.name} 创建学生账号`);
+        }
+      } catch (error) {
+        console.warn(`为新客户 ${result.name} 创建学生账号失败:`, error);
+      }
+    }
+
+    // 6. 返回创建的客户对象（包含完整关联信息）
     const completeCustomer = await prisma.customer.findUnique({
       where: { id: result.id },
       include: {
@@ -409,6 +508,76 @@ export const getCustomerById = async (id: number): Promise<Customer | null> => {
   } catch (error) {
     console.error('获取客户档案时发生错误:', error);
     throw new Error('获取客户档案失败');
+  }
+};
+
+/**
+ * @description 通过publicId获取单个客户的完整档案
+ * @param publicId - 客户publicId
+ * @returns {Promise<Customer | null>} - 返回客户对象或null
+ */
+export const getCustomerByPublicId = async (publicId: string): Promise<Customer | null> => {
+  try {
+    // 1. 使用 prisma.customer.findUnique 通过publicId查找
+    // 2. 使用 include 操作符来加载所有关联数据
+    const customer = await prisma.customer.findUnique({
+      where: {
+        publicId: publicId
+      },
+      include: {
+        parents: {
+          orderBy: {
+            id: 'asc' // 按ID排序，保持一致的顺序
+          }
+        },
+        communicationLogs: {
+          orderBy: {
+            updatedAt: 'desc' // 按最后编辑时间倒序排列
+          }
+        },
+        tags: {
+          include: {
+            tag: true // 包含标签的详细信息
+          },
+          orderBy: {
+            tag: {
+              type: 'asc' // 按标签类型排序
+            }
+          }
+        },
+        enrollments: {
+          include: {
+            class: true // 如果需要班级信息
+          }
+        },
+        financialOrders: {
+          include: {
+            payments: true // 如果需要财务信息
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      }
+    });
+
+    if (!customer) {
+      console.log(`未找到客户: publicId ${publicId}`);
+      return null;
+    }
+
+    // 转换tags数据格式：将CustomerTag[]转换为number[]
+    const transformedCustomer = {
+      ...customer,
+      tags: customer.tags.map(ct => ct.tagId) // 只返回标签ID数组
+    };
+
+    console.log(`成功通过publicId获取客户档案: ${customer.name} (publicId: ${publicId})`);
+    return transformedCustomer;
+
+  } catch (error) {
+    console.error('通过publicId获取客户档案时发生错误:', error);
+    throw new Error('通过publicId获取客户档案失败');
   }
 };
 
@@ -735,4 +904,4 @@ export const deleteCommunicationLog = async (logId: number): Promise<void> => {
     
     throw new Error('删除沟通纪要失败');
   }
-}; 
+};

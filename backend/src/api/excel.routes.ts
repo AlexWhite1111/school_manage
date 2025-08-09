@@ -259,32 +259,6 @@ router.get('/import-template', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * @route   GET /api/excel/export-growth-logs/:studentId
- * @desc    导出学生成长记录
- * @access  Private
- */
-router.get('/export-growth-logs/:studentId', async (req: Request, res: Response) => {
-  try {
-    const { studentId } = req.params;
-    const { startDate, endDate } = req.query;
-    
-    // TODO: 实现学生成长记录导出
-    // 这里可以扩展更多的导出功能
-    
-    res.json({
-      success: false,
-      message: '此功能正在开发中'
-    });
 
-  } catch (error) {
-    console.error('导出成长记录接口错误:', error);
-    res.status(500).json({
-      success: false,
-      message: '服务器内部错误',
-      error: error instanceof Error ? error.message : '未知错误'
-    });
-  }
-});
 
 export default router; 

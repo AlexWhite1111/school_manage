@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Select, Card, Typography, message, Space } from 'antd';
-import { UserOutlined, TeamOutlined } from '@ant-design/icons';
+import { UserOutlined, TeamOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { registerUser, UserRole } from '@/api/authApi';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -145,12 +145,13 @@ const RegisterPage: React.FC = () => {
                 {loading ? '注册中...' : '注册用户'}
               </Button>
               
-              <Button
+                            <Button 
                 type="default"
+                icon={<ArrowLeftOutlined />}
                 onClick={() => navigate('/settings')}
                 block
               >
-                返回设置
+                设置
               </Button>
             </Space>
           </Form.Item>

@@ -20,7 +20,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import { importCustomers, downloadImportTemplate, type ImportResult } from '@/api/excelApi';
+import { importCustomers, downloadImportTemplate, type ImportResult } from '@/api/export';
 
 const { Title, Text, Paragraph } = Typography;
 const { Dragger } = Upload;

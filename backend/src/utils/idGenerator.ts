@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './database';
 
 /**
- * 生成学号格式的publicId：年月+6位随机数
- * 格式：202501123456
+ * 生成学号格式的publicId：年月+5位随机数
+ * 格式：20250112345
  */
 export const generatePublicId = (): string => {
   const now = new Date();
@@ -12,8 +10,8 @@ export const generatePublicId = (): string => {
   const month = (now.getMonth() + 1).toString().padStart(2, '0');
   const yearMonth = year + month;
   
-  // 生成6位随机数（000000-999999）
-  const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+  // 生成5位随机数（00000-99999）
+  const randomNum = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
   
   return `${yearMonth}${randomNum}`;
 };
@@ -45,12 +43,3 @@ export const generateUniquePublicId = async (): Promise<string> => {
   
   return publicId!;
 };
-
-/**
- * 验证publicId格式是否正确
- */
-export const validatePublicIdFormat = (publicId: string): boolean => {
-  // 检查格式：6位年月 + 6位数字
-  const regex = /^\d{6}\d{6}$/;
-  return regex.test(publicId);
-}; 

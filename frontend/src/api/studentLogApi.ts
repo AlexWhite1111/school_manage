@@ -77,13 +77,7 @@ export const getClassStudents = async (
   return response.data;
 };
 
-/**
- * 新增：获取学生的多班级信息
- */
-export const getStudentMultiClassInfo = async (studentId: number): Promise<MultiClassStudent> => {
-  const response = await apiClient.get(`/students/${studentId}/multi-class-info`);
-  return response.data;
-};
+// ✅ REMOVED: getStudentMultiClassInfo - Use GrowthApi.getStudentGrowthSummaryByPublicId instead
 
 /**
  * 获取可报名的学生列表（排除已在当前班级的学生）
@@ -230,9 +224,37 @@ export const getStudentGrowthReportByPublicId = async (
   return response.data;
 };
 
+// ✅ REMOVED: getStudentExamHistory - Use examApi.getStudentExamHistoryByPublicId instead
+
 // ================================
 // 标签管理API
 // ================================
+
+/**
+ * 获取考试表现标签（专门用于考试成绩录入）
+ */
+export const getExamTags = async (
+  type?: 'positive' | 'negative' | 'all', 
+  includeDeleted?: boolean
+): Promise<Tag[]> => {
+  const queryParams = new URLSearchParams();
+  
+  if (type && type !== 'all') {
+    const tagType = type === 'positive' ? 'EXAM_POSITIVE' : 'EXAM_NEGATIVE';
+    queryParams.append('type', tagType);
+  } else {
+    // 如果是'all'，则同时获取正面和负面的考试标签
+    queryParams.append('examTags', 'true');
+  }
+
+  if (includeDeleted) {
+    queryParams.append('includeDeleted', 'true');
+  }
+
+  const url = `/tags${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  const response = await apiClient.get(url);
+  return response.data;
+};
 
 /**
  * 获取成长标签
@@ -470,7 +492,8 @@ export interface ExportGrowthLogsParams {
 
 export interface StudentGrowthReport {
   student: {
-    id: number;
+    id: number;  // deprecated - will be removed
+    publicId: string;
     name: string;
     school?: string;
     grade?: string;
@@ -490,6 +513,27 @@ export interface StudentGrowthReport {
     text: string;
     count: number;
   }[];
+  examAnalysis?: {
+    totalRecords: number;
+    subjectAnalysis: Array<{
+      subject: string;
+      scores: any[];
+      totalExams: number;
+      validScores: number;
+      absentCount: number;
+      average: number;
+      highest: number;
+      lowest: number;
+      trend: 'improving' | 'declining' | 'stable';
+      improvement: number;
+    }>;
+    allScores: any[];
+    examTagsWordCloud: Array<{
+      text: string;
+      value: number;
+      type: 'positive' | 'negative';
+    }>;
+  };
   growthTrend: {
     date: string;
     positiveCount: number;

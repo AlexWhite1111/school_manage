@@ -1,10 +1,10 @@
 // src/services/user.service.ts
 // 该文件包含用户管理的业务逻辑，例如获取和更新用户个人资料。
 
-import { PrismaClient, User, UserRole } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
+import { prisma } from '../utils/database';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
 
 // 定义一个不包含密码哈希的用户类型，用于安全地返回给前端
 type SafeUser = Omit<User, 'passwordHash'>;

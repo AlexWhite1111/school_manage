@@ -1,8 +1,7 @@
 // src/services/finance.service.ts
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/database';
 import { Decimal } from '@prisma/client/runtime/library';
 
-const prisma = new PrismaClient();
 
 // ----------------------------------------
 // Service Functions
@@ -82,6 +81,7 @@ export const getStudentFinanceSummaries = async () => {
 
       return {
         studentId: student.id,
+        publicId: student.publicId,
         studentName: student.name,
         school: student.school || '', // ✅ 确保学校信息不为null
         grade: student.grade || '', // ✅ 添加年级信息
@@ -203,6 +203,100 @@ export const getStudentFinanceDetails = async (studentId: number) => {
 };
 
 /**
+ * @description 通过publicId获取学生的详细财务信息
+ * @param {string} publicId - 学生publicId
+ * @returns {Promise<any>}
+ */
+export const getStudentFinanceDetailsByPublicId = async (publicId: string) => {
+  try {
+    // 验证学生是否存在，包含完整的档案信息
+    const student = await prisma.customer.findUnique({
+      where: { publicId: publicId },
+      include: {
+        parents: true, // 包含家长信息
+        financialOrders: {
+          include: {
+            payments: {
+              orderBy: {
+                paymentDate: 'desc'
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      }
+    });
+
+    if (!student) {
+      throw new Error('学生不存在');
+    }
+
+    // 格式化订单数据，包含付款状态
+    const ordersWithStatus = student.financialOrders.map(order => {
+      const totalPaid = order.payments.reduce((sum, payment) => 
+        sum.plus(payment.amount), new Decimal(0));
+      
+      const remainingAmount = order.totalDue.minus(totalPaid);
+      
+      let orderStatus = 'UNPAID';
+      if (remainingAmount.equals(0)) {
+        orderStatus = 'PAID_FULL';
+      } else if (totalPaid.greaterThan(0)) {
+        orderStatus = 'PARTIAL_PAID';
+      }
+
+      return {
+        ...order,
+        totalDue: order.totalDue.toString(),
+        totalPaid: totalPaid.toString(),
+        remainingAmount: remainingAmount.toString(),
+        orderStatus,
+        payments: order.payments.map(payment => ({
+          ...payment,
+          amount: payment.amount.toString()
+        }))
+      };
+    });
+
+    const result = {
+      student: {
+        id: student.id,
+        publicId: student.publicId,
+        name: student.name,
+        gender: student.gender,
+        birthDate: student.birthDate,
+        school: student.school,
+        grade: student.grade,
+        address: student.address,
+        status: student.status,
+        parents: student.parents.map(parent => ({
+          id: parent.id,
+          name: parent.name,
+          relationship: parent.relationship,
+          phone: parent.phone,
+          wechatId: parent.wechatId
+        }))
+      },
+      orders: ordersWithStatus
+    };
+
+    console.log(`成功通过publicId获取学生${student.name}的详细财务信息和完整档案`);
+    return result;
+
+  } catch (error) {
+    console.error('通过publicId获取学生财务详情时发生错误:', error);
+    
+    if (error instanceof Error && error.message === '学生不存在') {
+      throw error;
+    }
+    
+    throw new Error('通过publicId获取学生财务详情失败');
+  }
+};
+
+/**
  * @description 为学生创建新订单
  * @param {number} studentId - 学生ID
  * @param {any} orderData - 订单数据
@@ -257,6 +351,49 @@ export const createOrderForStudent = async (studentId: number, orderData: {
     }
     
     throw new Error('创建订单失败');
+  }
+};
+
+/**
+ * @description 为学生创建财务订单（通过publicId）
+ */
+export const createOrderForStudentByPublicId = async (publicId: string, orderData: { 
+  name: string; 
+  totalDue: string; 
+  coursePeriodStart?: string; 
+  coursePeriodEnd?: string; 
+  dueDate?: string; 
+}) => {
+  try {
+    // 验证学生是否存在
+    const student = await prisma.customer.findUnique({
+      where: { publicId }
+    });
+
+    if (!student) {
+      throw new Error('学生不存在');
+    }
+
+    // 创建订单
+    const newOrder = await prisma.financialOrder.create({
+      data: {
+        studentId: student.id,
+        name: orderData.name,
+        totalDue: new Decimal(orderData.totalDue),
+        coursePeriodStart: orderData.coursePeriodStart ? new Date(orderData.coursePeriodStart) : null,
+        coursePeriodEnd: orderData.coursePeriodEnd ? new Date(orderData.coursePeriodEnd) : null,
+        dueDate: orderData.dueDate ? new Date(orderData.dueDate) : null
+      },
+      include: {
+        student: true,
+        payments: true
+      }
+    });
+
+    return newOrder;
+  } catch (error) {
+    console.error('为学生创建订单失败:', error);
+    throw error;
   }
 };
 

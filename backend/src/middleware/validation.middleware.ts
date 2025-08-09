@@ -81,7 +81,7 @@ export const validateCustomerCreate = [
   
   body('sourceChannel')
     .optional()
-    .isIn(['JIAZHANG_TUIJIAN', 'PENGYOU_QINQI', 'XUESHENG_SHEJIAO', 'GUANGGAO_CHUANDAN', 
+          .isIn(['JIAZHANG_TUIJIAN', 'PENGYOU_QINQI', 'XUESHENG_SHEJIAO', 'GUANGGAO_CHUANDAN', 
            'DITUI_XUANCHUAN', 'WEIXIN_GONGZHONGHAO', 'DOUYIN', 'QITA_MEITI', 'HEZUO', 'QITA'])
     .withMessage('来源渠道必须是有效选项'),
   
@@ -259,26 +259,7 @@ export const validatePasswordChange = [
 // 学生成长记录验证规则
 // ================================
 
-/**
- * 成长记录创建验证规则
- */
-export const validateGrowthLogCreate = [
-  body('enrollmentId')
-    .isInt({ min: 1 })
-    .withMessage('班级注册ID必须是正整数'),
-  
-  body('tagId')
-    .isInt({ min: 1 })
-    .withMessage('标签ID必须是正整数'),
-  
-  body('note')
-    .optional()
-    .trim()
-    .isLength({ max: 500 })
-    .withMessage('备注不能超过500个字符'),
-  
-  checkValidationResult
-];
+
 
 // ================================
 // 查询参数验证规则
@@ -442,3 +423,192 @@ export const normalizeUserData = (req: Request, res: Response, next: NextFunctio
   
   next();
 }; 
+
+// ================================
+// Growth系统验证规则
+// ================================
+
+/**
+ * @description Growth标签创建验证规则
+ */
+export const validateGrowthTagCreate = [
+  body('text')
+    .trim()
+    .isLength({ min: 2, max: 20 })
+    .withMessage('标签名称必须在2-20字符之间')
+    .matches(/^[\u4e00-\u9fa5a-zA-Z0-9\s]+$/)
+    .withMessage('标签名称只能包含中文、英文、数字和空格'),
+  
+  body('sentiment')
+    .isIn(['POSITIVE', 'NEGATIVE'])
+    .withMessage('情感极性必须是POSITIVE或NEGATIVE'),
+  
+  body('defaultWeight')
+    .isInt({ min: 1, max: 10 })
+    .withMessage('默认权重必须是1-10之间的整数'),
+  
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('标签描述不能超过100个字符'),
+  
+  checkValidationResult
+];
+
+/**
+ * @description Growth标签更新验证规则
+ */
+export const validateGrowthTagUpdate = [
+  body('text')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 20 })
+    .withMessage('标签名称必须在2-20字符之间')
+    .matches(/^[\u4e00-\u9fa5a-zA-Z0-9\s]+$/)
+    .withMessage('标签名称只能包含中文、英文、数字和空格'),
+  
+  body('defaultWeight')
+    .optional()
+    .isInt({ min: 1, max: 10 })
+    .withMessage('默认权重必须是1-10之间的整数'),
+  
+  body('isActive')
+    .optional()
+    .isBoolean()
+    .withMessage('isActive必须是布尔值'),
+  
+  checkValidationResult
+];
+
+/**
+ * @description 成长日志创建验证规则
+ */
+export const validateGrowthLogCreate = [
+  body('enrollmentId')
+    .isInt({ min: 1 })
+    .withMessage('班级注册ID必须是正整数'),
+  
+  body('tagId')
+    .isInt({ min: 1 })
+    .withMessage('标签ID必须是正整数'),
+  
+  body('weight')
+    .optional()
+    .isInt({ min: 1, max: 10 })
+    .withMessage('权重必须是1-10之间的整数'),
+  
+  body('context')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('上下文说明不能超过50个字符'),
+  
+  checkValidationResult
+];
+
+/**
+ * @description 批量成长日志创建验证规则
+ */
+export const validateGrowthLogBatch = [
+  body('records')
+    .isArray({ min: 1, max: 20 })
+    .withMessage('记录数组必须包含1-20条记录'),
+  
+  body('records.*.enrollmentId')
+    .isInt({ min: 1 })
+    .withMessage('班级注册ID必须是正整数'),
+  
+  body('records.*.tagId')
+    .isInt({ min: 1 })
+    .withMessage('标签ID必须是正整数'),
+  
+  body('records.*.weight')
+    .optional()
+    .isInt({ min: 1, max: 10 })
+    .withMessage('权重必须是1-10之间的整数'),
+  
+  checkValidationResult
+];
+
+/**
+ * @description Growth配置创建验证规则
+ */
+export const validateGrowthConfigCreate = [
+  body('name')
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('配置名称必须在1-50字符之间'),
+  
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('配置描述不能超过200个字符'),
+  
+  body('processNoise')
+    .isFloat({ min: 0.001, max: 1.0 })
+    .withMessage('过程噪声必须在0.001-1.0之间'),
+  
+  body('initialUncertainty')
+    .isFloat({ min: 1.0, max: 100.0 })
+    .withMessage('初始不确定性必须在1.0-100.0之间'),
+  
+  body('timeDecayFactor')
+    .isFloat({ min: 0.001, max: 0.1 })
+    .withMessage('时间衰减因子必须在0.001-0.1之间'),
+  
+  body('minObservations')
+    .isInt({ min: 1, max: 10 })
+    .withMessage('最少观测次数必须在1-10之间'),
+  
+  body('maxDaysBetween')
+    .isInt({ min: 7, max: 90 })
+    .withMessage('最大天数间隔必须在7-90之间'),
+  
+  checkValidationResult
+];
+
+/**
+ * @description Growth配置更新验证规则
+ */
+export const validateGrowthConfigUpdate = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('配置名称必须在1-50字符之间'),
+  
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('配置描述不能超过200个字符'),
+  
+  body('processNoise')
+    .optional()
+    .isFloat({ min: 0.001, max: 1.0 })
+    .withMessage('过程噪声必须在0.001-1.0之间'),
+  
+  body('initialUncertainty')
+    .optional()
+    .isFloat({ min: 1.0, max: 100.0 })
+    .withMessage('初始不确定性必须在1.0-100.0之间'),
+  
+  body('timeDecayFactor')
+    .optional()
+    .isFloat({ min: 0.001, max: 0.1 })
+    .withMessage('时间衰减因子必须在0.001-0.1之间'),
+  
+  body('minObservations')
+    .optional()
+    .isInt({ min: 1, max: 10 })
+    .withMessage('最少观测次数必须在1-10之间'),
+  
+  body('maxDaysBetween')
+    .optional()
+    .isInt({ min: 7, max: 90 })
+    .withMessage('最大天数间隔必须在7-90之间'),
+  
+  checkValidationResult
+]; 

@@ -13,6 +13,8 @@ import dashboardRoutes from './dashboard.routes'; // 引入仪表盘路由
 import globalRoutes from './global.routes'; // 引入全局路由
 import analyticsRoutes from './analytics.routes'; // 引入数据分析路由
 import excelRoutes from './excel.routes'; // 引入Excel导入导出路由
+import examRoutes from './exam.routes'; // 引入考试管理路由
+import growthRoutes from './growth.routes'; // 引入Growth成长量化路由
 // ... import other route modules as they are created
 
 const router = Router();
@@ -33,7 +35,7 @@ router.use('/tags', tagRoutes);
 router.use('/classes', classRoutes);
 
 // 挂载学生日志模块的路由
-router.use('/', studentLogRoutes); // 根路由挂载，因为内部路径已包含/attendance-records等
+router.use('/', studentLogRoutes); // 保持与前端兼容的路径（/attendance-records 等）
 
 // 挂载财务模块的路由
 router.use('/finance', financeRoutes);
@@ -41,7 +43,7 @@ router.use('/finance', financeRoutes);
 // 挂载仪表盘模块的路由
 router.use('/dashboard', dashboardRoutes);
 
-// 挂载全局模块的路由 (例如 /api/export/..., /api/import/...)
+// 挂载全局模块的路由（保持原有路径兼容由 global.routes 内部定义具体 path）
 router.use('/', globalRoutes);
 
 // 挂载数据分析模块的路由
@@ -49,6 +51,12 @@ router.use('/analytics', analyticsRoutes);
 
 // 挂载Excel导入导出模块的路由
 router.use('/excel', excelRoutes);
+
+// 挂载考试管理模块的路由
+router.use('/exams', examRoutes);
+
+// 挂载Growth成长量化模块的路由
+router.use('/growth', growthRoutes);
 
 // ... mount other routers here
 

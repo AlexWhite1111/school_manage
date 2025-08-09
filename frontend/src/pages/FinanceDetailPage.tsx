@@ -8,17 +8,15 @@ import { useResponsive } from '@/hooks/useResponsive';
 const { Title } = Typography;
 
 const FinanceDetailPage: React.FC = () => {
-  const { studentId } = useParams<{ studentId: string }>();
+  const { publicId } = useParams<{ publicId: string }>();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
 
-  // 验证studentId参数
-  const studentIdNum = studentId ? parseInt(studentId, 10) : null;
-  
-  if (!studentIdNum || isNaN(studentIdNum)) {
+  // 验证publicId参数
+  if (!publicId || typeof publicId !== 'string') {
     return (
       <div style={{ padding: isMobile ? 16 : 24, textAlign: 'center' }}>
-        <Title level={3}>无效的学生ID</Title>
+        <Title level={3}>无效的学生公共ID</Title>
         <Button type="primary" onClick={() => navigate('/finance')}>
           返回财务中心
         </Button>
@@ -56,7 +54,7 @@ const FinanceDetailPage: React.FC = () => {
         />
       </div>
 
-      {/* 返回按钮 */}
+
       {!isMobile && (
         <div style={{ marginBottom: 16 }}>
           <Button 
@@ -64,15 +62,13 @@ const FinanceDetailPage: React.FC = () => {
             onClick={handleBack}
             type="link"
             style={{ padding: 0 }}
-          >
-            返回财务中心
-          </Button>
+          />
         </div>
       )}
 
       {/* 财务详情组件 */}
       <FinanceDetailView 
-        studentId={studentIdNum}
+        studentPublicId={publicId}
         onBack={isMobile ? handleBack : undefined}
       />
     </div>

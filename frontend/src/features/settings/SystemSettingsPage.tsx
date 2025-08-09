@@ -15,7 +15,8 @@ import {
   Col,
   Statistic,
   Divider,
-  Input
+  Input,
+  Tabs
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -24,7 +25,8 @@ import {
   ReloadOutlined,
   UserOutlined,
   SafetyOutlined,
-  SearchOutlined
+  SearchOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -38,6 +40,7 @@ import {
 } from '@/api/authApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useResponsive } from '@/hooks/useResponsive';
+import GrowthConfigPanel from '@/components/growth/GrowthConfigPanel';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -281,12 +284,9 @@ const SystemSettingsPage: React.FC = () => {
     },
   ];
 
-  return (
-    <div style={{ padding: isMobile ? '16px' : '24px' }}>
-      <Title level={2} style={{ fontSize: isMobile ? '20px' : '28px' }}>
-        系统设置
-      </Title>
-      
+  // 用户管理内容组件
+  const UserManagementContent = () => (
+    <>
       {/* 统计信息 */}
       <Row gutter={[16, 16]} style={{ marginBottom: isMobile ? 16 : 24 }}>
         <Col xs={12} sm={6} lg={6}>
@@ -411,9 +411,43 @@ const SystemSettingsPage: React.FC = () => {
             simple: isMobile,
           }}
           scroll={{ x: isMobile ? 800 : 1000 }}
-          size={isMobile ? 'small' : 'default'}
+          size={isMobile ? 'small' : 'middle'}
         />
       </Card>
+    </>
+  );
+
+  return (
+    <div style={{ padding: isMobile ? '16px' : '24px' }}>
+      <Title level={2} style={{ fontSize: isMobile ? '20px' : '28px' }}>
+        系统设置
+      </Title>
+      
+      <Tabs
+        defaultActiveKey="users"
+        items={[
+          {
+            key: 'users',
+            label: (
+              <Space>
+                <UserOutlined />
+                用户管理
+              </Space>
+            ),
+            children: <UserManagementContent />
+          },
+          {
+            key: 'growth-config',
+            label: (
+              <Space>
+                <SettingOutlined />
+                成长分析设置
+              </Space>
+            ),
+            children: <GrowthConfigPanel />
+          }
+        ]}
+      />
     </div>
   );
 };

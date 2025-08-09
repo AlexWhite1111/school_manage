@@ -1,113 +1,101 @@
-version: '3.8'
-
 services:
-  # PostgreSQL数据库
+  # 数据库服务
   database:
     image: postgres:15-alpine
-    container_name: education-crm-db
+    container_name: project4-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: education_crm_prod
-      POSTGRES_USER: crm_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-education_crm}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-229791}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./logs/postgres:/var/log
+      - ./backend/prisma/migrations:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     networks:
-      - app-network
+      - project4-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crm_user -d education_crm_prod"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-education_crm}"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
 
-  # 后端应用
+  # 后端服务
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: education-crm-backend
+    container_name: project4-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://crm_user:${DB_PASSWORD}@database:5432/education_crm_prod
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: 3001
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-229791}@database:5432/${DB_NAME:-education_crm}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_key}
+      - PORT=3000
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
     ports:
-      - "3001:3001"
+      - "3000:3000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - project4-network
     depends_on:
       database:
         condition: service_healthy
-    networks:
-      - app-network
-    volumes:
-      - uploads_data:/app/uploads
-      - ./logs/backend:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # 前端应用 (Nginx)
+  # 前端服务
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=${API_BASE_URL}
-    container_name: education-crm-frontend
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000/api}
+    container_name: project4-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    networks:
+      - project4-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx反向代理 (可选 - 用于统一入口)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: project4-proxy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - project4-network
     depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - app-network
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
-      - ./logs/nginx:/var/log/nginx
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - frontend
+      - backend
 
-  # Redis缓存 (可选)
-  redis:
-    image: redis:7-alpine
-    container_name: education-crm-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+networks:
+  project4-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
   postgres_data:
     driver: local
-  uploads_data:
-    driver: local
-  redis_data:
-    driver: local
-
-networks:
-  app-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16 

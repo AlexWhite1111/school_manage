@@ -17,7 +17,16 @@ import {
   Avatar,
   Tooltip
 } from 'antd';
-import { Line } from '@ant-design/charts';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from 'recharts';
 import { 
   LineChartOutlined,
   TagsOutlined,
@@ -57,8 +66,9 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
   const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(false);
   const [studentsLoading, setStudentsLoading] = useState(false);
+  // TODO: Migrate to publicId after backend stabilization
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-  const [students, setStudents] = useState<{ id: number; name: string; classNames: string[] }[]>([]);
+  const [students, setStudents] = useState<{ id: number; publicId: string; name: string; classNames: string[] }[]>([]);
   const [growthData, setGrowthData] = useState<StudentGrowthAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,7 +124,12 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
     try {
       console.log('🔄 加载学生成长数据...', { studentId: selectedStudentId, timeParams });
       
-      const growthResult = await getStudentGrowthAnalytics(selectedStudentId, timeParams);
+      // 优先使用后端返回的真实 publicId；若暂无（后端未重启或老数据），回退为使用数字ID
+      const student = students.find(s => s.id === selectedStudentId);
+      const publicIdToUse = student?.publicId && student.publicId.trim().length > 0
+        ? student.publicId
+        : String(selectedStudentId);
+      const growthResult = await getStudentGrowthAnalytics(publicIdToUse, timeParams);
       console.log('📊 学生成长API返回数据:', growthResult);
       setGrowthData(growthResult);
       
@@ -152,88 +167,59 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
       );
     }
 
-    // 准备图表数据
-    const chartData = growthData.growthTrend.flatMap(item => [
-      {
-        date: item.date,
-        count: item.positiveCount || 0,
-        type: '正面标签',
-      },
-      {
-        date: item.date,
-        count: item.negativeCount || 0,
-        type: '需要改进',
-      },
-    ]);
-
-    const config: any = {
-      data: chartData,
-      xField: 'date',
-      yField: 'count',
-      seriesField: 'type',
-      smooth: true,
-      animation: {
-        appear: {
-          animation: 'path-in',
-          duration: 1000,
-        },
-      },
-      color: ['#52c41a', '#ff7875'], // 更明确的颜色对比
-      point: {
-        size: isMobile ? 3 : 4,
-        shape: 'circle',
-      },
-      lineStyle: {
-        lineWidth: isMobile ? 2 : 3,
-      },
-      tooltip: {
-        formatter: (datum: any) => ({
-          name: datum.type,
-          value: `${datum.count} 次`,
-        }),
-        showCrosshairs: true,
-        shared: true,
-      },
-      legend: {
-        position: isMobile ? 'bottom' : 'top',
-        itemSpacing: isMobile ? 16 : 24,
-      },
-      xAxis: {
-        type: 'time',
-        mask: 'MM-DD',
-        tickCount: isMobile ? 4 : 6,
-        label: {
-          style: {
-            fontSize: isMobile ? 10 : 12,
-          },
-        },
-      },
-      yAxis: {
-        min: 0,
-        tickCount: isMobile ? 4 : 5,
-        label: {
-          style: {
-            fontSize: isMobile ? 10 : 12,
-          },
-        },
-        grid: {
-          line: {
-            style: {
-              stroke: theme === 'dark' ? '#434343' : '#f0f0f0',
-              lineWidth: 1,
-              lineDash: [4, 5],
-            },
-          },
-        },
-      },
-      theme,
-      autoFit: true,
-      padding: isMobile ? [20, 20, 40, 40] : [20, 20, 40, 60],
-    };
+    // 准备图表数据 - 转换为Recharts需要的透视表格式
+    const chartData = growthData.growthTrend.map(item => ({
+      date: item.date,
+      '正面标签': item.positiveCount || 0,
+      '需要改进': item.negativeCount || 0,
+    }));
 
     return (
       <div style={{ height: isMobile ? '280px' : '350px', width: '100%' }}>
-        <Line {...config} />
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData}>
+            <CartesianGrid 
+              strokeDasharray="4 5" 
+              stroke={theme === 'dark' ? '#434343' : '#f0f0f0'}
+            />
+            <XAxis 
+              dataKey="date" 
+              type="category"
+              scale="point"
+              tickCount={isMobile ? 4 : 6}
+              style={{ fontSize: isMobile ? 10 : 12 }}
+            />
+            <YAxis 
+              domain={[0, 'dataMax']}
+              tickCount={isMobile ? 4 : 5}
+              style={{ fontSize: isMobile ? 10 : 12 }}
+            />
+            <RechartsTooltip 
+              formatter={(value: any, name: any) => [`${value} 次`, name]}
+              shared={true}
+            />
+            <Legend 
+              verticalAlign={isMobile ? 'bottom' : 'top'}
+              height={36}
+            />
+            <Line
+              type="monotone"
+              dataKey="正面标签"
+              stroke="#52c41a"
+              strokeWidth={isMobile ? 2 : 3}
+              dot={{ r: isMobile ? 3 : 4 }}
+              name="正面标签"
+            />
+            <Line
+              type="monotone"
+              dataKey="需要改进"
+              stroke="#ff7875"
+              strokeWidth={isMobile ? 2 : 3}
+              dot={{ r: isMobile ? 3 : 4 }}
+              name="需要改进"
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     );
   };
@@ -491,6 +477,9 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
                     <Text>{student.name}</Text>
                     <Text type="secondary" style={{ fontSize: '12px' }}>
                       ({student.classNames.join(', ')})
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                      · {student.publicId}
                     </Text>
                   </Space>
                 </Option>

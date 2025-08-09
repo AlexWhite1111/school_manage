@@ -14,7 +14,8 @@ import {
   Upload, 
   Dropdown,
   Tag,
-  App
+  App,
+  Tooltip,
 } from 'antd';
 import type { TableColumnsType, MenuProps } from 'antd';
 import {
@@ -27,7 +28,8 @@ import {
   EyeOutlined,
   UserSwitchOutlined,
   TeamOutlined,
-  PlusOutlined
+  PlusOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -59,6 +61,7 @@ const CrmPage: React.FC = () => {
   
   // 状态管理
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [stats, setStats] = useState<CustomerStats | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -66,10 +69,10 @@ const CrmPage: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [pagination, setPagination] = useState<{ current: number; pageSize: number }>({ current: 1, pageSize: 15 });
 
-  // 搜索防抖
-  const debouncedSearchKeyword = useDebounce(searchKeyword, 300);
+  // 🚀 优化搜索防抖时间：降低到200ms，提升响应性
+  const debouncedSearchKeyword = useDebounce(searchKeyword, 200);
 
-  // 加载统计数据 - 修复依赖循环
+  // 加载统计数据
   const loadStats = useCallback(async () => {
     try {
       const statsData = await crmApi.getCustomerStats();
@@ -78,14 +81,20 @@ const CrmPage: React.FC = () => {
       console.error('加载统计数据失败:', error);
       antMessage.error('加载统计数据失败: ' + (error.message || '未知错误'));
     }
-  }, []); // 移除antMessage依赖，避免循环
+  }, []);
 
-  // 加载客户列表 - 修复依赖循环，保留模糊搜索
+  // 🚀 优化加载客户列表：添加搜索状态指示器
   const loadCustomers = useCallback(async (status: string = 'all', search?: string) => {
     try {
-      setLoading(true);
+      // 如果是搜索，只显示搜索加载状态，不影响主列表
+      if (search !== undefined) {
+        setSearchLoading(true);
+      } else {
+        setLoading(true);
+      }
+      
       const params: crmApi.GetCustomersParams = {
-        limit: 100 // 🚀 优化：减少一次性加载数量，提升性能
+        limit: 100 // 优化：减少一次性加载数量，提升性能
       };
       
       if (status !== 'all') {
@@ -105,19 +114,20 @@ const CrmPage: React.FC = () => {
       antMessage.error('加载客户列表失败: ' + (error.message || '未知错误'));
     } finally {
       setLoading(false);
+      setSearchLoading(false);
     }
-  }, []); // 移除依赖，避免循环
+  }, []);
 
-  // 页面初始化 - 修复依赖循环
+  // 页面初始化
   useEffect(() => {
     loadStats();
     loadCustomers();
-  }, []); // 清空依赖数组
+  }, []);
 
-  // 搜索效果 - 修复依赖循环
+  // 🚀 优化搜索效果：添加搜索状态管理
   useEffect(() => {
     loadCustomers(selectedStatus, debouncedSearchKeyword);
-  }, [selectedStatus, debouncedSearchKeyword]); // 移除loadCustomers依赖
+  }, [selectedStatus, debouncedSearchKeyword]);
 
   // 处理状态筛选
   const handleStatusFilter = useCallback((status: string) => {
@@ -125,18 +135,22 @@ const CrmPage: React.FC = () => {
     setSelectedRowKeys([]); // 清空选择
   }, []);
 
-  // 处理搜索
+  // 🚀 优化搜索处理：添加实时反馈
   const handleSearch = useCallback((value: string) => {
     setSearchKeyword(value);
     setSelectedRowKeys([]); // 清空选择
+    // 如果有搜索内容，立即显示搜索状态
+    if (value.trim()) {
+      setSearchLoading(true);
+    }
   }, []);
 
   // 查看/编辑客户
-  const handleViewCustomer = useCallback((customerId: number) => {
-    navigate(`/crm/${customerId}`);
+  const handleViewCustomer = useCallback((customer: any) => {
+    navigate(`/crm/${customer.publicId}`);
   }, [navigate]);
 
-  // 快速变更客户状态 - 优化重新加载
+  // 快速变更客户状态
   const handleChangeStatus = useCallback(async (customerId: number, newStatus: CustomerStatus, customerName: string) => {
     try {
       await crmApi.updateCustomer(customerId, { status: newStatus });
@@ -222,13 +236,13 @@ const CrmPage: React.FC = () => {
     return false; // 阻止默认上传行为
   }, [selectedStatus, debouncedSearchKeyword]);
 
-  // 客户操作菜单 - 使用 useMemo 缓存
+  // 客户操作菜单
   const getCustomerActions = useCallback((customer: Customer): MenuProps['items'] => [
     {
       key: 'view',
       icon: <EyeOutlined />,
       label: '查看/编辑',
-      onClick: () => handleViewCustomer(customer.id)
+      onClick: () => handleViewCustomer(customer)
     },
     {
       key: 'divider1',
@@ -252,7 +266,7 @@ const CrmPage: React.FC = () => {
   const renderCustomerName = useCallback((name: string, record: Customer) => (
     <Button 
       type="link" 
-      onClick={() => handleViewCustomer(record.id)}
+      onClick={() => handleViewCustomer(record)}
       style={{ padding: 0, height: 'auto' }}
     >
       {name}
@@ -302,7 +316,7 @@ const CrmPage: React.FC = () => {
     </Dropdown>
   ), [getCustomerActions]);
 
-  // 表格列定义 - 使用 useMemo 缓存和优化渲染函数
+  // 表格列定义
   const columns: TableColumnsType<Customer> = useMemo(() => [
     {
       title: '客户姓名',
@@ -360,7 +374,7 @@ const CrmPage: React.FC = () => {
     }
   ], [renderCustomerName, renderSchoolOrGrade, renderGrade, renderSourceChannel, renderParentName, renderParentPhone, renderCustomerStatus, renderActions]);
 
-  // 左侧筛选菜单 - 使用 useMemo 缓存
+  // 左侧筛选菜单
   const filterMenuItems: MenuProps['items'] = useMemo(() => [
     {
       key: 'all',
@@ -385,16 +399,28 @@ const CrmPage: React.FC = () => {
       }))
   ], [stats]);
 
-  // 分页处理 - 使用 useCallback 优化
+  // 分页处理
   const handlePaginationChange = useCallback((page: number, pageSize: number) => {
     setPagination({ current: page, pageSize });
     setSelectedRowKeys([]); // 清空选择
   }, []);
 
-  // 行选择处理 - 使用 useCallback 优化
+  // 行选择处理
   const handleRowSelectionChange = useCallback((newSelectedRowKeys: React.Key[]) => {
     setSelectedRowKeys(newSelectedRowKeys);
   }, []);
+
+  // 🎯 智能搜索提示
+  const getSearchPlaceholder = () => {
+    if (searchKeyword.length === 0) {
+      return "搜索客户姓名、学校、家长、电话等 (支持拼音首字母)";
+    }
+    const isAlphaOnly = /^[a-zA-Z]+$/.test(searchKeyword);
+    if (isAlphaOnly && searchKeyword.length >= 2) {
+      return "拼音首字母搜索中...";
+    }
+    return "正在搜索...";
+  };
 
   return (
     <div style={{ padding: '0' }}>
@@ -450,17 +476,22 @@ const CrmPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* 搜索和操作栏 - 保留高级模糊搜索 */}
+        {/* 🚀 优化搜索和操作栏 - 添加搜索状态指示器 */}
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} lg={12}>
             <Search
-              placeholder="搜索客户姓名、学校、家长姓名、电话、地址等"
+              placeholder={getSearchPlaceholder()}
               allowClear
               size="large"
               value={searchKeyword}
               onChange={(e) => handleSearch(e.target.value)}
               onSearch={handleSearch}
-              enterButton={<SearchOutlined />}
+              suffix={searchLoading ? <LoadingOutlined style={{ color: '#1890ff' }} /> : undefined}
+              enterButton={
+                <Tooltip title="支持姓名、学校、家长、电话、拼音首字母搜索">
+                  <SearchOutlined />
+                </Tooltip>
+              }
             />
           </Col>
           <Col xs={24} lg={12}>
@@ -556,6 +587,9 @@ const CrmPage: React.FC = () => {
                       (搜索: "{debouncedSearchKeyword}")
                     </Text>
                   )}
+                  {searchLoading && (
+                    <LoadingOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
+                  )}
                 </Space>
               }
               extra={
@@ -603,25 +637,30 @@ const CrmPage: React.FC = () => {
                 }}
                 locale={{
                   emptyText: debouncedSearchKeyword 
-                    ? `在当前阶段未找到匹配的客户` 
+                    ? `未找到匹配的客户` 
                     : selectedStatus === 'all' 
-                      ? '暂无客户信息，请尝试导入或新建客户'
-                      : `暂无${CUSTOMER_STATUS_LABELS[selectedStatus]?.label}客户`
+                      ? '暂无客户数据'
+                      : `暂无${CUSTOMER_STATUS_LABELS[selectedStatus]?.label}`
                 }}
               />
               
-              {/* 简单的数据统计信息 */}
+              {/* 轻量统计信息 */}
               {customers.length > 0 && (
                 <div style={{ 
                   textAlign: 'center', 
                   marginTop: '16px', 
                   padding: '8px 0',
-                  color: 'var(--ant-color-text-secondary)',
+                  color: '#8c8c8c',
                   fontSize: '12px',
-                  borderTop: '1px solid var(--ant-color-border-secondary)'
+                  borderTop: '1px solid #f0f0f0'
                 }}>
                   当前显示 {customers.length} 条记录
-                  {stats?.totalCustomers && ` / 系统总计 ${stats.totalCustomers} 位客户`}
+                  {stats?.totalCustomers && ` / 共 ${stats.totalCustomers} 位客户`}
+                  {debouncedSearchKeyword && /^[a-zA-Z]+$/.test(debouncedSearchKeyword) && (
+                    <span style={{ marginLeft: '8px', color: '#1890ff' }}>
+                      · 包含拼音匹配
+                    </span>
+                  )}
                 </div>
               )}
             </Card>

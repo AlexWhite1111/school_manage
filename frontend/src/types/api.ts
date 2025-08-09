@@ -61,6 +61,7 @@ export interface Parent {
 
 export interface Customer {
   id: number;
+  publicId: string;
   name: string;
   gender?: Gender;
   birthDate?: string;
@@ -114,6 +115,8 @@ export enum TagType {
   CHILD_DISCIPLINE = 'CHILD_DISCIPLINE',
   GROWTH_POSITIVE = 'GROWTH_POSITIVE',
   GROWTH_NEGATIVE = 'GROWTH_NEGATIVE',
+  EXAM_POSITIVE = 'EXAM_POSITIVE',
+  EXAM_NEGATIVE = 'EXAM_NEGATIVE',
 }
 
 export interface Tag {
@@ -184,54 +187,35 @@ export interface ClassEnrollment {
   id: number;
   enrollmentDate?: string;
   classId: number;
-  studentId: number;
+  studentId: number;  // Internal DB reference - keep for backend compatibility
   class?: {
     id: number;
     name: string;
   };
   student?: {
-    id: number;
+    id: number;  // Internal DB reference
     name: string;
+    publicId: string;  // External identifier
   };
 }
 
 // 新增：支持多班级的学生信息
 export interface MultiClassStudent {
-  id: number;
-  name: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
-  birthDate?: string;
-  school?: string;
-  grade?: string;
-  status: string;
-  createdAt: string;
-  // 支持多个班级的注册信息
-  enrollments: {
-    id: number;
-    enrollmentDate?: string;
-    classId: number;
-    className: string;
-    // 该班级的当日考勤
-    todayAttendance?: {
-      AM?: AttendanceStatus | null;
-      PM?: AttendanceStatus | null;
-    };
-  }[];
-  // 最近成长标签（跨所有班级）
-  recentGrowthTags?: {
-    id: number;
-    text: string;
-    type: TagType;
-    createdAt: string;
-    className?: string; // 标记来自哪个班级
-  }[];
-  // 统计信息
-  stats?: {
-    totalAttendanceDays: number;
-    presentRate: number;
-    growthTagsCount: number;
-    lastActivityDate?: string;
+  student: {
+    id: number;  // Internal DB reference
+    publicId: string;  // External identifier
+    name: string;
+    school?: string;
+    grade?: string;
   };
+  classes: {
+    id: number;
+    name: string;
+    description?: string;
+    status: string;
+    enrollmentId: number;
+  }[];
+  totalClasses: number;
 }
 
 // 重构：单班级视图的学生信息（简化版）
@@ -243,6 +227,7 @@ export interface ClassStudent {
   school?: string;
   grade?: string;
   status: string;
+  publicId?: string; // 学号，用于个人成长报告跳转
   
   // 当前班级的注册信息
   enrollmentId: number;
@@ -534,6 +519,29 @@ export interface StudentGrowthAnalytics {
   };
 }
 
+// ============================================
+// 财务分析（Analytics Finance）
+// ============================================
+
+export interface FinanceAnalyticsKeyMetrics {
+  totalReceived: number;
+  totalDue: number;
+  totalOutstanding: number;
+}
+
+export interface FinanceAnalyticsSummary {
+  keyMetrics: FinanceAnalyticsKeyMetrics;
+  revenueTrend: Array<{ date: string; amount: number }>;
+  dueTrend: Array<{ date: string; amount: number }>;
+  outstandingByStatus: Array<{ status: 'PAID_FULL' | 'PARTIAL_PAID' | 'UNPAID'; count: number }>;
+  topDebtors: Array<{ studentId: number; studentName: string; totalOwed: number }>;
+}
+
+export interface FinanceAnalyticsParams {
+  startDate: string;
+  endDate: string;
+}
+
 /**
  * 数据分析请求参数
  */
@@ -587,4 +595,237 @@ export interface AnalyticsKeyMetrics {
     change?: number;
     changePercentage?: number;
   };
-} 
+}
+
+// ============================================
+// 考试系统相关类型
+// ============================================
+
+export enum Subject {
+  CHINESE = 'CHINESE',
+  MATH = 'MATH',
+  ENGLISH = 'ENGLISH',
+  PHYSICS = 'PHYSICS',
+  CHEMISTRY = 'CHEMISTRY',
+  BIOLOGY = 'BIOLOGY',
+  HISTORY = 'HISTORY',
+  GEOGRAPHY = 'GEOGRAPHY',
+  POLITICS = 'POLITICS',
+}
+
+export enum ExamType {
+  DAILY_QUIZ = 'DAILY_QUIZ',
+  WEEKLY_TEST = 'WEEKLY_TEST',
+  MONTHLY_EXAM = 'MONTHLY_EXAM',
+  MIDTERM = 'MIDTERM',
+  FINAL = 'FINAL',
+}
+
+export interface Exam {
+  id: number;
+  name: string;
+  examType: ExamType;
+  examDate: string;
+  totalScore?: number;
+  description?: string;
+  classId: number;
+  createdById: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  deletedById?: number;
+  class?: Class;
+  createdBy?: {
+    id: number;
+    displayName?: string;
+    username: string;
+  };
+  scores?: ExamScore[];
+  subjects?: Subject[];
+  totalStudents?: number;
+  recordedScores?: number;
+  completionRate?: number;
+}
+
+export interface ExamScore {
+  id: number;
+  score?: number;
+  isAbsent: boolean;
+  subject: Subject;
+  examId: number;
+  enrollmentId: number;
+  createdAt: string;
+  updatedAt: string;
+  exam?: Exam;
+  enrollment?: {
+    id: number;
+    studentId: number;
+    student: Customer;
+  };
+  tags?: Array<{
+    id: number;
+    tag: Tag;
+  }>;
+}
+
+export interface CreateExamRequest {
+  name: string;
+  examType: ExamType;
+  examDate: string;
+  totalScore?: number;
+  description?: string;
+  classId: number;
+  subjects: Subject[];
+}
+
+export interface UpdateExamScoresRequest {
+  enrollmentId: number;
+  subject: Subject;
+  score?: number;
+  isAbsent?: boolean;
+  tags?: number[];
+}
+
+export interface ExamDetails {
+  exam: Exam;
+  studentScores: Array<{
+    student: Customer;
+    enrollmentId: number;
+    scores: Record<Subject, {
+      id: number;
+      score?: number;
+      isAbsent: boolean;
+      tags: Tag[];
+    }>;
+  }>;
+  subjectStats: Record<Subject, {
+    totalStudents: number;
+    recordedScores: number;
+    absentCount: number;
+    scores: number[];
+    average: number;
+    highest: number;
+    lowest: number;
+  }>;
+  subjects: Subject[];
+}
+
+export interface ExamFilters {
+  name?: string;
+  examType?: ExamType;
+  startDate?: string;
+  endDate?: string;
+  includeDeleted?: boolean;
+}
+
+export interface StudentExamHistory {
+  totalRecords: number;
+  subjectAnalysis: Array<{
+    subject: Subject;
+    scores: Array<{
+      examId: number;
+      examName: string;
+      examDate: string;
+      examType: ExamType;
+      className: string;
+      score?: number;
+      isAbsent: boolean;
+      tags: Tag[];
+    }>;
+    totalExams: number;
+    validScores: number;
+    absentCount: number;
+    average: number;
+    highest: number;
+    lowest: number;
+    trend: 'improving' | 'declining' | 'stable';
+    improvement: number;
+  }>;
+  allScores: ExamScore[];
+}
+
+// ============================================
+// 家长反馈系统相关类型
+// ============================================
+
+export enum FeedbackType {
+  ACADEMIC = 'ACADEMIC',
+  BEHAVIOR = 'BEHAVIOR',
+  HOMEWORK = 'HOMEWORK',
+  SUGGESTION = 'SUGGESTION',
+  COMPLAINT = 'COMPLAINT',
+  PRAISE = 'PRAISE',
+}
+
+export enum FeedbackStatus {
+  PENDING = 'PENDING',
+  ASSIGNED = 'ASSIGNED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  WAITING_REPLY = 'WAITING_REPLY',
+  RESOLVED = 'RESOLVED',
+  ESCALATED = 'ESCALATED',
+  CLOSED = 'CLOSED',
+}
+
+export enum Priority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+}
+
+export interface ParentFeedback {
+  id: number;
+  content: string;
+  feedbackType: FeedbackType;
+  status: FeedbackStatus;
+  priority: Priority;
+  studentId: number;
+  parentName: string;
+  parentPhone?: string;
+  assignedToId?: number;
+  resolvedAt?: string;
+  resolvedById?: number;
+  createdAt: string;
+  updatedAt: string;
+  student?: Customer;
+  assignedTo?: User;
+  resolvedBy?: User;
+  replies?: FeedbackReply[];
+  tags?: Array<{
+    id: number;
+    tag: Tag;
+  }>;
+}
+
+export interface FeedbackReply {
+  id: number;
+  content: string;
+  feedbackId: number;
+  authorId: number;
+  isInternal: boolean;
+  createdAt: string;
+  feedback?: ParentFeedback;
+  author?: User;
+}
+
+export interface CreateFeedbackRequest {
+  content: string;
+  feedbackType: FeedbackType;
+  priority?: Priority;
+  studentId: number;
+  parentName: string;
+  parentPhone?: string;
+  tags?: number[];
+}
+
+export interface UpdateFeedbackRequest {
+  status?: FeedbackStatus;
+  assignedToId?: number;
+  priority?: Priority;
+  tags?: number[];
+}
+
+export interface CreateFeedbackReplyRequest {
+  content: string;
+  isInternal?: boolean;
+}

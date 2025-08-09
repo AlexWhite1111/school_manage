@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,43 +7,404 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ----------------------------------------
-// ENUM Definitions
-// ----------------------------------------
+model User {
+  id                  Int              @id @default(autoincrement())
+  username            String           @unique
+  passwordHash        String
+  email               String?          @unique
+  phone               String?
+  createdAt           DateTime         @default(now()) @map("created_at")
+  isActive            Boolean          @default(true)
+  lastLoginAt         DateTime?
+  resetToken          String?          @unique
+  resetTokenExpiresAt DateTime?
+  role                UserRole         @default(STUDENT)
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  displayName         String?
+  linkedCustomerId    Int?             @unique
+  mustChangePassword  Boolean          @default(true)
+  uuid                String           @unique @default(uuid())
+  createdExams        Exam[]           @relation("ExamCreator")
+  deletedExams        Exam[]           @relation("ExamDeleter")
+  feedbackReplies     FeedbackReply[]  @relation("FeedbackReplyAuthor")
+  recordedGrowthLogs  GrowthLog[]      @relation("GrowthLogRecorder")
+  assignedFeedbacks   ParentFeedback[] @relation("FeedbackAssignee")
+  resolvedFeedbacks   ParentFeedback[] @relation("FeedbackResolver")
+  createdTags         Tag[]            @relation("TagCreator")
+  deletedTags         Tag[]            @relation("TagDeleter")
+  linkedCustomer      Customer?        @relation("StudentUser", fields: [linkedCustomerId], references: [id])
+
+  @@map("users")
+}
+
+model Customer {
+  id                Int                @id @default(autoincrement())
+  name              String
+  gender            Gender?
+  birthDate         DateTime?          @db.Date
+  school            String?
+  address           String?
+  firstContactDate  DateTime?          @db.Date
+  status            CustomerStatus     @default(POTENTIAL)
+  nextFollowUpDate  DateTime?          @db.Date
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime?          @updatedAt @map("updated_at")
+  grade             Grade?
+  sourceChannel     SourceChannel?
+  publicId          String             @unique
+  uuid              String             @unique @default(uuid())
+  enrollments       ClassEnrollment[]  @relation("StudentEnrollments")
+  communicationLogs CommunicationLog[]
+  tags              CustomerTag[]
+  financialOrders   FinancialOrder[]
+  parentFeedbacks   ParentFeedback[]   @relation("StudentFeedbacks")
+  parents           Parent[]
+  studentUser       User?              @relation("StudentUser")
+
+  @@index([status])
+  @@index([name])
+  @@index([school])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([uuid])
+  @@index([publicId])
+  @@map("customers")
+}
+
+model Parent {
+  id           Int      @id @default(autoincrement())
+  name         String
+  relationship String?
+  phone        String?
+  wechatId     String?
+  customerId   Int      @map("customer_id")
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([name])
+  @@index([phone])
+  @@index([customerId])
+  @@map("parents")
+}
+
+model CommunicationLog {
+  id         Int      @id @default(autoincrement())
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  customerId Int      @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("communication_logs")
+}
+
+model Tag {
+  id            Int            @id @default(autoincrement())
+  text          String
+  type          TagType
+  isPredefined  Boolean        @default(true)
+  createdById   Int?           @map("created_by_id")
+  isPersonal    Boolean        @default(false)
+  usageCount    Int            @default(0)
+  deletedAt     DateTime?      @map("deleted_at")
+  deletedById   Int?           @map("deleted_by_id")
+  defaultWeight Int?
+  isGrowthTag   Boolean        @default(false)
+  sentiment     TagSentiment?
+  customers     CustomerTag[]
+  examScoreTags ExamScoreTag[] @relation("ExamScoreTags")
+  feedbackTags  FeedbackTag[]  @relation("FeedbackTags")
+  growthLogs    GrowthLog[]
+  growthStates  GrowthState[]
+  creator       User?          @relation("TagCreator", fields: [createdById], references: [id])
+  deletedBy     User?          @relation("TagDeleter", fields: [deletedById], references: [id])
+
+  @@unique([text, type])
+  @@index([deletedAt])
+  @@index([isGrowthTag])
+  @@index([sentiment])
+  @@map("tags")
+}
+
+model CustomerTag {
+  customerId Int      @map("customer_id")
+  tagId      Int      @map("tag_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, tagId])
+  @@map("customer_tags")
+}
+
+model Class {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  enrollments ClassEnrollment[]
+  exams       Exam[]
+
+  @@map("classes")
+}
+
+model ClassEnrollment {
+  id                Int                @id @default(autoincrement())
+  enrollmentDate    DateTime?          @default(now()) @db.Date
+  classId           Int                @map("class_id")
+  studentId         Int                @map("student_id")
+  attendanceRecords AttendanceRecord[]
+  class             Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student           Customer           @relation("StudentEnrollments", fields: [studentId], references: [id], onDelete: Cascade)
+  examScores        ExamScore[]
+  growthLogs        GrowthLog[]
+  growthStates      GrowthState[]
+
+  @@unique([classId, studentId])
+  @@map("class_enrollments")
+}
+
+model GrowthLog {
+  id           Int             @id @default(autoincrement())
+  createdAt    DateTime        @default(now()) @map("created_at")
+  enrollmentId Int             @map("enrollment_id")
+  tagId        Int             @map("tag_id")
+  notes        String?
+  recordedById Int?            @map("recorded_by_id")
+  weight       Int             @default(5)
+  enrollment   ClassEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  recordedBy   User?           @relation("GrowthLogRecorder", fields: [recordedById], references: [id])
+  tag          Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+  @@index([tagId])
+  @@index([createdAt])
+  @@index([recordedById])
+  @@map("growth_logs")
+}
+
+model GrowthState {
+  id                String          @id @default(uuid())
+  enrollmentId      Int             @map("enrollment_id")
+  tagId             Int             @map("tag_id")
+  level             Float
+  trend             Float
+  covarianceMatrix  Json
+  lastUpdatedAt     DateTime        @updatedAt @map("last_updated_at")
+  totalObservations Int             @default(0)
+  confidence        Float           @default(0.0)
+  enrollment        ClassEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  tag               Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, tagId])
+  @@index([enrollmentId])
+  @@index([tagId])
+  @@index([lastUpdatedAt])
+  @@index([confidence])
+  @@map("growth_states")
+}
+
+model GrowthConfig {
+  id                 String   @id @default(uuid())
+  name               String   @unique
+  description        String?
+  processNoise       Float    @default(0.1)
+  initialUncertainty Float    @default(10.0)
+  timeDecayFactor    Float    @default(0.01)
+  minObservations    Int      @default(3)
+  maxDaysBetween     Int      @default(30)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("growth_configs")
+}
+
+model AttendanceRecord {
+  id           Int              @id @default(autoincrement())
+  recordDate   DateTime         @db.Date
+  timeSlot     AttendanceSlot
+  status       AttendanceStatus
+  createdAt    DateTime         @default(now()) @map("created_at")
+  enrollmentId Int              @map("enrollment_id")
+  enrollment   ClassEnrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, recordDate, timeSlot])
+  @@map("attendance_records")
+}
+
+model FinancialOrder {
+  id                Int       @id @default(autoincrement())
+  name              String
+  totalDue          Decimal   @db.Decimal(10, 2)
+  coursePeriodStart DateTime? @db.Date
+  coursePeriodEnd   DateTime? @db.Date
+  dueDate           DateTime? @db.Date
+  createdAt         DateTime  @default(now()) @map("created_at")
+  studentId         Int       @map("student_id")
+  student           Customer  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payments          Payment[]
+
+  @@map("financial_orders")
+}
+
+model Payment {
+  id          Int            @id @default(autoincrement())
+  amount      Decimal        @db.Decimal(10, 2)
+  paymentDate DateTime       @db.Date
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  orderId     Int            @map("order_id")
+  order       FinancialOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Exam {
+  id          Int         @id @default(autoincrement())
+  name        String
+  examType    ExamType
+  examDate    DateTime    @db.Date
+  totalScore  Float?      @default(100)
+  description String?
+  classId     Int         @map("class_id")
+  createdById Int         @map("created_by_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
+  deletedById Int?        @map("deleted_by_id")
+  scores      ExamScore[]
+  class       Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdBy   User        @relation("ExamCreator", fields: [createdById], references: [id])
+  deletedBy   User?       @relation("ExamDeleter", fields: [deletedById], references: [id])
+
+  @@index([classId])
+  @@index([examDate])
+  @@index([deletedAt])
+  @@map("exams")
+}
+
+model ExamScore {
+  id           Int             @id @default(autoincrement())
+  score        Float?
+  isAbsent     Boolean         @default(false)
+  subject      Subject
+  examId       Int             @map("exam_id")
+  enrollmentId Int             @map("enrollment_id")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  tags         ExamScoreTag[]
+  enrollment   ClassEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  exam         Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, enrollmentId, subject])
+  @@index([examId])
+  @@index([enrollmentId])
+  @@index([subject])
+  @@map("exam_scores")
+}
+
+model ExamScoreTag {
+  examScoreId Int       @map("exam_score_id")
+  tagId       Int       @map("tag_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  examScore   ExamScore @relation(fields: [examScoreId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation("ExamScoreTags", fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([examScoreId, tagId])
+  @@map("exam_score_tags")
+}
+
+model ParentFeedback {
+  id           Int             @id @default(autoincrement())
+  content      String
+  feedbackType FeedbackType
+  status       FeedbackStatus  @default(PENDING)
+  priority     Priority        @default(MEDIUM)
+  studentId    Int             @map("student_id")
+  parentName   String
+  parentPhone  String?
+  assignedToId Int?            @map("assigned_to_id")
+  resolvedAt   DateTime?       @map("resolved_at")
+  resolvedById Int?            @map("resolved_by_id")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  replies      FeedbackReply[]
+  tags         FeedbackTag[]
+  assignedTo   User?           @relation("FeedbackAssignee", fields: [assignedToId], references: [id])
+  resolvedBy   User?           @relation("FeedbackResolver", fields: [resolvedById], references: [id])
+  student      Customer        @relation("StudentFeedbacks", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([assignedToId])
+  @@map("parent_feedbacks")
+}
+
+model FeedbackReply {
+  id         Int            @id @default(autoincrement())
+  content    String
+  feedbackId Int            @map("feedback_id")
+  authorId   Int            @map("author_id")
+  isInternal Boolean        @default(false)
+  createdAt  DateTime       @default(now()) @map("created_at")
+  author     User           @relation("FeedbackReplyAuthor", fields: [authorId], references: [id])
+  feedback   ParentFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([feedbackId])
+  @@map("feedback_replies")
+}
+
+model FeedbackTag {
+  feedbackId Int            @map("feedback_id")
+  tagId      Int            @map("tag_id")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  feedback   ParentFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  tag        Tag            @relation("FeedbackTags", fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([feedbackId, tagId])
+  @@map("feedback_tags")
+}
 
 enum UserRole {
-  SUPER_ADMIN
-  MANAGER
-  TEACHER
-  STUDENT
+  SUPER_ADMIN @map("超级管理员")
+  MANAGER     @map("管理员")
+  TEACHER     @map("教师")
+  STUDENT     @map("学生")
 }
 
 enum CustomerStatus {
-  POTENTIAL     @map("潜在用户")
+  POTENTIAL       @map("潜在用户")
   INITIAL_CONTACT @map("初步沟通")
-  INTERESTED    @map("意向用户")
-  TRIAL_CLASS   @map("试课")
-  ENROLLED      @map("报名")
-  LOST          @map("流失客户")
+  INTERESTED      @map("意向用户")
+  TRIAL_CLASS     @map("试课")
+  ENROLLED        @map("报名")
+  LOST            @map("流失客户")
 }
 
 enum Gender {
-  MALE    @map("男")
-  FEMALE  @map("女")
-  OTHER   @map("其他")
+  MALE   @map("男")
+  FEMALE @map("女")
+  OTHER  @map("其他")
 }
 
 enum TagType {
-  FAMILY_JOB                 @map("family_job")
-  FAMILY_INCOME              @map("family_income")
-  FAMILY_EDUCATION_CONCEPT   @map("family_education_concept")
-  FAMILY_FOCUS               @map("family_focus")
-  FAMILY_ROLE                @map("family_role")
-  CHILD_PERSONALITY          @map("child_personality")
-  CHILD_ACADEMIC_LEVEL       @map("child_academic_level")
-  CHILD_DISCIPLINE           @map("child_discipline")
-  GROWTH_POSITIVE            @map("growth_positive")
-  GROWTH_NEGATIVE            @map("growth_negative")
+  FAMILY_JOB               @map("家庭职业")
+  FAMILY_INCOME            @map("家庭收入")
+  FAMILY_EDUCATION_CONCEPT @map("家庭教育理念")
+  FAMILY_FOCUS             @map("家庭关注点")
+  FAMILY_ROLE              @map("家庭角色")
+  CHILD_PERSONALITY        @map("孩子性格")
+  CHILD_ACADEMIC_LEVEL     @map("孩子学业水平")
+  CHILD_DISCIPLINE         @map("孩子纪律")
+  GROWTH_POSITIVE          @map("成长正面")
+  GROWTH_NEGATIVE          @map("成长负面")
+  EXAM_POSITIVE            @map("考试正面")
+  EXAM_NEGATIVE            @map("考试负面")
+}
+
+enum TagSentiment {
+  POSITIVE @map("正面")
+  NEGATIVE @map("负面")
 }
 
 enum AttendanceStatus {
@@ -57,234 +415,73 @@ enum AttendanceStatus {
 }
 
 enum AttendanceSlot {
-  AM @map("am")
-  PM @map("pm")
+  AM @map("上午")
+  PM @map("下午")
 }
 
 enum Grade {
-  CHU_YI
-  CHU_ER
-  CHU_SAN
-  GAO_YI
-  GAO_ER
-  GAO_SAN
+  CHU_YI  @map("初一")
+  CHU_ER  @map("初二")
+  CHU_SAN @map("初三")
+  GAO_YI  @map("高一")
+  GAO_ER  @map("高二")
+  GAO_SAN @map("高三")
 }
 
 enum SourceChannel {
-  JIAZHANG_TUIJIAN
-  PENGYOU_QINQI
-  XUESHENG_SHEJIAO
-  GUANGGAO_CHUANDAN
-  DITUI_XUANCHUAN
-  WEIXIN_GONGZHONGHAO
-  DOUYIN
-  QITA_MEITI
-  HEZUO
-  QITA
+  JIAZHANG_TUIJIAN    @map("家长推荐")
+  PENGYOU_QINQI       @map("朋友亲戚")
+  XUESHENG_SHEJIAO    @map("学生社交圈")
+  GUANGGAO_CHUANDAN   @map("广告传单")
+  DITUI_XUANCHUAN     @map("地推宣传")
+  WEIXIN_GONGZHONGHAO @map("微信公众号")
+  DOUYIN              @map("抖音")
+  QITA_MEITI          @map("其他媒体")
+  HEZUO               @map("合作")
+  QITA                @map("其他")
 }
 
-// ----------------------------------------
-// Table Definitions
-// ----------------------------------------
-
-model User {
-  id            Int      @id @default(autoincrement())
-  uuid          String   @unique @default(uuid())  // 公开标识符
-  username      String   @unique
-  passwordHash  String
-  email         String?  @unique
-  phone         String?
-  displayName   String?  // 显示名称：学生显示真实姓名，其他显示用户名
-  role          UserRole @default(STUDENT)  // 用户角色
-  isActive      Boolean  @default(true)  // 账号激活状态
-  mustChangePassword Boolean @default(true)  // 首次登录必须修改密码
-  resetToken    String?  @unique  // 密码重置令牌
-  resetTokenExpiresAt DateTime?  // 重置令牌过期时间
-  lastLoginAt   DateTime?  // 最后登录时间
-  linkedCustomerId Int?  @unique  // 关联的客户ID（仅学生用户）
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  linkedCustomer Customer? @relation("StudentUser", fields: [linkedCustomerId], references: [id], onDelete: SetNull)
-  createdTags   Tag[]    @relation("TagCreator")  // 用户创建的个人标签
-  deletedTags   Tag[]    @relation("TagDeleter")  // 用户删除的标签
-
-  @@map("users")
+enum Subject {
+  CHINESE   @map("语文")
+  MATH      @map("数学")
+  ENGLISH   @map("英语")
+  PHYSICS   @map("物理")
+  CHEMISTRY @map("化学")
+  BIOLOGY   @map("生物")
+  HISTORY   @map("历史")
+  GEOGRAPHY @map("地理")
+  POLITICS  @map("政治")
 }
 
-model Customer {
-  id                  Int      @id @default(autoincrement())
-  uuid                String   @unique @default(uuid())  // 公开标识符  
-  publicId            String   @unique  // 学号：格式为202501123456（年月+6位随机数）
-  name                String
-  gender              Gender?
-  birthDate           DateTime? @db.Date
-  school              String?
-  grade               Grade?
-  address             String?
-  sourceChannel       SourceChannel?
-  firstContactDate    DateTime? @db.Date
-  status              CustomerStatus @default(POTENTIAL)
-  nextFollowUpDate    DateTime? @db.Date
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime? @updatedAt @map("updated_at")
-
-  parents             Parent[]
-  communicationLogs   CommunicationLog[]
-  tags                CustomerTag[]
-  enrollments         ClassEnrollment[] @relation("StudentEnrollments")
-  financialOrders     FinancialOrder[]
-  studentUser         User?    @relation("StudentUser")  // 关联的学生账号
-
-  // 🚀 性能优化：添加索引
-  @@index([status])
-  @@index([name])
-  @@index([school])
-  @@index([createdAt])
-  @@index([status, createdAt])
-  @@index([uuid])
-  @@index([publicId])  // 新增publicId索引
-  @@map("customers")
+enum ExamType {
+  DAILY_QUIZ   @map("日常测验")
+  WEEKLY_TEST  @map("周测")
+  MONTHLY_EXAM @map("月考")
+  MIDTERM      @map("期中考试")
+  FINAL        @map("期末考试")
 }
 
-model Parent {
-  id            Int      @id @default(autoincrement())
-  name          String
-  relationship  String?
-  phone         String?
-  wechatId      String?
-  
-  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  customerId    Int      @map("customer_id")
-
-  // 🚀 性能优化：添加索引支持家长搜索
-  @@index([name])
-  @@index([phone])
-  @@index([customerId])
-  @@map("parents")
+enum FeedbackType {
+  ACADEMIC   @map("学习情况")
+  BEHAVIOR   @map("行为表现")
+  HOMEWORK   @map("作业完成")
+  SUGGESTION @map("意见建议")
+  COMPLAINT  @map("问题投诉")
+  PRAISE     @map("表扬感谢")
 }
 
-model CommunicationLog {
-  id          Int      @id @default(autoincrement())
-  content     String   @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  customerId  Int      @map("customer_id")
-
-  @@map("communication_logs")
+enum FeedbackStatus {
+  PENDING       @map("待处理")
+  ASSIGNED      @map("已分配")
+  IN_PROGRESS   @map("处理中")
+  WAITING_REPLY @map("等待回复")
+  RESOLVED      @map("已解决")
+  ESCALATED     @map("已升级")
+  CLOSED        @map("已关闭")
 }
 
-model Tag {
-  id            Int      @id @default(autoincrement())
-  text          String
-  type          TagType
-  isPredefined  Boolean  @default(true)
-  isPersonal    Boolean  @default(false)  // 新增：是否为个人自定义标签
-  createdById   Int?     @map("created_by_id")  // 新增：创建者ID（仅个人标签需要）
-  usageCount    Int      @default(0)      // 新增：使用次数统计
-  deletedAt     DateTime? @map("deleted_at")  // 新增：软删除时间戳
-  deletedById   Int?     @map("deleted_by_id")  // 新增：删除操作者ID
-
-  customers     CustomerTag[]
-  growthLogs    GrowthLog[]
-  creator       User?    @relation("TagCreator", fields: [createdById], references: [id], onDelete: SetNull)  // 新增：创建者关联
-  deletedBy     User?    @relation("TagDeleter", fields: [deletedById], references: [id], onDelete: SetNull)  // 新增：删除者关联
-
-  @@unique([text, type])
-  @@index([deletedAt])  // 添加索引以优化软删除查询
-  @@map("tags")
+enum Priority {
+  LOW    @map("一般")
+  MEDIUM @map("重要")
+  HIGH   @map("紧急")
 }
-
-model CustomerTag {
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  customerId  Int      @map("customer_id")
-  tag         Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId       Int      @map("tag_id")
-
-  @@id([customerId, tagId])
-  @@map("customer_tags")
-}
-
-model Class {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
-  enrollments   ClassEnrollment[]
-
-  @@map("classes")
-}
-
-model ClassEnrollment {
-  id              Int      @id @default(autoincrement())
-  enrollmentDate  DateTime? @default(now()) @db.Date
-
-  class           Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  classId         Int      @map("class_id")
-  
-  student         Customer @relation("StudentEnrollments", fields: [studentId], references: [id], onDelete: Cascade)
-  studentId       Int      @map("student_id")
-
-  growthLogs        GrowthLog[]
-  attendanceRecords AttendanceRecord[]
-
-  @@unique([classId, studentId])
-  @@map("class_enrollments")
-}
-
-model GrowthLog {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  enrollment    ClassEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  enrollmentId  Int             @map("enrollment_id")
-  
-  tag           Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId         Int             @map("tag_id")
-
-  @@map("growth_logs")
-}
-
-model AttendanceRecord {
-  id          Int      @id @default(autoincrement())
-  recordDate  DateTime @db.Date
-  timeSlot    AttendanceSlot
-  status      AttendanceStatus
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  enrollment    ClassEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
-  enrollmentId  Int             @map("enrollment_id")
-
-  @@unique([enrollmentId, recordDate, timeSlot])
-  @@map("attendance_records")
-}
-
-model FinancialOrder {
-  id            Int      @id @default(autoincrement())
-  name          String
-  totalDue      Decimal  @db.Decimal(10, 2)
-  coursePeriodStart DateTime? @db.Date
-  coursePeriodEnd   DateTime? @db.Date
-  dueDate       DateTime? @db.Date
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  student       Customer @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  studentId     Int      @map("student_id")
-
-  payments      Payment[]
-
-  @@map("financial_orders")
-}
-
-model Payment {
-  id            Int      @id @default(autoincrement())
-  amount        Decimal  @db.Decimal(10, 2)
-  paymentDate   DateTime @db.Date
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  order         FinancialOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId       Int            @map("order_id")
-
-  @@map("payments")
-} 

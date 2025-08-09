@@ -1,5 +1,5 @@
 // src/components/excel/ExcelExportModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   Button,
@@ -20,9 +20,7 @@ import {
   FilterOutlined,
   FileExcelOutlined
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { exportCustomers, type ExportFilters } from '@/api/excelApi';
-import * as crmApi from '@/api/crmApi';
+import { exportCustomersExcel as exportCustomers, type ExportFilters } from '@/api/export';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -77,22 +75,32 @@ const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
     try {
       const values = await form.validateFields();
       const filters = buildFilters(values);
-      
-      // 这里可以调用API获取预览统计
-      // 暂时用模拟数据
-      setTimeout(() => {
-        setPreviewData({
-          total: 150,
-          statusCounts: {
-            'POTENTIAL': 30,
-            'TRIAL_CLASS': 45,
-            'ENROLLED': 60,
-            'LOST': 15
-          }
-        });
-        setPreviewLoading(false);
-      }, 1000);
+
+      // 调用API获取预览统计
+      const response = await fetch('/api/customers/export-preview', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(filters)
+      });
+
+      if (!response.ok) {
+        throw new Error('获取预览数据失败');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setPreviewData(result.data);
+      } else {
+        throw new Error(result.error?.message || '获取预览数据失败');
+      }
     } catch (error) {
+      console.error('预览失败:', error);
+      message.error('获取预览数据失败，请稍后重试');
+      setPreviewData(null);
+    } finally {
       setPreviewLoading(false);
     }
   };
@@ -312,4 +320,4 @@ const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
   );
 };
 
-export default ExcelExportModal; 
+export default ExcelExportModal;

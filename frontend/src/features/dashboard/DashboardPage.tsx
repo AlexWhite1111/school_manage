@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Space, Button, message, Card } from 'antd';
+import { Typography, Row, Col, Space, Button, message, Card, Divider } from 'antd';
 import { 
   ReloadOutlined, 
   TeamOutlined, 
@@ -9,13 +9,25 @@ import {
   DatabaseOutlined,
   UserOutlined,
   FileExcelOutlined,
-  RocketOutlined
+  RocketOutlined,
+  DashboardOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import FinancialOverviewCard from '@/components/dashboard/FinancialOverviewCard';
 import FollowUpRemindersCard from '@/components/dashboard/FollowUpRemindersCard';
+import OverviewStatsCard from '@/components/dashboard/OverviewStatsCard';
+import CustomerStatsCard from '@/components/dashboard/CustomerStatsCard';
+import AttendanceStatsCard from '@/components/dashboard/AttendanceStatsCard';
+import ExamStatsCard from '@/components/dashboard/ExamStatsCard';
+import GrowthActivityCard from '@/components/dashboard/GrowthActivityCard';
 import { getDashboardSummary, refreshDashboardData, DashboardSummaryResponse } from '@/api/dashboardApi';
-import * as globalApi from '@/api/globalApi';
+import { 
+  exportCustomersCsv,
+  exportGrowthLogsCsv,
+  exportFinanceCsv,
+  downloadFile as downloadBlob,
+  generateTimestampedFilename
+} from '@/api/export';
 import type { FinancialData } from '@/components/dashboard/FinancialOverviewCard';
 import type { FollowUpCustomer } from '@/components/dashboard/FollowUpRemindersCard';
 
@@ -51,42 +63,9 @@ const DashboardPage: React.FC = () => {
     } catch (error: any) {
       console.error('加载仪表盘数据失败:', error);
       setError(error.message || '加载数据失败，请稍后重试');
-      
-      // 在开发环境中使用模拟数据
-      if (import.meta.env.DEV) {
-        console.warn('使用模拟数据 (开发环境)');
-        setDashboardData({
-          financial: {
-            monthlyReceived: 125000.50,
-            monthlyDue: 180000.00,
-            totalOutstanding: 45000.00
-          },
-          followUps: [
-            {
-              id: 1,
-              name: '张小明',
-              sourceChannel: '朋友推荐',
-              nextFollowUpDate: new Date().toISOString().split('T')[0],
-              phone: '13800138001'
-            },
-            {
-              id: 2,
-              name: '李小华',  
-              sourceChannel: '网络咨询',
-              nextFollowUpDate: new Date().toISOString().split('T')[0],
-              phone: '13800138002'
-            },
-            {
-              id: 3,
-              name: '王小红',
-              sourceChannel: '老客户介绍',
-              nextFollowUpDate: new Date().toISOString().split('T')[0],
-              phone: '13800138003'
-            }
-          ]
-        });
-        setError(null);
-      }
+
+      // 不再使用模拟数据，让用户看到真实的错误状态
+      setDashboardData(null);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -105,9 +84,9 @@ const DashboardPage: React.FC = () => {
   };
 
   // 客户点击处理 - 跳转到客户档案页面
-  const handleCustomerClick = (customerId: number) => {
+  const handleCustomerClick = (customer: any) => {
     // 根据 DashboardWorkflow.md: 点击客户姓名会直接跳转至该客户的"客户档案(Lead Profile)"页面
-    navigate(`/crm/${customerId}`);
+    navigate(`/crm/${customer.publicId}`);
   };
 
   // 手动刷新数据
@@ -130,22 +109,22 @@ const DashboardPage: React.FC = () => {
       
       switch (type) {
         case 'customers':
-          blob = await globalApi.exportCustomers();
-          filename = globalApi.generateTimestampedFilename('客户信息');
+          blob = await exportCustomersCsv();
+          filename = generateTimestampedFilename('客户信息');
           break;
         case 'growth-logs':
-          blob = await globalApi.exportGrowthLogs();
-          filename = globalApi.generateTimestampedFilename('学生成长记录');
+          blob = await exportGrowthLogsCsv();
+          filename = generateTimestampedFilename('学生成长记录');
           break;
         case 'finance':
-          blob = await globalApi.exportFinance();
-          filename = globalApi.generateTimestampedFilename('财务数据');
+          blob = await exportFinanceCsv();
+          filename = generateTimestampedFilename('财务数据');
           break;
         default:
           throw new Error('未知的导出类型');
       }
       
-      globalApi.downloadFile(blob, filename);
+      downloadBlob(blob, filename);
       message.success('导出完成');
     } catch (error: any) {
       console.error(`导出${type}失败:`, error);
@@ -262,27 +241,80 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* 主要信息卡片 */}
-        <Row gutter={[24, 24]} style={{ minHeight: '350px' }}>
+        {/* 核心概览统计 */}
+        <OverviewStatsCard 
+          data={dashboardData?.overview}
+          loading={loading}
+        />
+
+        <Divider style={{ margin: '24px 0' }}>
+          <DashboardOutlined style={{ marginRight: '8px' }} />
+          核心业务数据
+        </Divider>
+
+        {/* 主要业务数据卡片 */}
+        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
           {/* 财务速览卡片 */}
           <Col xs={24} lg={12} style={{ display: 'flex' }}>
             <div style={{ width: '100%' }}>
-            <FinancialOverviewCard 
-              data={financialData}
-              loading={loading}
-              onClick={handleFinancialCardClick}
-            />
+              <FinancialOverviewCard 
+                data={financialData}
+                loading={loading}
+                onClick={handleFinancialCardClick}
+              />
             </div>
           </Col>
 
-          {/* 待办提醒卡片 */}
+          {/* 客户统计卡片 */}
           <Col xs={24} lg={12} style={{ display: 'flex' }}>
             <div style={{ width: '100%' }}>
-            <FollowUpRemindersCard 
-              customers={followUpCustomers}
-              loading={loading}
-              onCustomerClick={handleCustomerClick}
-            />
+              <CustomerStatsCard 
+                data={dashboardData?.customerStats}
+                loading={loading}
+              />
+            </div>
+          </Col>
+        </Row>
+
+        {/* 考勤和考试统计 */}
+        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} lg={12} style={{ display: 'flex' }}>
+            <div style={{ width: '100%' }}>
+              <AttendanceStatsCard 
+                data={dashboardData?.attendance}
+                loading={loading}
+              />
+            </div>
+          </Col>
+
+          <Col xs={24} lg={12} style={{ display: 'flex' }}>
+            <div style={{ width: '100%' }}>
+              <ExamStatsCard 
+                data={dashboardData?.examStats}
+                loading={loading}
+              />
+            </div>
+          </Col>
+        </Row>
+
+        {/* 成长活动和待办提醒 */}
+        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+          <Col xs={24} lg={12} style={{ display: 'flex' }}>
+            <div style={{ width: '100%' }}>
+              <GrowthActivityCard 
+                data={dashboardData?.growthActivity}
+                loading={loading}
+              />
+            </div>
+          </Col>
+
+          <Col xs={24} lg={12} style={{ display: 'flex' }}>
+            <div style={{ width: '100%' }}>
+              <FollowUpRemindersCard 
+                customers={followUpCustomers}
+                loading={loading}
+                onCustomerClick={handleCustomerClick}
+              />
             </div>
           </Col>
         </Row>

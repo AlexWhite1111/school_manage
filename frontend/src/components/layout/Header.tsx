@@ -1,10 +1,11 @@
-import React from 'react';
-import { Avatar, Dropdown, Typography, Space, Button } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { Avatar, Dropdown, Typography, Space, Button, Tooltip } from 'antd';
+import { UserOutlined, LogoutOutlined, SettingOutlined, QrcodeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
+import QRCodeModal from '@/components/ui/QRCodeModal';
 import * as authApi from '@/api/authApi';
 import type { MenuProps } from 'antd';
 
@@ -15,6 +16,7 @@ const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme } = useThemeStore();
   const { isSmall } = useResponsive();
+  const [qrModalVisible, setQrModalVisible] = useState(false);
 
   // 处理登出
   const handleLogout = async () => {
@@ -61,83 +63,100 @@ const Header: React.FC = () => {
 
   return (
     <>
-      {user ? (
-        <Dropdown
-          menu={{ items: userMenuItems }}
-          placement="bottomRight"
-          arrow
-          trigger={['click']}
-        >
+      <Space size="middle">
+        {/* 二维码按钮 */}
+        <Tooltip title="生成二维码，方便移动设备访问">
           <Button
             type="text"
+            icon={<QrcodeOutlined />}
+            onClick={() => setQrModalVisible(true)}
             style={{
-              height: 'auto',
-              padding: isSmall ? '6px 8px' : '8px 12px',
+              borderRadius: '8px',
+              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
               display: 'flex',
               alignItems: 'center',
-              gap: isSmall ? '4px' : '8px',
-              borderRadius: '8px',
-              transition: 'all 0.3s ease',
-              // 主题适配
-              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
+              padding: isSmall ? '4px 6px' : '6px 8px',
             }}
           >
-            <Avatar
-              size={isSmall ? 24 : 28}
-              icon={<UserOutlined />}
-              style={{ 
-                backgroundColor: '#1890ff',
-                transition: 'all 0.3s ease'
+            {!isSmall && '扫码访问'}
+          </Button>
+        </Tooltip>
+
+        {/* 用户信息 */}
+        {user ? (
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            placement="bottomRight"
+            arrow
+            trigger={['click']}
+          >
+            <Button
+              type="text"
+              style={{
+                height: 'auto',
+                padding: isSmall ? '6px 8px' : '8px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: isSmall ? '4px' : '8px',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
+                // 主题适配
+                color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
               }}
-            />
-            {!isSmall && (
-              <Space direction="vertical" size={0} style={{ textAlign: 'left' }}>
-                <Text 
-                  strong 
-                  style={{ 
-                    fontSize: '14px',
-                    color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'
-                  }}
-                >
-                  {user.displayName || user.username} 
-                  <span style={{ 
-                    fontSize: '12px', 
-                    color: '#1890ff',
-                    marginLeft: '8px',
-                    border: '1px solid #1890ff',
-                    borderRadius: '4px',
-                    padding: '2px 6px'
-                  }}>
-                    并发#{user.id}
-                  </span>
-                </Text>
-                {user.email && (
+            >
+              <Avatar
+                size={isSmall ? 24 : 28}
+                icon={<UserOutlined />}
+                style={{ 
+                  backgroundColor: '#1890ff',
+                  transition: 'all 0.3s ease'
+                }}
+              />
+              {!isSmall && (
+                <Space direction="vertical" size={0} style={{ textAlign: 'left' }}>
                   <Text 
-                    type="secondary" 
+                    strong 
                     style={{ 
-                      fontSize: '12px',
-                      color: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+                      fontSize: '14px',
+                      color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)'
                     }}
                   >
-                    {user.email}
+                    {user.displayName || user.username}
                   </Text>
-                )}
-              </Space>
-            )}
+                  {user.email && (
+                    <Text 
+                      type="secondary" 
+                      style={{ 
+                        fontSize: '12px',
+                        color: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.45)'
+                      }}
+                    >
+                      {user.email}
+                    </Text>
+                  )}
+                </Space>
+              )}
+            </Button>
+          </Dropdown>
+        ) : (
+          <Button 
+            type="primary" 
+            onClick={() => navigate('/login')}
+            style={{
+              borderRadius: '8px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            登录
           </Button>
-        </Dropdown>
-      ) : (
-        <Button 
-          type="primary" 
-          onClick={() => navigate('/login')}
-          style={{
-            borderRadius: '8px',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          登录
-        </Button>
-      )}
+        )}
+      </Space>
+
+      {/* 二维码模态框 */}
+      <QRCodeModal
+        visible={qrModalVisible}
+        onClose={() => setQrModalVisible(false)}
+      />
     </>
   );
 };

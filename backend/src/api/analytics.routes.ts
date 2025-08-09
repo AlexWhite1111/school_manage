@@ -241,67 +241,7 @@ router.get('/customer-key-metrics', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * @route   GET /api/analytics/student-growth/:publicId
- * @desc    获取学生成长分析数据
- * @access  Private
- */
-router.get('/student-growth/:publicId', async (req: Request, res: Response) => {
-  try {
-    const publicId = req.params.publicId;
-    const { startDate, endDate, classId, gradeLevel } = req.query;
 
-    if (!publicId || typeof publicId !== 'string') {
-      return res.status(400).json({
-        message: '无效的学生学号'
-      });
-    }
-
-    if (!startDate || !endDate) {
-      return res.status(400).json({
-        message: '开始日期和结束日期不能为空'
-      });
-    }
-
-    const start = new Date(startDate as string);
-    const end = new Date(endDate as string);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({
-        message: '日期格式无效'
-      });
-    }
-
-    if (start > end) {
-      return res.status(400).json({
-        message: '开始日期不能晚于结束日期'
-      });
-    }
-
-    const filters = {
-      startDate: start,
-      endDate: end,
-      classId: classId ? parseInt(classId as string, 10) : undefined,
-      gradeLevel: gradeLevel as string
-    };
-
-    const growthData = await AnalyticsService.getStudentGrowthAnalysisByPublicId(publicId, filters);
-    res.status(200).json(growthData);
-
-  } catch (error) {
-    console.error('获取学生成长分析数据路由错误:', error);
-    
-    if (error instanceof Error && error.message === '学生不存在') {
-      return res.status(404).json({
-        message: '学生不存在'
-      });
-    }
-    
-    res.status(500).json({
-      message: '获取学生成长分析数据失败'
-    });
-  }
-});
 
 /**
  * @route   GET /api/analytics/students
@@ -318,6 +258,89 @@ router.get('/students', async (req: Request, res: Response) => {
     res.status(500).json({
       message: '获取分析用学生列表失败'
     });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/student-growth/by-public-id/:publicId
+ * @desc    获取学生成长分析数据
+ * @access  Private
+ */
+router.get('/student-growth/by-public-id/:publicId', async (req: Request, res: Response) => {
+  try {
+    const { publicId } = req.params;
+    const { startDate, endDate } = req.query;
+
+    // 验证学生publicId
+    if (!publicId || typeof publicId !== 'string') {
+      return res.status(400).json({
+        message: '无效的学生公开ID'
+      });
+    }
+
+    // 验证日期参数
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        message: '开始日期和结束日期不能为空'
+      });
+    }
+
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        message: '日期格式无效'
+      });
+    }
+
+    // 调用service获取学生成长数据
+    const filters = {
+      startDate: start,
+      endDate: end
+    };
+    
+    const growthData = await AnalyticsService.getStudentGrowthAnalysisByPublicId(
+      publicId,
+      filters
+    );
+
+    res.status(200).json(growthData);
+
+  } catch (error) {
+    console.error('获取学生成长分析数据路由错误:', error);
+    res.status(500).json({
+      message: '获取学生成长分析数据失败'
+    });
+  }
+});
+
+/**
+ * @route   GET /api/analytics/finance/summary
+ * @desc    获取财务分析汇总（收入/应收趋势、关键指标、欠款分布、Top欠款学生）
+ * @access  Private
+ */
+router.get('/finance/summary', async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: '开始日期和结束日期不能为空' });
+    }
+
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: '日期格式无效' });
+    }
+
+    console.log('📈 财务分析汇总请求参数:', { startDate, endDate });
+    const data = await AnalyticsService.getFinanceAnalyticsSummary({ startDate: start, endDate: end });
+    res.status(200).json(data);
+  } catch (error) {
+    console.error('获取财务分析汇总错误:', error);
+    res.status(500).json({ message: '获取财务分析汇总失败' });
   }
 });
 
