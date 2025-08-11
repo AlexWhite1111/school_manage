@@ -1,0 +1,101 @@
+services:
+  # 轻量级数据库 - 使用SQLite替代PostgreSQL
+  database:
+    image: postgres:13-alpine  # 使用更轻量的版本
+    container_name: project4-db-lite
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-education_crm}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-229791}
+      # PostgreSQL轻量化配置
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # 只内部访问，不暴露端口
+    networks:
+      - project4-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.2'
+    command: >
+      postgres 
+      -c max_connections=20
+      -c shared_buffers=32MB
+      -c effective_cache_size=64MB
+      -c work_mem=2MB
+      -c maintenance_work_mem=16MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=1MB
+      -c default_statistics_target=50
+
+  # 后端服务 - 极致优化
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: project4-backend-lite
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-229791}@database:5432/${DB_NAME:-education_crm}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_key}
+      - PORT=3000
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      # Node.js轻量化配置
+      - NODE_OPTIONS=--max_old_space_size=128 --optimize_for_size --gc_interval=100
+      - UV_THREADPOOL_SIZE=2
+    # 只内部访问
+    networks:
+      - project4-network
+    depends_on:
+      - database
+    volumes:
+      - ./backend/uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+          cpus: '0.8'
+        reservations:
+          memory: 100M
+          cpus: '0.3'
+
+  # 前端 - 使用nginx轻量级镜像
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    container_name: project4-frontend-lite
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - project4-network
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.3'
+        reservations:
+          memory: 32M
+          cpus: '0.1'
+
+networks:
+  project4-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: project4-br
+
+volumes:
+  postgres_data:
+    driver: local
