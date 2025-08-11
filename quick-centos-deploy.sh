@@ -1,9 +1,9 @@
 #!/bin/bash
 # 教育CRM系统 - CentOS云服务器一键部署脚本
-# 服务器IP: 154.194.250.106
+# 服务器IP: 154.194.250.93
 
 echo "🚀 开始部署教育CRM系统到云服务器..."
-echo "服务器IP: 154.194.250.106"
+echo "服务器IP: 154.194.250.93"
 echo ""
 
 # 颜色定义
@@ -72,8 +72,8 @@ print_status "第6步：配置环境变量..."
 cp deploy.env .env
 
 # 自动替换服务器IP
-sed -i "s/42.227.147.38/154.194.250.106/g" .env
-sed -i "s/localhost/154.194.250.106/g" .env
+sed -i "s/42.227.147.38/154.194.250.93/g" .env
+sed -i "s/localhost/154.194.250.93/g" .env
 
 # 生成强密码
 DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
@@ -97,7 +97,6 @@ sleep 120
 # 第八步：初始化数据库
 print_status "第8步：初始化数据库..."
 docker exec project4-backend npx prisma migrate deploy
-docker exec project4-backend npm run seed:growth-config
 docker exec project4-backend npm run seed-admin  
 docker exec project4-backend npm run seed:config
 
@@ -107,7 +106,7 @@ echo ""
 echo "🎉 部署完成！"
 echo ""
 echo "📱 访问地址："
-echo "   http://154.194.250.106"
+echo "   http://154.194.250.93"
 echo ""
 echo "🔑 管理员账户："
 echo "   用户名: admin"
@@ -123,4 +122,4 @@ echo ""
 echo "🔍 如果遇到问题，查看日志："
 echo "   docker-compose logs -f"
 echo ""
-print_status "部署成功！请在浏览器中访问: http://154.194.250.106"
+print_status "部署成功！请在浏览器中访问: http://154.194.250.93"

@@ -60,7 +60,6 @@ if errorlevel 1 (
 
 echo.
 echo 5. 创建基础配置数据...
-docker exec project4-backend npm run seed:growth-config
 docker exec project4-backend npm run seed-admin  
 docker exec project4-backend npm run seed:config
 
