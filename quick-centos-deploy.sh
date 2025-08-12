@@ -75,9 +75,9 @@ cp deploy.env .env
 sed -i "s/42.227.147.38/154.194.250.93/g" .env
 sed -i "s/localhost/154.194.250.93/g" .env
 
-# 生成强密码
+# 生成强密码（JWT_SECRET 固定为 your_jwt_secret_key 以保证多机一致）
 DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
-JWT_SECRET=$(openssl rand -base64 64 | tr -d "=+/" | cut -c1-50)
+JWT_SECRET=your_jwt_secret_key
 
 # 更新密码
 sed -i "s/DB_PASSWORD=229791/DB_PASSWORD=${DB_PASSWORD}/g" .env

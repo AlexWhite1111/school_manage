@@ -35,6 +35,10 @@ export interface AuthRequest extends Request {
  */
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
+    // 预检请求直接放行，避免CORS预检因未带令牌而被拦截
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
     // 1. 从请求头 (Authorization header) 中获取 "Bearer <token>"
     const authHeader = req.headers.authorization;
     

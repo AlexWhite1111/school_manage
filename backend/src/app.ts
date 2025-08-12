@@ -22,6 +22,8 @@ app.use(detectNetworkType);
 
 // 动态CORS配置（集中在 cors.middleware.ts 使用 cors 包）
 app.use(dynamicCors);
+// 预检请求放行
+app.options('*', dynamicCors);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

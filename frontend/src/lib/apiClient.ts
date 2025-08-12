@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '@/stores/authStore';
+import { ensureDecidedApiBaseUrl, getDecidedApiBaseUrlSync, clearDecidedApiBaseUrlCache } from '@/lib/apiDiscovery';
 
-// 创建axios实例
+// 创建axios实例（初始用同步可得的baseURL，占位，随后在请求拦截器里确保发现）
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  baseURL: getDecidedApiBaseUrlSync() || 'http://localhost:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,7 +13,18 @@ const apiClient: AxiosInstance = axios.create({
 
 // 请求拦截器 - 自动添加认证头部
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
+    // 确保首个请求也使用已探测的可用后端
+    let decided = getDecidedApiBaseUrlSync();
+    if (!decided) {
+      decided = await ensureDecidedApiBaseUrl();
+    }
+    if (decided) {
+      apiClient.defaults.baseURL = decided;
+      if (!config.baseURL) config.baseURL = decided;
+    }
+
+    // 附加认证头
     const token = useAuthStore.getState().token;
     console.log('🔍 apiClient请求拦截器 - URL:', config.url, 'Token存在:', !!token);
     if (token) {
@@ -33,7 +45,26 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    // 若是网络异常或瞬时错误，尝试自动故障切换一次
+    const probeStatus: number | undefined = error?.response?.status;
+    const code: string | undefined = error?.code;
+    const isNetworkOrTransient = !error.response || code === 'ECONNABORTED' || (probeStatus !== undefined && [502, 503, 504].includes(probeStatus));
+    const originalConfig = (error?.config || {}) as InternalAxiosRequestConfig & { _retriedWithFallback?: boolean };
+
+    if (isNetworkOrTransient && !originalConfig._retriedWithFallback) {
+      try {
+        clearDecidedApiBaseUrlCache();
+        const newBase = await ensureDecidedApiBaseUrl();
+        apiClient.defaults.baseURL = newBase;
+        originalConfig.baseURL = newBase;
+        originalConfig._retriedWithFallback = true;
+        return apiClient.request(originalConfig);
+      } catch (_) {
+        // 忽略，继续走统一错误处理
+      }
+    }
+
     // 处理401未授权错误（登录/注册等认证接口不触发整页跳转，避免闪屏）
     if (error.response?.status === 401) {
       const requestUrl: string = error.config?.url ?? '';
@@ -61,10 +92,10 @@ apiClient.interceptors.response.use(
     }
     
     // 处理服务器错误
-    const { status, data } = error.response;
+    const { status: responseStatus, data } = error.response;
     let errorMessage = '服务异常，请稍后重试';
     
-    switch (status) {
+    switch (responseStatus) {
       case 400:
         errorMessage = data?.message || '请求参数错误';
         break;
@@ -78,12 +109,12 @@ apiClient.interceptors.response.use(
         errorMessage = '服务器内部错误';
         break;
       default:
-        errorMessage = data?.message || `请求失败 (${status})`;
+        errorMessage = data?.message || `请求失败 (${responseStatus})`;
     }
     
     return Promise.reject({
       message: errorMessage,
-      code: status,
+      code: responseStatus,
       data: data
     });
   }

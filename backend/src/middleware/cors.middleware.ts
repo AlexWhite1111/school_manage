@@ -11,6 +11,14 @@ import cors from 'cors';
  */
 const developmentCorsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
+    // 允许 Capacitor/Electron 自定义协议
+    if (origin && (origin.startsWith('capacitor:') || origin.startsWith('capacitor-electron:') || origin.startsWith('ionic:'))) {
+      return callback(null, true);
+    }
+    // 允许 file:// 或浏览器传来的 null Origin（例如本地文件或某些WebView场景）
+    if (origin === 'null') {
+      return callback(null, true);
+    }
     // 允许所有localhost和本地IP访问
     const allowedOrigins = [
       'http://localhost:3000',
@@ -29,7 +37,7 @@ const developmentCorsOptions: cors.CorsOptions = {
       /^http:\/\/198\.18\.\d{1,3}\.\d{1,3}:\d+$/  // 支持198.18.x.x网段
     ];
 
-    // 开发环境允许undefined origin（比如Postman）
+    // 开发环境允许undefined origin（比如Postman 或 Electron 某些场景不带Origin）
     if (!origin) return callback(null, true);
 
     const isAllowed = allowedOrigins.some(allowedOrigin => {
@@ -66,9 +74,17 @@ const developmentCorsOptions: cors.CorsOptions = {
  */
 const productionCorsOptions: cors.CorsOptions = {
   origin: function (origin, callback) {
+    // 允许 Capacitor/Electron 自定义协议
+    if (origin && (origin.startsWith('capacitor:') || origin.startsWith('capacitor-electron:') || origin.startsWith('ionic:'))) {
+      return callback(null, true);
+    }
+    // 允许 file:// 或浏览器传来的 null Origin（例如本地文件或某些WebView场景）
+    if (origin === 'null') {
+      return callback(null, true);
+    }
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
 
-    // 同源请求（浏览器不会发送 Origin）放行
+    // 同源或缺失 Origin（如 Postman/Electron 某些场景）放行
     if (!origin) {
       return callback(null, true);
     }

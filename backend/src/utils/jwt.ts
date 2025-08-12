@@ -2,9 +2,13 @@
 // 该文件包含用于生成和验证 JSON Web Tokens (JWT) 的实用函数。
 
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
-// JWT密钥，从环境变量获取，如果没有则使用默认值
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// JWT密钥，从环境变量获取，如果没有则使用统一的默认值（请在生产环境务必覆盖）
+const DEFAULT_JWT_SECRET = 'your_jwt_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET && process.env.JWT_SECRET.trim() !== ''
+  ? process.env.JWT_SECRET
+  : DEFAULT_JWT_SECRET;
 
 /**
  * @description 生成一个新的JWT令牌
@@ -39,3 +43,14 @@ export const verifyToken = (token: string): any | null => {
     return null;
   }
 }; 
+
+/**
+ * 返回当前JWT密钥是否为默认值（生产环境应避免）
+ */
+export const isUsingDefaultJwtSecret = (): boolean => JWT_SECRET === DEFAULT_JWT_SECRET;
+
+/**
+ * 返回JWT密钥的指纹（sha256前12位），便于跨机器对比而不暴露密钥
+ */
+export const getJwtSecretFingerprint = (): string =>
+  crypto.createHash('sha256').update(JWT_SECRET).digest('hex').slice(0, 12);

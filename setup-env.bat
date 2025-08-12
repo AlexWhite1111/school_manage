@@ -81,8 +81,8 @@ goto end
 
 :config_created
 echo.
-set /p JWT_SECRET=请输入JWT密钥 (留空使用默认): 
-if "%JWT_SECRET%"=="" set JWT_SECRET=education_crm_jwt_secret_2024_please_change_in_production
+set /p JWT_SECRET=请输入JWT密钥 (留空使用默认your_jwt_secret_key): 
+if "%JWT_SECRET%"=="" set JWT_SECRET=your_jwt_secret_key
 
 echo.
 set /p DB_PASSWORD=请输入数据库密码 (留空使用默认): 

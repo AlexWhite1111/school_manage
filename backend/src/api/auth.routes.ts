@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, superAdminOnly } from '../middleware/auth.middleware';
 import { loginUser, registerUser, generateResetToken, resetPassword } from '../services/auth.service';
+import { getUserById } from '../services/user.service';
 
 const router = Router();
 
@@ -70,6 +71,28 @@ router.post('/logout', (req: Request, res: Response) => {
   res.status(200).json({ 
     message: 'Logged out successfully' 
   });
+});
+
+/**
+ * @route   GET /api/auth/me
+ * @desc    兼容性别名：获取当前登录用户信息（等价于 /api/users/me）
+ * @access  Private
+ */
+router.get('/me', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未认证的请求' });
+    }
+    const user = await getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error('GET /api/auth/me 错误:', error);
+    return res.status(500).json({ message: '服务器内部错误' });
+  }
 });
 
 /**

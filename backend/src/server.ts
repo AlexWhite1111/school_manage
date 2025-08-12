@@ -5,6 +5,7 @@
 import app from './app';
 import { prisma } from './utils/database';
 import { networkInterfaces } from 'os';
+import { getJwtSecretFingerprint, isUsingDefaultJwtSecret } from './utils/jwt';
 
 
 // Get port from environment or default to 3000 (标准配置)
@@ -57,6 +58,7 @@ async function startServer() {
       console.log('🚀 Education CRM Backend Server Started');
       console.log(`📍 Server is running on http://${HOST}:${PORT}`);
       console.log(`🏠 Local access: http://localhost:${PORT}`);
+      console.log(`🔐 JWT Secret FP: ${getJwtSecretFingerprint()}${isUsingDefaultJwtSecret() ? ' (DEFAULT!)' : ''}`);
       
       // Display all available network IPs
       if (networkIPs.length > 0) {
