@@ -1,25 +1,7 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Button, 
-  Table, 
-  Space, 
-  Tag, 
-  Modal, 
-  Form, 
-  Input, 
-  InputNumber, 
-  DatePicker, 
-  message, 
-  Popconfirm, 
-  Spin,
-  Typography,
-  Row,
-  Col,
-  Divider,
-  Empty,
-  App
-} from 'antd';
+import { Table, Space, Tag, Modal, Form, Input, InputNumber, message, Popconfirm, Spin, Typography, Row, Col, Divider, Empty, App, Card, Dropdown, DatePicker } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import { 
   PlusOutlined, 
   EditOutlined, 
@@ -27,7 +9,8 @@ import {
   DownOutlined, 
   UpOutlined,
   FileTextOutlined,
-  ArrowLeftOutlined
+  
+  MoreOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
@@ -201,10 +184,12 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
   // 创建订单
   const handleCreateOrder = async (values: any) => {
-    if (!studentData?.student?.id) return;
+    if (!studentData?.student?.publicId) return;
     
     try {
       const orderData: CreateOrderRequest = {
+        publicId: studentData.student.publicId,
+        // 兼容可选
         studentId: studentData.student.id,
         name: values.name,
         totalDue: values.totalDue,
@@ -218,9 +203,10 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
       setCreateOrderVisible(false);
       createOrderForm.resetFields();
       loadStudentData(); // 刷新数据
-    } catch (error) {
+    } catch (error: any) {
       console.error('创建订单失败:', error);
-      messageApi.error('创建订单失败');
+      const msg = error?.response?.data?.message || error?.message || '创建订单失败';
+      messageApi.error(msg);
     }
   };
 
@@ -371,7 +357,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
       width: isMobile ? 80 : 100,
       align: 'right' as const,
       render: (amount: string) => (
-        <span style={{ fontWeight: 500, color: '#52c41a' }}>
+        <span style={{ fontWeight: 500, color: 'var(--ant-color-success)' }}>
           {formatAmount(amount)}
         </span>
       ),
@@ -389,9 +375,9 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
       width: isMobile ? 100 : 120,
       render: (_: any, payment: Payment) => (
         <Space size="small">
-          <Button
-            type="text"
-            size="small"
+          <AppButton
+            hierarchy="tertiary"
+            size="sm"
             icon={<EditOutlined />}
             onClick={() => handleEditPayment(payment)}
           />
@@ -402,9 +388,9 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             okText="确定"
             cancelText="取消"
           >
-            <Button
-              type="text"
-              size="small"
+            <AppButton
+              hierarchy="tertiary"
+              size="sm"
               icon={<DeleteOutlined />}
               danger
             />
@@ -416,7 +402,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
   if (loading) {
     return (
-      <div style={{ padding: 24, textAlign: 'center' }}>
+      <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
         <Spin size="large" />
       </div>
     );
@@ -424,7 +410,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
   if (!studentData) {
     return (
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: 'var(--space-6)' }}>
         <Empty description="未找到学生数据" />
       </div>
     );
@@ -435,43 +421,36 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
   const totalOwed = parseFloat(summary.totalOwed) || 0;
 
   return (
-    <div className="finance-detail-view" style={{ padding: isMobile ? 16 : 24 }}>
+    <div className="finance-detail-view" data-page-container>
       {/* 页面头部 */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 'var(--space-6)' }}>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
           flexDirection: isMobile ? 'column' : 'row',
-          gap: 16
+          gap: 'var(--space-4)'
         }}>
           <div>
             <Title level={3} style={{ margin: 0 }}>
               财务详情 - {studentData.student.name}
             </Title>
-            {onBack && (
-              <Button 
-                type="link" 
-                icon={<ArrowLeftOutlined />}
-                onClick={onBack} 
-                style={{ padding: 0, marginTop: 8 }}
-              />
-            )}
+            {/* 移除冗余返回按钮，保留整洁标题区 */}
           </div>
           
-          <Button
-            type="primary"
+          <AppButton
+            hierarchy="primary"
             icon={<PlusOutlined />}
             onClick={() => setCreateOrderVisible(true)}
-            size={isMobile ? 'small' : 'middle'}
+            size="lg"
           >
             新建收费订单
-          </Button>
+          </AppButton>
         </div>
       </div>
 
       {/* 学生基础信息和财务概览 */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+              <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ marginBottom: 'var(--space-7)' }}>
         <Col xs={24} md={12}>
           <Card 
             title="学生档案"
@@ -481,25 +460,25 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             style={{ 
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               height: 'fit-content'
             }}
             onClick={() => {
               console.log('点击学生档案，学生publicId:', studentData.student.publicId);
               navigate(`/crm/${studentData.student.publicId}`);
             }}
-            bodyStyle={{ padding: '20px' }}
+styles={{ body: { padding: 'var(--space-5)' } }}
           >
             <Space direction="vertical" style={{ width: '100%' }} size="large">
               {/* 学生基本信息 */}
               <div>
-                <div style={{ 
-                  fontSize: '20px', 
+                   <div style={{ 
+                     fontSize: '20px', 
                   fontWeight: 600, 
-                  marginBottom: 16,
+                     marginBottom: 'var(--space-4)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12
+                     gap: 'var(--space-3)'
                 }}>
                   <span>{studentData.student.name}</span>
                   {studentData.student.status && (
@@ -519,7 +498,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                   )}
                 </div>
                 
-                <Row gutter={[24, 12]}>
+                <Row gutter={isMobile ? [16, 12] : [24, 12]}>
                   <Col span={12}>
                     <div>
                       <Text type="secondary" style={{ fontSize: '13px', display: 'block', marginBottom: 6 }}>
@@ -554,11 +533,11 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
               {/* 家长信息 */}
               {studentData.student.parents && studentData.student.parents.length > 0 && (
                 <div>
-                  <div style={{ 
-                    display: 'flex', 
+                   <div style={{ 
+                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'space-between',
-                    marginBottom: 16
+                     marginBottom: 'var(--space-4)'
                   }}>
                     <Text type="secondary" style={{ fontSize: '13px', fontWeight: 500 }}>
                       家长信息
@@ -573,37 +552,37 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                       <div 
                         key={parent.id} 
                         className="parent-info-card"
-                        style={{ 
-                          padding: '16px', 
-                          borderRadius: '8px',
+                         style={{ 
+                           padding: 'var(--space-4)', 
+                           borderRadius: 'var(--radius-md)',
                           transition: 'all 0.2s ease'
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div style={{ 
-                          display: 'flex', 
+                         <div style={{ 
+                           display: 'flex', 
                           justifyContent: 'space-between', 
                           alignItems: 'flex-start',
-                          gap: 16
+                           gap: 'var(--space-4)'
                         }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ 
                               fontWeight: 600, 
-                              marginBottom: 8,
+                               marginBottom: 'var(--space-2)',
                               fontSize: '15px',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 8
+                               gap: 'var(--space-2)'
                             }}>
                               <span>{parent.name}</span>
                               {parent.relationship && (
                                 <Tag 
-                                  style={{ 
-                                    fontSize: '11px',
-                                    fontWeight: 400,
-                                    margin: 0,
-                                    borderRadius: '6px'
-                                  }}
+                                   style={{ 
+                                     fontSize: '11px',
+                                     fontWeight: 400,
+                                     margin: 0,
+                                     borderRadius: 'var(--radius-sm)'
+                                   }}
                                   color="blue"
                                 >
                                   {parent.relationship}
@@ -639,10 +618,10 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             title="财务概览" 
             size="small"
             style={{ 
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-lg)',
               height: 'fit-content'
             }}
-            bodyStyle={{ padding: '20px' }}
+styles={{ body: { padding: 'var(--space-5)' } }}
           >
             <Space direction="vertical" style={{ width: '100%' }} size="large">
               <div>
@@ -650,8 +629,8 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 <div style={{ 
                   fontSize: '24px',
                   fontWeight: 600,
-                  color: '#1890ff',
-                  marginTop: 4
+                  color: 'var(--ant-color-primary)',
+                  marginTop: 'var(--space-1)'
                 }}>
                   {formatAmount(summary.totalDue)}
                 </div>
@@ -662,8 +641,8 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 <div style={{ 
                   fontSize: '24px',
                   fontWeight: 600,
-                  color: '#52c41a',
-                  marginTop: 4
+                  color: 'var(--ant-color-success)',
+                  marginTop: 'var(--space-1)'
                 }}>
                   {formatAmount(summary.totalPaid)}
                 </div>
@@ -674,8 +653,8 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 <div style={{ 
                   fontSize: '24px',
                   fontWeight: 600,
-                  color: totalOwed > 0 ? '#ff4d4f' : '#52c41a',
-                  marginTop: 4
+                  color: totalOwed > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)',
+                  marginTop: 'var(--space-1)'
                 }}>
                   {formatAmount(summary.totalOwed)}
                 </div>
@@ -683,7 +662,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
               
               <div>
                 <Text strong style={{ fontSize: '15px' }}>缴费状态：</Text>
-                <div style={{ marginTop: 8 }}>
+                <div style={{ marginTop: 'var(--space-2)' }}>
                   <Tag 
                     color={
                       summary.paymentStatus === 'PAID_FULL' ? 'green' :
@@ -712,11 +691,11 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
         ) : (
           <Space direction="vertical" style={{ width: '100%' }} size="large">
             {studentData.orders.map((order) => (
-              <Card
+            <Card
                 key={order.id}
                 size="small"
-                style={{ borderRadius: '12px' }}
-                bodyStyle={{ padding: '24px' }}
+              style={{ borderRadius: 'var(--radius-lg)' }}
+styles={{ body: { padding: 'var(--space-6)' } }}
                 title={
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -725,48 +704,63 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                         {getOrderStatusTag(order)}
                       </div>
                     </div>
-                    <Space size="middle">
-                      <Button
-                        type="primary"
-                        size="small"
+                    <Space size={isMobile ? 'small' : 'middle'}>
+                      <AppButton
+                        hierarchy="primary"
+                        size={isMobile ? 'sm' : 'middle'}
                         icon={<PlusOutlined />}
                         onClick={() => handleAddPayment(order)}
                         disabled={parseFloat(order.remainingAmount) <= 0}
+                        style={isMobile ? { height: 28, padding: '0 8px' } : undefined}
                       >
-                        添加收款
-                      </Button>
-                      <Button
-                        size="small"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEditOrder(order)}
-                        disabled={order.payments.length > 0}
+                        {isMobile ? '收款' : '添加收款'}
+                      </AppButton>
+                      <Dropdown
+                        menu={{
+                          items: [
+                            {
+                              key: 'edit',
+                              label: '编辑订单',
+                              disabled: order.payments.length > 0,
+                              onClick: () => handleEditOrder(order)
+                            },
+                            {
+                              key: 'delete',
+                              label: '删除订单',
+                              danger: true,
+                              disabled: order.payments.length > 0,
+                              onClick: () => {
+                                if (order.payments.length > 0) return;
+                                // 二次确认
+                                Modal.confirm({
+                                  title: '确定删除该订单？',
+                                  content: '此操作不可撤销',
+                                  okText: '删除',
+                                  cancelText: '取消',
+                                  okButtonProps: { danger: true },
+                                  onOk: () => handleDeleteOrder(order.id)
+                                });
+                              }
+                            }
+                          ]
+                        }}
+                        placement={isMobile ? 'topRight' : 'bottomRight'}
+                        getPopupContainer={(trigger) => trigger.parentElement || document.body}
                       >
-                        编辑订单
-                      </Button>
-                      {order.payments.length === 0 && (
-                        <Popconfirm
-                          title="确定要删除这个订单吗？"
-                          description="此操作不可撤销"
-                          onConfirm={() => handleDeleteOrder(order.id)}
-                          okText="确定"
-                          cancelText="取消"
-                        >
-                          <Button
-                            size="small"
-                            icon={<DeleteOutlined />}
-                            danger
-                          >
-                            删除订单
-                          </Button>
-                        </Popconfirm>
-                      )}
+                        <AppButton 
+                          hierarchy="tertiary"
+                          size="sm" 
+                          icon={<MoreOutlined style={{ fontSize: 16 }} />} 
+                          style={isMobile ? { height: 28, padding: '0 6px', marginLeft: -4 } : undefined}
+                        />
+                      </Dropdown>
                     </Space>
                   </div>
                 }
                 extra={
-                  <Button
-                    type="text"
-                    size="small"
+                  <AppButton
+                    hierarchy="tertiary"
+                    size="sm"
                     icon={expandedOrders.includes(order.id) ? <UpOutlined /> : <DownOutlined />}
                     onClick={() => {
                       if (expandedOrders.includes(order.id)) {
@@ -777,17 +771,17 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                     }}
                   >
                     {expandedOrders.includes(order.id) ? '收起' : '展开'}
-                  </Button>
+                  </AppButton>
                 }
               >
                 {/* 订单信息 */}
-                <Row gutter={[32, 16]} style={{ marginBottom: 20 }}>
+                 <Row gutter={isMobile ? [16, 16] : [32, 16]} style={{ marginBottom: 'var(--space-5)' }}>
                   <Col xs={12} sm={6}>
                     <div>
                       <Text type="secondary" style={{ fontSize: '13px' }}>应收总额</Text>
                       <div style={{ 
                         fontWeight: 600, 
-                        color: '#1890ff',
+                        color: 'var(--ant-color-primary)',
                         fontSize: '18px',
                         marginTop: 4
                       }}>
@@ -800,7 +794,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                       <Text type="secondary" style={{ fontSize: '13px' }}>已收金额</Text>
                       <div style={{ 
                         fontWeight: 600, 
-                        color: '#52c41a',
+                        color: 'var(--ant-color-success)',
                         fontSize: '18px',
                         marginTop: 4
                       }}>
@@ -813,7 +807,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                       <Text type="secondary" style={{ fontSize: '13px' }}>剩余未付</Text>
                       <div style={{ 
                         fontWeight: 600, 
-                        color: parseFloat(order.remainingAmount) > 0 ? '#ff4d4f' : '#52c41a',
+                        color: parseFloat(order.remainingAmount) > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)',
                         fontSize: '18px',
                         marginTop: 4
                       }}>
@@ -836,7 +830,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 </Row>
 
                 {order.coursePeriodStart && order.coursePeriodEnd && (
-                  <div style={{ marginBottom: 16 }}>
+                   <div style={{ marginBottom: 'var(--space-4)' }}>
                     <Text type="secondary" style={{ fontSize: '13px' }}>课程周期：</Text>
                     <Text style={{ marginLeft: 8, fontSize: '14px' }}>
                       {dayjs(order.coursePeriodStart).format('YYYY-MM-DD')} 至 {dayjs(order.coursePeriodEnd).format('YYYY-MM-DD')}
@@ -844,7 +838,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                   </div>
                 )}
 
-                <div style={{ marginBottom: 20 }}>
+                 <div style={{ marginBottom: 'var(--space-5)' }}>
                   <Text type="secondary" style={{ fontSize: '13px' }}>创建时间：</Text>
                   <Text style={{ marginLeft: 8, fontSize: '14px' }}>
                     {dayjs(order.createdAt).format('YYYY-MM-DD HH:mm')}
@@ -853,9 +847,9 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
                 {/* 收款记录详情 */}
                 {expandedOrders.includes(order.id) && (
-                  <div style={{ marginTop: 24 }}>
-                    <Divider style={{ margin: '20px 0 16px 0' }} />
-                    <Title level={5} style={{ fontSize: '16px', marginBottom: 16 }}>收款记录</Title>
+                   <div style={{ marginTop: 'var(--space-6)' }}>
+                     <Divider style={{ margin: 'var(--space-5) 0 var(--space-4) 0' }} />
+                     <Title level={5} style={{ fontSize: '16px', marginBottom: 'var(--space-4)' }}>收款记录</Title>
                     {order.payments.length === 0 ? (
                       <Empty description="暂无收款记录" />
                     ) : (
@@ -921,29 +915,29 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             name="coursePeriod"
             label="课程周期"
           >
-            <DatePicker.RangePicker style={{ width: '100%' }} />
+            <UnifiedRangePicker className="w-full" getPopupContainer={() => document.body} />
           </Form.Item>
 
           <Form.Item
             name="dueDate"
             label="结账日期"
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker className="w-full" />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button 
+              <AppButton 
                 onClick={() => {
                   setCreateOrderVisible(false);
                   createOrderForm.resetFields();
                 }}
               >
                 取消
-              </Button>
-              <Button type="primary" htmlType="submit">
+              </AppButton>
+              <AppButton hierarchy="primary" type="submit">
                 确认创建
-              </Button>
+              </AppButton>
             </Space>
           </Form.Item>
         </Form>
@@ -995,19 +989,19 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             name="coursePeriod"
             label="课程周期"
           >
-            <DatePicker.RangePicker style={{ width: '100%' }} />
+            <UnifiedRangePicker className="w-full" getPopupContainer={() => document.body} />
           </Form.Item>
 
           <Form.Item
             name="dueDate"
             label="结账日期"
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker className="w-full" />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button 
+              <AppButton 
                 onClick={() => {
                   setEditOrderVisible(false);
                   editOrderForm.resetFields();
@@ -1015,10 +1009,10 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 }}
               >
                 取消
-              </Button>
-              <Button type="primary" htmlType="submit">
+              </AppButton>
+              <AppButton hierarchy="primary" type="submit">
                 确认更新
-              </Button>
+              </AppButton>
             </Space>
           </Form.Item>
         </Form>
@@ -1046,7 +1040,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             label="收款日期"
             rules={[{ required: true, message: '请选择收款日期' }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker className="w-full" />
           </Form.Item>
 
           <Form.Item
@@ -1088,7 +1082,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button 
+              <AppButton 
                 onClick={() => {
                   setAddPaymentVisible(false);
                   addPaymentForm.resetFields();
@@ -1096,10 +1090,10 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 }}
               >
                 取消
-              </Button>
-              <Button type="primary" htmlType="submit">
+              </AppButton>
+              <AppButton hierarchy="primary" type="submit">
                 确认添加
-              </Button>
+              </AppButton>
             </Space>
           </Form.Item>
         </Form>
@@ -1127,7 +1121,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
             label="收款日期"
             rules={[{ required: true, message: '请选择收款日期' }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker className="w-full" />
           </Form.Item>
 
           <Form.Item
@@ -1159,7 +1153,7 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button 
+              <AppButton 
                 onClick={() => {
                   setEditPaymentVisible(false);
                   editPaymentForm.resetFields();
@@ -1167,10 +1161,10 @@ const FinanceDetailView: React.FC<FinanceDetailViewProps> = ({ studentId, studen
                 }}
               >
                 取消
-              </Button>
-              <Button type="primary" htmlType="submit">
+              </AppButton>
+              <AppButton hierarchy="primary" type="submit">
                 确认更新
-              </Button>
+              </AppButton>
             </Space>
           </Form.Item>
         </Form>

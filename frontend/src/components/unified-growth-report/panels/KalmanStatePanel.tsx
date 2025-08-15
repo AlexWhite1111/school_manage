@@ -1,19 +1,7 @@
+
+import AppButton from '@/components/AppButton';
 import React from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  Typography,
-  Space,
-  Tag,
-  Badge,
-  Tooltip,
-  Button,
-  Empty,
-  Divider
-} from 'antd';
+import { Row, Col, Statistic, Progress, Typography, Space, Tag, Badge, Tooltip, Empty, Divider, Card } from 'antd';
 import {
   FireOutlined,
   ThunderboltOutlined,
@@ -22,6 +10,8 @@ import {
   SettingOutlined
 } from '@ant-design/icons';
 import type { GrowthSummary } from '@/api/growthApi';
+import { getLevelColor, getTrendColor } from '@/config/growthColorConfig';
+import { useResponsive } from '@/hooks/useResponsive';
 
 const { Text } = Typography;
 
@@ -39,15 +29,16 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
   style,
   className
 }) => {
+  const { isMobile } = useResponsive();
   if (!states || states.length === 0) {
     return (
       <Card 
         title="卡尔曼滤波器状态" 
         extra={
           onConfigClick && (
-            <Button icon={<SettingOutlined />} onClick={onConfigClick}>
+            <AppButton icon={<SettingOutlined />} onClick={onConfigClick}>
               参数配置
-            </Button>
+            </AppButton>
           )
         }
         style={style}
@@ -68,9 +59,9 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
       title="卡尔曼滤波器状态" 
       extra={
         onConfigClick && (
-          <Button icon={<SettingOutlined />} onClick={onConfigClick}>
+          <AppButton icon={<SettingOutlined />} onClick={onConfigClick}>
             参数配置
-          </Button>
+          </AppButton>
         )
       }
       style={style}
@@ -79,20 +70,20 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
       <Row gutter={16}>
         <Col span={8}>
           <Statistic
-            title="当前水平 (μ)"
+            title="当前水平"
             value={avgLevel}
             precision={2}
             prefix={<FireOutlined />}
-            valueStyle={{ color: '#1890ff' }}
+            valueStyle={{ color: getLevelColor(avgLevel) }}
           />
         </Col>
         <Col span={8}>
           <Statistic
-            title="趋势速度 (ν)"
+            title="趋势速度"
             value={avgTrend}
             precision={3}
             prefix={avgTrend > 0 ? <RiseOutlined /> : <FallOutlined />}
-            valueStyle={{ color: avgTrend > 0 ? '#52c41a' : '#ff4d4f' }}
+            valueStyle={{ color: getTrendColor(avgTrend, 'POSITIVE') }}
           />
         </Col>
         <Col span={8}>
@@ -113,25 +104,40 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
       
       <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
         {states.map((state) => (
-          <div key={state.tagId} style={{ marginBottom: '12px', padding: '8px', background: '#fafafa', borderRadius: '4px' }}>
-            <Row justify="space-between" align="middle">
+          <div key={state.tagId} style={{ marginBottom: '12px', padding: '8px', background: 'var(--ant-color-bg-layout)', borderRadius: '4px' }}>
+            <Row justify="space-between" align="middle" gutter={8}>
               <Col>
                 <Tag color={state.sentiment === 'POSITIVE' ? 'green' : 'red'}>
                   {state.tagName}
                 </Tag>
               </Col>
-              <Col>
-                <Space size="large">
-                  <Tooltip title="水平值">
-                    <Text>μ: {state.level.toFixed(2)}</Text>
-                  </Tooltip>
-                  <Tooltip title="趋势值">
-                    <Text>ν: {state.trend.toFixed(3)}</Text>
-                  </Tooltip>
-                  <Tooltip title="观测次数">
-                    <Badge count={state.totalObservations} style={{ backgroundColor: '#52c41a' }} />
-                  </Tooltip>
-                </Space>
+              <Col flex="auto">
+                {isMobile ? (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                    <Text>
+                      水平: <span style={{ color: getLevelColor(state.level), fontWeight: 600 }}>{state.level.toFixed(1)}</span>
+                    </Text>
+                    <Text>
+                      趋势: <span style={{ color: getTrendColor(state.trend, state.sentiment), fontWeight: 600 }}>{state.trend.toFixed(2)}</span>
+                    </Text>
+                  </div>
+                ) : (
+                  <Space size="large">
+                    <Tooltip title="水平值">
+                      <Text>
+                        水平: <span style={{ color: getLevelColor(state.level), fontWeight: 600 }}>{state.level.toFixed(2)}</span>
+                      </Text>
+                    </Tooltip>
+                    <Tooltip title="趋势值">
+                      <Text>
+                        趋势: <span style={{ color: getTrendColor(state.trend, state.sentiment), fontWeight: 600 }}>{state.trend.toFixed(3)}</span>
+                      </Text>
+                    </Tooltip>
+                    <Tooltip title="观测次数">
+                      <Badge count={state.totalObservations} style={{ backgroundColor: 'var(--ant-color-success)' }} />
+                    </Tooltip>
+                  </Space>
+                )}
               </Col>
             </Row>
           </div>

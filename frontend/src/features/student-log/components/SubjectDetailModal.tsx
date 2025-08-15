@@ -1,21 +1,8 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  Table,
-  Button,
-  Space,
-  Select,
-  DatePicker,
-  Typography,
-  Tag,
-  Spin,
-  Empty,
-  Statistic,
-  Row,
-  Col,
-  Card,
-  message
-} from 'antd';
+import { Modal, Table, Space, Select, Typography, Tag, Spin, Empty, Statistic, Row, Col, message, theme as themeApi, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import {
   BookOutlined,
   ReloadOutlined,
@@ -33,7 +20,7 @@ import dayjs from 'dayjs';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+ 
 
 // 科目中文映射
 const subjectLabels: Record<string, string> = {
@@ -97,16 +84,17 @@ const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   );
 
   // 主题样式
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-  };
+    cardBackground: token.colorBgContainer,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    borderColor: token.colorBorder,
+  } as const;
 
   // 动态Modal宽度
   const getModalWidth = () => {
@@ -317,12 +305,12 @@ const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
       onCancel={onClose}
       width={getModalWidth()}
       footer={[
-        <Button key="refresh" icon={<ReloadOutlined />} onClick={loadExamHistory} loading={loading}>
+        <AppButton key="refresh" icon={<ReloadOutlined />} onClick={loadExamHistory} loading={loading}>
           刷新
-        </Button>,
-        <Button key="close" onClick={onClose}>
+        </AppButton>,
+        <AppButton key="close" onClick={onClose}>
           关闭
-        </Button>
+        </AppButton>
       ]}
       style={{ top: isMobile ? 20 : 50 }}
     >
@@ -405,11 +393,10 @@ const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
           <Col xs={24} sm={12}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
               <Text type="secondary" style={{ fontSize: '12px' }}>时间范围</Text>
-              <RangePicker
+              <UnifiedRangePicker
                 style={{ width: '100%' }}
                 value={customDateRange}
                 onChange={(dates) => setCustomDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
-                format="YYYY-MM-DD"
                 size={isMobile ? 'middle' : 'small'}
                 placeholder={['开始日期', '结束日期']}
               />
@@ -418,7 +405,7 @@ const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
         </Row>
         
         {/* 筛选状态提示 */}
-        <div style={{ marginTop: '12px', padding: '8px', backgroundColor: themeStyles.cardBackground, borderRadius: '4px' }}>
+        <div style={{ marginTop: 'var(--space-3)', padding: 'var(--space-2)', backgroundColor: themeStyles.cardBackground, borderRadius: 'var(--radius-sm)' }}>
           <Space wrap>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               当前显示: 

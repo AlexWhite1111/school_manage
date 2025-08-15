@@ -1,21 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  List,
-  Button,
-  Space,
-  Tag,
-  Input,
-  Select,
-  message,
-  Divider,
-  Typography,
-  Popconfirm,
-  Form,
-  Row,
-  Col,
-  Empty
-} from 'antd';
+import { Modal, List, Space, Tag, Input, Select, message, Divider, Typography, Popconfirm, Form, Row, Col, Empty } from 'antd';
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -139,9 +124,9 @@ const ExamTagManagerModal: React.FC<ExamTagManagerModalProps> = ({
       onCancel={onClose}
       width={800}
       footer={[
-        <Button key="close" onClick={onClose}>
+        <AppButton key="close" onClick={onClose}>
           关闭
-        </Button>
+        </AppButton>
       ]}
     >
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -165,27 +150,27 @@ const ExamTagManagerModal: React.FC<ExamTagManagerModalProps> = ({
               >
                 <Option value="EXAM_POSITIVE">
                   <Space>
-                    <SmileOutlined style={{ color: '#52c41a' }} />
+                    <SmileOutlined style={{ color: 'var(--ant-color-success)' }} />
                     正面表现
                   </Space>
                 </Option>
                 <Option value="EXAM_NEGATIVE">
                   <Space>
-                    <FrownOutlined style={{ color: '#ff4d4f' }} />
+                    <FrownOutlined style={{ color: 'var(--ant-color-error)' }} />
                     待改进项
                   </Space>
                 </Option>
               </Select>
             </Col>
             <Col span={4}>
-              <Button
-                type="primary"
+              <AppButton
+                hierarchy="primary"
                 icon={<PlusOutlined />}
                 onClick={handleCreateTag}
                 block
               >
                 创建
-              </Button>
+              </AppButton>
             </Col>
           </Row>
         </div>
@@ -207,13 +192,13 @@ const ExamTagManagerModal: React.FC<ExamTagManagerModalProps> = ({
             </Select>
           </Col>
           <Col>
-            <Button
+            <AppButton
               type={showDeleted ? 'primary' : 'default'}
-              size="small"
+              size="sm"
               onClick={() => setShowDeleted(!showDeleted)}
             >
               {showDeleted ? '隐藏已删除' : '显示已删除'}
-            </Button>
+            </AppButton>
           </Col>
         </Row>
 
@@ -233,13 +218,13 @@ const ExamTagManagerModal: React.FC<ExamTagManagerModalProps> = ({
                   }}
                   actions={[
                     tag.deletedAt ? (
-                      <Button
-                        type="link"
-                        size="small"
+                      <AppButton
+                        hierarchy="link"
+                        size="sm"
                         onClick={() => handleRestoreTag(tag.id)}
                       >
                         恢复
-                      </Button>
+                      </AppButton>
                     ) : (
                       <Popconfirm
                         title="确定删除此标签吗？"
@@ -248,14 +233,14 @@ const ExamTagManagerModal: React.FC<ExamTagManagerModalProps> = ({
                         okText="确定"
                         cancelText="取消"
                       >
-                        <Button
-                          type="link"
-                          size="small"
+                        <AppButton
+                          hierarchy="link"
+                          size="sm"
                           danger
                           icon={<DeleteOutlined />}
                         >
                           删除
-                        </Button>
+                        </AppButton>
                       </Popconfirm>
                     )
                   ]}

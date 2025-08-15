@@ -1,19 +1,6 @@
+import { Button } from 'antd';
 import React, { useState, useEffect } from 'react';
-import { 
-  Modal, 
-  Button, 
-  Typography, 
-  Avatar, 
-  Badge, 
-  Slider, 
-  Input, 
-  Space, 
-  Card,
-  Grid,
-  Tooltip,
-  Tag,
-  message
-} from 'antd';
+import { Modal, Typography, Avatar, Badge, Slider, Input, Space, Grid, Tooltip, Tag, message, Card } from 'antd';
 import {
   SmileOutlined,
   FrownOutlined,
@@ -116,17 +103,17 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
 
   // 渲染标签组
   const renderTagGroup = (tags: GrowthTag[], title: string, icon: React.ReactNode, color: string) => (
-    <div style={{ marginBottom: '24px' }}>
+  <div style={{ marginBottom: 'var(--space-4)' }}>
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        marginBottom: '16px',
-        paddingBottom: '8px',
-        borderBottom: `2px solid ${color}20`
+        marginBottom: 'var(--space-2)',
+        paddingBottom: 'var(--space-1)',
+        borderBottom: `1px solid ${color}33`
       }}>
         {icon}
         <Text strong style={{ 
-          fontSize: '16px', 
+          fontSize: '14px', 
           marginInlineStart: '8px',
           color: color
         }}>
@@ -144,11 +131,11 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
       <div style={{ 
         display: 'grid',
         gridTemplateColumns: isMobile 
-          ? 'repeat(1, 1fr)' 
+          ? 'repeat(2, 1fr)' 
           : screens.lg 
             ? 'repeat(3, 1fr)' 
             : 'repeat(2, 1fr)',
-        gap: '12px'
+        gap: 'var(--space-2)'
       }}>
         {tags.map(tag => (
           <Card
@@ -165,33 +152,26 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
             }}
             styles={{
               body: { 
-                padding: '12px',
+                padding: 'var(--space-2)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: 'var(--space-1)'
               }
             }}
           >
             <div style={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center' 
+              justifyContent: 'flex-start', 
+              alignItems: 'center'
             }}>
-              <Text strong style={{ fontSize: '14px' }}>
+              <Text strong style={{ fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                 {tag.text}
               </Text>
-                             <Tag color={color}>
-                权重 {tag.defaultWeight || 5}
-              </Tag>
+              {/* 右上角不再显示权重Tag，改为第二行小字 */}
             </div>
-            {tag.description && (
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {tag.description}
-              </Text>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#8c8c8c' }}>
-              <span>使用 {tag.usageCount} 次</span>
-              <span>本周 {tag.recentUsage.thisWeek} 次</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--ant-color-text-secondary)' }}>
+              <span>用 {tag.usageCount} · 周 {tag.recentUsage.thisWeek}</span>
+              <span style={{ color: getWeightColor(tag.defaultWeight || 5) }}>权 {tag.defaultWeight || 5}</span>
             </div>
           </Card>
         ))}
@@ -209,20 +189,17 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              backgroundColor: selectedTag?.sentiment === 'POSITIVE' ? '#52c41a' : '#ff4d4f'
+              backgroundColor: selectedTag?.sentiment === 'POSITIVE' ? 'var(--ant-color-success)' : 'var(--ant-color-error)'
             }} />
-            <Text strong>{selectedTag?.text}</Text>
-                         <Tag color={selectedTag?.sentiment ? getSentimentColor(selectedTag.sentiment as 'POSITIVE' | 'NEGATIVE') : 'gray'}>
-               {selectedTag?.sentiment ? getSentimentLabel(selectedTag.sentiment as 'POSITIVE' | 'NEGATIVE') : '未知类型'}
-             </Tag>
+            <Text strong style={{ color: selectedTag?.sentiment ? getSentimentColor(selectedTag.sentiment as 'POSITIVE' | 'NEGATIVE') : undefined }}>
+              {selectedTag?.text}
+            </Text>
           </div>
         }
         extra={
-          <Button type="link" onClick={handleBack} size="small">
-            重新选择
-          </Button>
+          <Button type="link" onClick={handleBack} size="small">重新选择</Button>
         }
-        style={{ marginBottom: '20px' }}
+  style={{ marginBottom: 'var(--space-5)' }}
       >
         {selectedTag?.description && (
           <Text type="secondary" style={{ fontSize: '13px' }}>
@@ -234,10 +211,10 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 权重选择 */}
         <div>
-          <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+  <div style={{ marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <Text strong>表现程度</Text>
             <Tooltip title="1-3轻微，4-6一般，7-8明显，9-10非常明显">
-              <InfoCircleOutlined style={{ color: '#8c8c8c' }} />
+              <InfoCircleOutlined style={{ color: 'var(--ant-color-text-secondary)' }} />
             </Tooltip>
             <Tag color={getWeightColor(weight)} style={{ marginInlineStart: 'auto' }}>
               权重 {weight} - {getWeightLabel(weight)}
@@ -264,8 +241,8 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
             display: 'flex', 
             justifyContent: 'space-between', 
             fontSize: '12px', 
-            color: '#8c8c8c',
-            marginTop: '8px'
+            color: 'var(--ant-color-text-secondary)',
+  marginTop: 'var(--space-2)'
           }}>
             <span>轻微表现</span>
             <span>标准表现 (默认:{selectedTag?.defaultWeight || 5})</span>
@@ -275,7 +252,7 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
 
         {/* 上下文输入 */}
         <div>
-          <div style={{ marginBottom: '8px' }}>
+  <div style={{ marginBottom: 'var(--space-2)' }}>
             <Text strong>上下文说明</Text>
             <Text type="secondary" style={{ fontSize: '12px', marginInlineStart: '8px' }}>
               (可选，最多50字符)
@@ -306,8 +283,8 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
           <Avatar 
             size={40}
             style={{ 
-              backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
-                             student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1'
+              backgroundColor: student.gender === 'MALE' ? 'var(--ant-color-primary)' : 
+                             student.gender === 'FEMALE' ? '#eb2f96' : 'var(--ant-color-info)'
             }}
           >
             {student.name?.slice(-2) || '学生'}
@@ -316,7 +293,7 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
             <Text strong style={{ fontSize: '16px' }}>
               {student.name} - 成长表现记录
             </Text>
-            <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: '2px' }}>
+  <div style={{ fontSize: '12px', color: 'var(--ant-color-text-secondary)', marginTop: '2px' }}>
               {showWeightSelector ? '设置表现程度和上下文' : '请选择今日的表现词条'}
             </div>
           </div>
@@ -326,26 +303,18 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
       onCancel={onCancel}
       footer={
         showWeightSelector ? [
-          <Button key="back" onClick={handleBack}>
-            重新选择
-          </Button>,
-          <Button key="cancel" onClick={onCancel}>
-            取消
-          </Button>,
-          <Button key="confirm" type="primary" onClick={handleConfirm}>
-            确认记录
-          </Button>
+          <Button key="back" onClick={handleBack}>重新选择</Button>,
+          <Button key="cancel" onClick={onCancel}>取消</Button>,
+          <Button key="confirm" type="primary" onClick={handleConfirm}>确认记录</Button>
         ] : [
-          <Button key="cancel" onClick={onCancel}>
-            取消
-          </Button>
+          <Button key="cancel" onClick={onCancel}>取消</Button>
         ]
       }
       width={isMobile ? '95%' : showWeightSelector ? 700 : 900}
       centered
       styles={{
         body: { 
-          padding: '24px',
+          padding: 'var(--space-6)',
           maxHeight: '70vh',
           overflow: 'auto'
         }
@@ -355,7 +324,7 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
       {showWeightSelector ? (
         renderWeightSelector()
       ) : (
-        <div style={{ padding: '8px 0' }}>
+        <div style={{ padding: 'var(--space-2) 0' }}>
           {          renderTagGroup(
             positiveTags, 
             getSentimentLabel('POSITIVE'), 
@@ -374,7 +343,7 @@ const EnhancedGrowthTagSelector: React.FC<EnhancedGrowthTagSelectorProps> = ({
             <div style={{ 
               textAlign: 'center', 
               padding: '40px 0',
-              color: '#8c8c8c'
+              color: 'var(--ant-color-text-secondary)'
             }}>
               <Text>暂无成长标签，请先在系统中添加标签</Text>
             </div>

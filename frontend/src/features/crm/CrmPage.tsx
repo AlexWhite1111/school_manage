@@ -1,22 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Typography, 
-  Row, 
-  Col, 
-  Card, 
-  Input, 
-  Button, 
-  Table, 
-  Menu, 
-  Space, 
-  Statistic, 
-  Modal, 
-  Upload, 
-  Dropdown,
-  Tag,
-  App,
-  Tooltip,
-} from 'antd';
+import AppButton from '@/components/AppButton';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Typography, Row, Col, Input, Table, Menu, Space, Statistic, Modal, Upload, Dropdown, Tag, App, Tooltip, Card, theme as themeApi } from 'antd';
+import AppSearchInput from '@/components/common/AppSearchInput';
+import { UnifiedCardPresets } from '@/theme/card';
 import type { TableColumnsType, MenuProps } from 'antd';
 import {
   SearchOutlined,
@@ -37,27 +23,33 @@ import { useResponsive } from '@/hooks/useResponsive';
 import * as crmApi from '@/api/crmApi';
 import type { Customer, CustomerStats, CustomerStatus } from '@/types/api';
 import { getGradeLabel, getSourceChannelLabel } from '@/utils/enumMappings';
+import { CUSTOMER_STATUS_META, getCustomerStatusColor, getCustomerStatusLabel } from '@/config/analyticsColors';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
 const { confirm } = Modal;
 const { useApp } = App;
 
-// 客户状态映射 - 移到组件外部避免重复创建
+// 客户状态映射：统一引用全局配置
 const CUSTOMER_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  'all': { label: '总客户', color: '#1890ff' },
-  'POTENTIAL': { label: '潜在用户', color: '#722ed1' },
-  'INITIAL_CONTACT': { label: '初步沟通', color: '#13c2c2' },
-  'INTERESTED': { label: '意向用户', color: '#52c41a' },
-  'TRIAL_CLASS': { label: '试课', color: '#faad14' },
-  'ENROLLED': { label: '已报名', color: '#1890ff' },
-  'LOST': { label: '流失客户', color: '#f5222d' }
+  all: { label: '总客户', color: 'var(--ant-color-primary)' },
+  POTENTIAL: CUSTOMER_STATUS_META.POTENTIAL,
+  INITIAL_CONTACT: CUSTOMER_STATUS_META.INITIAL_CONTACT,
+  INTERESTED: CUSTOMER_STATUS_META.INTERESTED,
+  TRIAL_CLASS: CUSTOMER_STATUS_META.TRIAL_CLASS,
+  ENROLLED: CUSTOMER_STATUS_META.ENROLLED,
+  LOST: CUSTOMER_STATUS_META.LOST,
 };
 
 const CrmPage: React.FC = () => {
   const navigate = useNavigate();
   const { message: antMessage } = useApp();
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { token } = themeApi.useToken();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pageGap = isMobile ? 12 : 24;
+  const sectionGutter: [number, number] = isMobile ? [8, 8] : [16, 16];
+  const compactBtnH = isMobile ? 36 : 40;
   
   // 状态管理
   const [loading, setLoading] = useState(true);
@@ -154,7 +146,7 @@ const CrmPage: React.FC = () => {
   const handleChangeStatus = useCallback(async (customerId: number, newStatus: CustomerStatus, customerName: string) => {
     try {
       await crmApi.updateCustomer(customerId, { status: newStatus });
-      antMessage.success(`客户 ${customerName} 的状态已更新为 ${CUSTOMER_STATUS_LABELS[newStatus]?.label}`);
+      antMessage.success(`客户 ${customerName} 的状态已更新为 ${getCustomerStatusLabel(newStatus)}`);
       // 批量更新，减少API调用
       Promise.all([
         loadCustomers(selectedStatus, debouncedSearchKeyword),
@@ -236,6 +228,13 @@ const CrmPage: React.FC = () => {
     return false; // 阻止默认上传行为
   }, [selectedStatus, debouncedSearchKeyword]);
 
+  // 供移动端菜单触发文件选择
+  const triggerImport = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, []);
+
   // 客户操作菜单
   const getCustomerActions = useCallback((customer: Customer): MenuProps['items'] => [
     {
@@ -254,7 +253,7 @@ const CrmPage: React.FC = () => {
       label: '变更状态',
       children: Object.entries(CUSTOMER_STATUS_LABELS)
         .filter(([key]) => key !== 'all' && key !== customer.status)
-        .map(([status, config]) => ({
+         .map(([status, config]) => ({
           key: status,
           label: config.label,
           onClick: () => handleChangeStatus(customer.id, status as CustomerStatus, customer.name)
@@ -264,13 +263,13 @@ const CrmPage: React.FC = () => {
 
   // 🚀 性能优化：缓存渲染函数
   const renderCustomerName = useCallback((name: string, record: Customer) => (
-    <Button 
-      type="link" 
+    <AppButton 
+      hierarchy="link" 
       onClick={() => handleViewCustomer(record)}
       style={{ padding: 0, height: 'auto' }}
     >
       {name}
-    </Button>
+    </AppButton>
   ), [handleViewCustomer]);
 
   const renderSchoolOrGrade = useCallback((value: string) => value || '-', []);
@@ -293,14 +292,11 @@ const CrmPage: React.FC = () => {
     return primaryParent?.phone || '-';
   }, []);
 
-  const renderCustomerStatus = useCallback((status: CustomerStatus) => {
-    const config = CUSTOMER_STATUS_LABELS[status];
-    return (
-      <Tag color={config?.color || 'default'}>
-        {config?.label || status}
-      </Tag>
-    );
-  }, []);
+  const renderCustomerStatus = useCallback((status: CustomerStatus) => (
+    <Tag color={getCustomerStatusColor(status)}>
+      {getCustomerStatusLabel(status)}
+    </Tag>
+  ), []);
 
   const renderActions = useCallback((_: any, record: Customer) => (
     <Dropdown 
@@ -308,10 +304,11 @@ const CrmPage: React.FC = () => {
       trigger={['click']}
       placement="bottomRight"
     >
-      <Button 
-        type="text" 
+      <AppButton 
+        hierarchy="tertiary" 
         icon={<MoreOutlined />}
         size="small"
+        style={{ padding: 0, width: 28, height: 28 }}
       />
     </Dropdown>
   ), [getCustomerActions]);
@@ -322,14 +319,16 @@ const CrmPage: React.FC = () => {
       title: '客户姓名',
       dataIndex: 'name',
       key: 'name',
-      width: 120,
+      width: isMobile ? 120 : 120,
+      ellipsis: true,
       render: renderCustomerName
     },
     {
       title: '学校',
       dataIndex: 'school',
       key: 'school',
-      width: 150,
+      width: isMobile ? 100 : 150,
+      ellipsis: true,
       render: renderSchoolOrGrade
     },
     {
@@ -366,13 +365,14 @@ const CrmPage: React.FC = () => {
       render: renderCustomerStatus
     },
     {
-      title: '操作',
+      title: isMobile ? '' : '操作',
       key: 'actions',
-      width: 100,
+      width: isMobile ? 44 : 100,
       fixed: 'right',
+      align: 'right' as const,
       render: renderActions
     }
-  ], [renderCustomerName, renderSchoolOrGrade, renderGrade, renderSourceChannel, renderParentName, renderParentPhone, renderCustomerStatus, renderActions]);
+  ], [renderCustomerName, renderSchoolOrGrade, renderGrade, renderSourceChannel, renderParentName, renderParentPhone, renderCustomerStatus, renderActions, isMobile]);
 
   // 左侧筛选菜单
   const filterMenuItems: MenuProps['items'] = useMemo(() => [
@@ -399,6 +399,12 @@ const CrmPage: React.FC = () => {
       }))
   ], [stats]);
 
+  // 手机端筛选按钮顺序（3x2）
+  const statusKeysForGrid: Array<keyof typeof CUSTOMER_STATUS_LABELS> = [
+    'POTENTIAL', 'INITIAL_CONTACT', 'INTERESTED',
+    'TRIAL_CLASS', 'ENROLLED', 'LOST'
+  ];
+
   // 分页处理
   const handlePaginationChange = useCallback((page: number, pageSize: number) => {
     setPagination({ current: page, pageSize });
@@ -423,159 +429,242 @@ const CrmPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '0' }}>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <div data-page-container>
+      <Space direction="vertical" size={pageGap} style={{ width: '100%' }}>
         {/* 页面标题 */}
         <div>
           <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
             客户管理
           </Title>
-          <Text type="secondary">
-            管理客户档案、跟进记录和业务状态
-          </Text>
+          {!isMobile && (
+            <Text type="secondary">
+              管理客户档案、跟进记录和业务状态
+            </Text>
+          )}
         </div>
 
         {/* 数据看板 */}
-        <Row gutter={[16, 16]}>
-          <Col xs={12} sm={6} lg={6}>
-            <Card>
-              <Statistic
-                title="总客户数"
-                value={stats?.totalCustomers || 0}
-                prefix={<TeamOutlined />}
-                valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '24px' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6} lg={6}>
-            <Card>
-              <Statistic
-                title="本月新增"
-                value={stats?.monthlyNewCustomers || 0}
-                valueStyle={{ color: '#52c41a', fontSize: isMobile ? '18px' : '24px' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6} lg={6}>
-            <Card>
-              <Statistic
-                title="已报名"
-                value={stats?.statusCounts?.ENROLLED || 0}
-                valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '24px' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={6} lg={6}>
-            <Card>
-              <Statistic
-                title="意向用户"
-                value={stats?.statusCounts?.INTERESTED || 0}
-                valueStyle={{ color: '#52c41a', fontSize: isMobile ? '18px' : '24px' }}
-              />
-            </Card>
-          </Col>
-        </Row>
+          {isMobile ? (() => { const preset = UnifiedCardPresets.mobileCompact(isMobile); return (
+           <Card style={preset.style} styles={preset.styles}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, alignItems: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 16, color: token.colorPrimary }}><TeamOutlined /></div>
+                <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1 }}>{stats?.totalCustomers || 0}</div>
+                <div style={{ fontSize: 9, color: token.colorTextTertiary }}>总</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1, color: token.colorSuccess }}>{stats?.monthlyNewCustomers || 0}</div>
+                <div style={{ fontSize: 9, color: token.colorTextTertiary }}>新增</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1, color: token.colorPrimary }}>{stats?.statusCounts?.ENROLLED || 0}</div>
+                <div style={{ fontSize: 9, color: token.colorTextTertiary }}>报名</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.1, color: token.colorSuccess }}>{stats?.statusCounts?.INTERESTED || 0}</div>
+                <div style={{ fontSize: 9, color: token.colorTextTertiary }}>意向</div>
+              </div>
+            </div>
+          </Card> ); })() : (
+          <Row gutter={[16, 16]}>
+            <Col xs={12} sm={6} lg={6}>
+               {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+               <Card style={preset.style} styles={preset.styles}>
+                <Statistic
+                  title="总客户数"
+                  value={stats?.totalCustomers || 0}
+                  prefix={<TeamOutlined />}
+                  valueStyle={{ color: token.colorPrimary, fontSize: 24 }}
+                />
+              </Card> ); })()}
+            </Col>
+            <Col xs={12} sm={6} lg={6}>
+               {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+               <Card style={preset.style} styles={preset.styles}>
+                <Statistic
+                  title="本月新增"
+                  value={stats?.monthlyNewCustomers || 0}
+                  valueStyle={{ color: token.colorSuccess, fontSize: 24 }}
+                />
+              </Card> ); })()}
+            </Col>
+            <Col xs={12} sm={6} lg={6}>
+               {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+               <Card style={preset.style} styles={preset.styles}>
+                <Statistic
+                  title="已报名"
+                  value={stats?.statusCounts?.ENROLLED || 0}
+                  valueStyle={{ color: token.colorPrimary, fontSize: 24 }}
+                />
+              </Card> ); })()}
+            </Col>
+            <Col xs={12} sm={6} lg={6}>
+               {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+               <Card style={preset.style} styles={preset.styles}>
+                <Statistic
+                  title="意向用户"
+                  value={stats?.statusCounts?.INTERESTED || 0}
+                  valueStyle={{ color: token.colorSuccess, fontSize: 24 }}
+                />
+              </Card> ); })()}
+            </Col>
+          </Row>
+        )}
 
         {/* 🚀 优化搜索和操作栏 - 添加搜索状态指示器 */}
-        <Row gutter={[16, 16]} align="middle">
+        <Row gutter={sectionGutter} align="middle">
           <Col xs={24} lg={12}>
-            <Search
+            <AppSearchInput
               placeholder={getSearchPlaceholder()}
-              allowClear
-              size="large"
               value={searchKeyword}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(v) => handleSearch(v)}
               onSearch={handleSearch}
-              suffix={searchLoading ? <LoadingOutlined style={{ color: '#1890ff' }} /> : undefined}
-              enterButton={
-                <Tooltip title="支持姓名、学校、家长、电话、拼音首字母搜索">
-                  <SearchOutlined />
-                </Tooltip>
-              }
+              loading={searchLoading}
+              size={isMobile ? 'middle' : 'large'}
             />
           </Col>
           <Col xs={24} lg={12}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: !isDesktop ? 'center' : 'flex-end',
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? '12px' : '16px',
-              alignItems: isMobile ? 'stretch' : 'center'
-            }}>
-              <Button 
-                type="primary"
-                icon={<PlusOutlined />}
-                size={isMobile ? 'large' : 'large'}
-                onClick={() => navigate('/crm/new')}
-                style={{ 
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  height: isMobile ? '48px' : '48px',
-                  paddingLeft: '24px',
-                  paddingRight: '24px',
-                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
-                  order: isMobile ? 1 : 0
-                }}
-              >
-                新建客户
-              </Button>
-              
-              <Space size="middle" style={{ 
-                width: isMobile ? '100%' : 'auto',
-                justifyContent: isMobile ? 'space-between' : 'flex-end'
+            {isMobile ? (
+              <></>
+            ) : (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: !isDesktop ? 'center' : 'flex-end',
+                flexDirection: 'row',
+                gap: 'var(--space-4)',
+                alignItems: 'center'
               }}>
+                <AppButton 
+                  hierarchy="primary"
+                  icon={<PlusOutlined />}
+                  size={'large'}
+                  onClick={() => navigate('/crm/new')}
+                  style={{ 
+                    borderRadius: 'var(--radius-md)',
+                    fontWeight: 600,
+                    height: '48px',
+                    paddingLeft: 'var(--space-6)',
+                    paddingRight: 'var(--space-6)'
+                  }}
+                >
+                  新建客户
+                </AppButton>
                 <Upload
                   accept=".csv"
                   showUploadList={false}
                   beforeUpload={handleImport}
                 >
-                  <Button 
+                  <AppButton 
                     icon={<UploadOutlined />} 
-                    size={isMobile ? 'middle' : 'middle'}
-                    style={{ 
-                      borderRadius: '6px',
-                      flex: isMobile ? 1 : 'none'
-                    }}
+                    size={'middle'}
+                    style={{ borderRadius: 'var(--radius-sm)' }}
                   >
-                    {isMobile ? '导入' : '导入数据'}
-                  </Button>
+                    导入数据
+                  </AppButton>
                 </Upload>
-                <Button 
+                <AppButton 
                   icon={<DownloadOutlined />}
                   onClick={handleExport}
-                  size={isMobile ? 'middle' : 'middle'}
-                  style={{ 
-                    borderRadius: '6px',
-                    flex: isMobile ? 1 : 'none'
-                  }}
+                  size={'middle'}
+                  style={{ borderRadius: 'var(--radius-sm)' }}
                 >
-                  {isMobile ? '导出' : '导出数据'}
-                </Button>
-              </Space>
-            </div>
+                  导出数据
+                </AppButton>
+              </div>
+            )}
           </Col>
         </Row>
 
         {/* 主内容区 */}
         <Row gutter={[24, 24]} style={{ minHeight: '500px' }}>
-          {/* 左侧筛选导航区 */}
+          {/* 左侧筛选导航区（手机端网格，桌面端菜单） */}
           <Col xs={24} md={8} lg={6}>
-            <Card title="筛选客户" style={{ height: '100%' }}>
-              <Menu
-                mode="vertical"
-                selectedKeys={[selectedStatus]}
-                items={filterMenuItems}
-                onClick={({ key }) => handleStatusFilter(key)}
-                style={{ 
-                  border: 'none', 
-                  fontSize: isMobile ? '14px' : '16px'
-                }}
-              />
+            {(() => { const preset = UnifiedCardPresets.mobileCompact(isMobile); return (
+            <Card 
+              title={
+                isMobile ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span>筛选客户</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: -4 }}>
+                      <AppButton
+                        hierarchy="tertiary"
+                        shape="circle"
+                        icon={<PlusOutlined />}
+                        onClick={() => navigate('/crm/new')}
+                        style={{ width: 34, height: 34, color: token.colorPrimary }}
+                        title="新建客户"
+                      />
+                      <Dropdown
+                        menu={{
+                          items: [
+                            { key: 'import', label: '导入', icon: <UploadOutlined /> },
+                            { key: 'export', label: '导出', icon: <DownloadOutlined /> },
+                          ],
+                          onClick: ({ key }) => {
+                            if (key === 'import') triggerImport();
+                            if (key === 'export') handleExport();
+                          }
+                        }}
+                        placement="bottomRight"
+                      >
+                        <AppButton hierarchy="tertiary" shape="circle" icon={<MoreOutlined />} style={{ width: 34, height: 34, color: token.colorTextSecondary }} />
+                      </Dropdown>
+                    </div>
+                  </div>
+                ) : '筛选客户'
+              }
+              style={{ height: '100%', ...preset.style }}
+            >
+              {isMobile ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+                  {/* 顶部总客户 - 大横条 */}
+                  <AppButton
+                    key={'all'}
+                    hierarchy={selectedStatus === 'all' ? 'primary' : 'secondary'}
+                    onClick={() => handleStatusFilter('all')}
+                    style={{ height: 40, fontWeight: 600 }}
+                  >
+                    总客户 ({stats?.totalCustomers || 0})
+                  </AppButton>
+                  {/* 六个小分类 3x2 动态适配 */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                      gap: 8,
+                    }}
+                  >
+                  {statusKeysForGrid.map((k) => (
+                    <AppButton
+                      key={k}
+                      hierarchy={selectedStatus === k ? 'primary' : 'secondary'}
+                      onClick={() => handleStatusFilter(k)}
+                      style={{ height: compactBtnH, padding: '0 8px' }}
+                    >
+                      {CUSTOMER_STATUS_LABELS[k].label} ({stats?.statusCounts?.[k as unknown as CustomerStatus] || 0})
+                    </AppButton>
+                  ))}
+                  </div>
+                </div>
+              ) : (
+                <Menu
+                  mode="vertical"
+                  selectedKeys={[selectedStatus]}
+                  items={filterMenuItems}
+                  onClick={({ key }) => handleStatusFilter(key)}
+                  style={{ 
+                    border: 'none', 
+                    fontSize: isMobile ? '14px' : '16px'
+                  }}
+                />
+              )}
             </Card>
+            ); })()}
           </Col>
 
           {/* 右侧客户列表区 */}
           <Col xs={24} md={16} lg={18}>
+            {(() => { const preset = UnifiedCardPresets.mobileCompact(isMobile); return (
             <Card 
               title={
                 <Space>
@@ -588,7 +677,7 @@ const CrmPage: React.FC = () => {
                     </Text>
                   )}
                   {searchLoading && (
-                    <LoadingOutlined style={{ color: '#1890ff', fontSize: '14px' }} />
+                    <LoadingOutlined style={{ color: 'var(--ant-color-primary)', fontSize: '14px' }} />
                   )}
                 </Space>
               }
@@ -598,31 +687,31 @@ const CrmPage: React.FC = () => {
                     <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
                       已选择 {selectedRowKeys.length} 位
                     </Text>
-                    <Button 
+                    <AppButton 
                       danger 
-                      size="small"
+                      size="sm"
                       icon={<DeleteOutlined />}
                       onClick={handleBatchDelete}
                     >
                       {isMobile ? '删除' : '批量删除'}
-                    </Button>
+                    </AppButton>
                   </Space>
                 )
               }
-              style={{ height: '100%' }}
+              style={{ height: '100%', ...preset.style }}
             >
               <Table<Customer>
                 columns={columns}
                 dataSource={customers}
                 rowKey="id"
                 loading={loading}
-                scroll={{ x: 800 }}
-                size={isMobile ? 'small' : 'middle'}
+                 scroll={{ x: 520 }}
+                size={'small'}
                 pagination={{
                   current: pagination.current,
                   pageSize: pagination.pageSize,
                   total: customers.length,
-                  showSizeChanger: true,
+                  showSizeChanger: !isMobile,
                   pageSizeOptions: ['15', '30', '60'],
                   showQuickJumper: true,
                   showTotal: (total) => `共 ${total} 条`,
@@ -635,6 +724,7 @@ const CrmPage: React.FC = () => {
                     name: record.name,
                   }),
                 }}
+                rowClassName={() => 'crm-row-compact'}
                 locale={{
                   emptyText: debouncedSearchKeyword 
                     ? `未找到匹配的客户` 
@@ -650,20 +740,21 @@ const CrmPage: React.FC = () => {
                   textAlign: 'center', 
                   marginTop: '16px', 
                   padding: '8px 0',
-                  color: '#8c8c8c',
+                  color: 'var(--ant-color-text-secondary)',
                   fontSize: '12px',
                   borderTop: '1px solid #f0f0f0'
                 }}>
                   当前显示 {customers.length} 条记录
                   {stats?.totalCustomers && ` / 共 ${stats.totalCustomers} 位客户`}
                   {debouncedSearchKeyword && /^[a-zA-Z]+$/.test(debouncedSearchKeyword) && (
-                    <span style={{ marginLeft: '8px', color: '#1890ff' }}>
+                    <span style={{ marginLeft: '8px', color: 'var(--ant-color-primary)' }}>
                       · 包含拼音匹配
                     </span>
                   )}
                 </div>
               )}
             </Card>
+            ); })()}
           </Col>
         </Row>
       </Space>

@@ -1,20 +1,20 @@
 import { useResponsive } from './useResponsive';
-import { designTokens } from '@/theme/designTokens';
+import { theme } from 'antd';
 
 /**
  * 响应式尺寸定义，统一管理 paddings / fontSize / 间距等
  */
 export interface ResponsiveSizes {
-  cardPadding: string;
+  cardPadding: string | number;
   fontSize: {
-    title: string;
-    subtitle: string;
-    body: string;
-    caption: string;
+    title: string | number;
+    subtitle: string | number;
+    body: string | number;
+    caption: string | number;
   };
   gridGutter: number;         // antd <Row gutter> 间距
   containerMaxWidth: string;  // 页面（或卡片）最大宽度
-  componentSpacing: string;   // 组件之间的外边距
+  componentSpacing: string | number;   // 组件之间的外边距
 }
 
 /**
@@ -25,49 +25,50 @@ export interface ResponsiveSizes {
  */
 export const useResponsiveSize = (): ResponsiveSizes => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { token } = theme.useToken();
 
   if (isMobile) {
     return {
-      cardPadding: designTokens.spacing.sm,
+      cardPadding: token.marginSM,
       fontSize: {
-        title: designTokens.fontSize.lg,
-        subtitle: designTokens.fontSize.md,
-        body: designTokens.fontSize.sm,
-        caption: designTokens.fontSize.xs
+        title: token.fontSizeXL,
+        subtitle: token.fontSizeLG,
+        body: token.fontSize,
+        caption: token.fontSizeSM
       },
       gridGutter: 8,
       containerMaxWidth: '100%',
-      componentSpacing: designTokens.spacing.sm
+      componentSpacing: token.marginSM
     };
   }
 
   if (isTablet) {
     return {
-      cardPadding: designTokens.spacing.md,
+      cardPadding: token.margin,
       fontSize: {
-        title: designTokens.fontSize.xl,
-        subtitle: designTokens.fontSize.lg,
-        body: designTokens.fontSize.md,
-        caption: designTokens.fontSize.sm
+        title: token.fontSizeXL,
+        subtitle: token.fontSizeLG,
+        body: token.fontSizeLG,
+        caption: token.fontSize
       },
       gridGutter: 12,
       containerMaxWidth: '100%',
-      componentSpacing: designTokens.spacing.md
+      componentSpacing: token.margin
     };
   }
 
   // Desktop（默认）
   return {
-    cardPadding: designTokens.spacing.lg,
+    cardPadding: token.marginLG,
     fontSize: {
-      title: designTokens.fontSize.xxl,
-      subtitle: designTokens.fontSize.xl,
-      body: designTokens.fontSize.md,
-      caption: designTokens.fontSize.sm
+      title: token.fontSizeHeading3,
+      subtitle: token.fontSizeXL,
+      body: token.fontSizeLG,
+      caption: token.fontSize
     },
     gridGutter: 16,
     containerMaxWidth: '1200px',
-    componentSpacing: designTokens.spacing.lg
+    componentSpacing: token.marginLG
   };
 };
 

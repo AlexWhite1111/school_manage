@@ -1,6 +1,8 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Slider, InputNumber, Button, Select, Divider, Alert, Space, Tooltip, message } from 'antd';
+import { Row, Col, Slider, InputNumber, Select, Divider, Space, Tooltip, message, Card } from 'antd';
 import { InfoCircleOutlined, SaveOutlined, ReloadOutlined, ExperimentOutlined } from '@ant-design/icons';
+import { kalmanText, kalmanLayout, colPairProps, colSingleProps, sliderConfigs, kalmanButtons, kalmanHeader } from '@/config/kalmanPanelConfig';
 import { KalmanConfig, ConfigUpdate } from '../../api/growthApi';
 
 const { Option } = Select;
@@ -110,257 +112,131 @@ const KalmanConfigPanel: React.FC<KalmanConfigPanelProps> = ({
 
   return (
     <Card
+      style={{ marginTop: kalmanLayout.topMargin }}
+      headStyle={{ display: 'flex', alignItems: 'center' }}
       title={
-        <Space>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
           <ExperimentOutlined />
-          <span>卡尔曼滤波器参数配置</span>
-        </Space>
+          <span style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            卡尔曼滤波器参数配置
+          </span>
+        </div>
       }
-      extra={
-        <Space>
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={handleReset}
-            disabled={!hasChanges}
-          >
-            重置
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<SaveOutlined />} 
-            onClick={handleSave}
-            loading={loading}
-            disabled={!hasChanges}
-          >
-            保存配置
-          </Button>
-        </Space>
-      }
+      extra={null}
     >
-      {hasChanges && (
-        <Alert
-          message="配置已修改"
-          description="请保存配置以使更改生效"
-          type="warning"
-          showIcon
-          style={{ marginBottom: '16px' }}
-        />
-      )}
-
-      {/* 预设配置 */}
-      <div style={{ marginBottom: '24px' }}>
-        <h4>快速预设</h4>
+      {/* 题头下方的操作栏（第二行） */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: kalmanLayout.toolbarGap }}>
+        <AppButton 
+          size={kalmanButtons.headerSize as any}
+          hierarchy={kalmanButtons.resetHierarchy as any}
+          icon={<ReloadOutlined />} 
+          onClick={handleReset}
+          disabled={!hasChanges}
+        >
+          重置默认
+        </AppButton>
+        <AppButton 
+          size={kalmanButtons.headerSize as any}
+          hierarchy={kalmanButtons.saveHierarchy as any}
+          icon={<SaveOutlined />} 
+          onClick={handleSave}
+          loading={loading}
+          disabled={!hasChanges}
+        >
+          保存配置
+        </AppButton>
+      </div>
+      {/* 快速预设 */}
+      <div style={{ marginBottom: kalmanLayout.sectionGap }}>
+        <h4>{kalmanText.titles.quickPresets}</h4>
         <Space wrap>
           {Object.entries(presets).map(([key, preset]) => (
-            <Button
-              key={key}
-              onClick={() => applyPreset(key as keyof typeof presets)}
-              style={{ marginBottom: '8px' }}
-            >
-              {preset.name}
-            </Button>
+            <AppButton key={key} size={kalmanButtons.presetSize as any} onClick={() => applyPreset(key as keyof typeof presets)}>{preset.name}</AppButton>
           ))}
         </Space>
       </div>
 
       <Divider />
 
-      {/* 基础信息 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col span={12}>
-          <div style={{ marginBottom: '8px' }}>配置名称</div>
-          <Select
-            value={localConfig.name}
-            onChange={(value) => handleValueChange('name', value)}
-            style={{ width: '100%' }}
-          >
-            <Option value="default">默认配置</Option>
-            <Option value="middle_school">初中配置</Option>
-            <Option value="high_school">高中配置</Option>
-            <Option value="custom">自定义配置</Option>
-          </Select>
-        </Col>
-        <Col span={12}>
-          <div style={{ marginBottom: '8px' }}>配置描述</div>
-          <Select
-            value={localConfig.description}
-            onChange={(value) => handleValueChange('description', value)}
-            style={{ width: '100%' }}
-          >
-            <Option value="标准配置，适用于大多数场景">标准配置</Option>
-            <Option value="针对初中生特点优化的配置">初中生优化</Option>
-            <Option value="针对高中生特点优化的配置">高中生优化</Option>
-            <Option value="根据具体需求自定义的配置">自定义配置</Option>
-          </Select>
-        </Col>
-      </Row>
-
-      {/* 核心参数配置 */}
-      <h4>核心滤波参数</h4>
-      
-      {/* 过程噪声 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-        <Col span={18}>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-            <span>过程噪声 (Q)</span>
+      {/* 核心参数：2、2、1 分行布局 */}
+      <h4>{kalmanText.titles.core}</h4>
+      <Row gutter={kalmanLayout.rowGutter} style={{ marginBottom: kalmanLayout.sectionGap }}>
+        {/* 行1：Q, P */}
+        <Col {...colPairProps}>
+          <div style={{ marginBottom: kalmanLayout.labelMarginBottom, display: 'flex', alignItems: 'center' }}>
+            <span>{kalmanText.labels.processNoise}</span>
             <Tooltip title={getParameterDescription('processNoise')}>
-              <InfoCircleOutlined style={{ marginLeft: '4px', color: '#999' }} />
+              <InfoCircleOutlined style={{ marginLeft: 4, color: 'var(--ant-color-text-tertiary)' }} />
             </Tooltip>
           </div>
-          <Slider
-            min={0.001}
-            max={1.0}
-            step={0.001}
-            value={localConfig.processNoise}
-            onChange={(value) => handleValueChange('processNoise', value)}
-            marks={{
-              0.001: '0.001',
-              0.1: '0.1',
-              0.5: '0.5',
-              1.0: '1.0'
-            }}
-          />
+          <Row gutter={kalmanLayout.innerGutter}>
+            <Col flex="auto">
+              <Slider min={sliderConfigs.processNoise.min} max={sliderConfigs.processNoise.max} step={sliderConfigs.processNoise.step} value={localConfig.processNoise} onChange={(v) => handleValueChange('processNoise', v)} marks={sliderConfigs.processNoise.marks as any} />
+            </Col>
+            <Col style={{ minWidth: 120 }}>
+              <InputNumber min={sliderConfigs.processNoise.min} max={sliderConfigs.processNoise.max} step={sliderConfigs.processNoise.step} precision={sliderConfigs.processNoise.precision} value={localConfig.processNoise} onChange={(v) => handleValueChange('processNoise', v || 0.1)} style={{ width: '100%' }} />
+            </Col>
+          </Row>
         </Col>
-        <Col span={6}>
-          <div style={{ marginBottom: '8px' }}>&nbsp;</div>
-          <InputNumber
-            min={0.001}
-            max={1.0}
-            step={0.001}
-            value={localConfig.processNoise}
-            onChange={(value) => handleValueChange('processNoise', value || 0.1)}
-            precision={3}
-            style={{ width: '100%' }}
-          />
-        </Col>
-      </Row>
-
-      {/* 初始不确定性 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-        <Col span={18}>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-            <span>初始不确定性 (P)</span>
+        <Col {...colPairProps}>
+          <div style={{ marginBottom: kalmanLayout.labelMarginBottom, display: 'flex', alignItems: 'center' }}>
+            <span>{kalmanText.labels.initialUncertainty}</span>
             <Tooltip title={getParameterDescription('initialUncertainty')}>
-              <InfoCircleOutlined style={{ marginLeft: '4px', color: '#999' }} />
+              <InfoCircleOutlined style={{ marginLeft: 4, color: 'var(--ant-color-text-tertiary)' }} />
             </Tooltip>
           </div>
-          <Slider
-            min={1.0}
-            max={100.0}
-            step={0.1}
-            value={localConfig.initialUncertainty}
-            onChange={(value) => handleValueChange('initialUncertainty', value)}
-            marks={{
-              1.0: '1.0',
-              10.0: '10.0',
-              50.0: '50.0',
-              100.0: '100.0'
-            }}
-          />
-        </Col>
-        <Col span={6}>
-          <div style={{ marginBottom: '8px' }}>&nbsp;</div>
-          <InputNumber
-            min={1.0}
-            max={100.0}
-            step={0.1}
-            value={localConfig.initialUncertainty}
-            onChange={(value) => handleValueChange('initialUncertainty', value || 10.0)}
-            precision={1}
-            style={{ width: '100%' }}
-          />
+          <Row gutter={kalmanLayout.innerGutter}>
+            <Col flex="auto">
+              <Slider min={sliderConfigs.initialUncertainty.min} max={sliderConfigs.initialUncertainty.max} step={sliderConfigs.initialUncertainty.step} value={localConfig.initialUncertainty} onChange={(v) => handleValueChange('initialUncertainty', v)} marks={sliderConfigs.initialUncertainty.marks as any} />
+            </Col>
+            <Col style={{ minWidth: 120 }}>
+              <InputNumber min={sliderConfigs.initialUncertainty.min} max={sliderConfigs.initialUncertainty.max} step={sliderConfigs.initialUncertainty.step} precision={sliderConfigs.initialUncertainty.precision} value={localConfig.initialUncertainty} onChange={(v) => handleValueChange('initialUncertainty', v || 10.0)} style={{ width: '100%' }} />
+            </Col>
+          </Row>
         </Col>
       </Row>
 
-      {/* 时间衰减因子 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-        <Col span={18}>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-            <span>时间衰减因子 (λ)</span>
+      <Row gutter={kalmanLayout.rowGutter} style={{ marginBottom: kalmanLayout.sectionGap }}>
+        {/* 行2：λ, minObservations */}
+        <Col {...colPairProps}>
+          <div style={{ marginBottom: kalmanLayout.labelMarginBottom, display: 'flex', alignItems: 'center' }}>
+            <span>{kalmanText.labels.timeDecayFactor}</span>
             <Tooltip title={getParameterDescription('timeDecayFactor')}>
-              <InfoCircleOutlined style={{ marginLeft: '4px', color: '#999' }} />
+              <InfoCircleOutlined style={{ marginLeft: 4, color: 'var(--ant-color-text-tertiary)' }} />
             </Tooltip>
           </div>
-          <Slider
-            min={0.001}
-            max={0.1}
-            step={0.001}
-            value={localConfig.timeDecayFactor}
-            onChange={(value) => handleValueChange('timeDecayFactor', value)}
-            marks={{
-              0.001: '0.001',
-              0.01: '0.01',
-              0.05: '0.05',
-              0.1: '0.1'
-            }}
-          />
+          <Row gutter={kalmanLayout.innerGutter}>
+            <Col flex="auto">
+              <Slider min={sliderConfigs.timeDecayFactor.min} max={sliderConfigs.timeDecayFactor.max} step={sliderConfigs.timeDecayFactor.step} value={localConfig.timeDecayFactor} onChange={(v) => handleValueChange('timeDecayFactor', v)} marks={sliderConfigs.timeDecayFactor.marks as any} />
+            </Col>
+            <Col style={{ minWidth: 120 }}>
+              <InputNumber min={sliderConfigs.timeDecayFactor.min} max={sliderConfigs.timeDecayFactor.max} step={sliderConfigs.timeDecayFactor.step} precision={sliderConfigs.timeDecayFactor.precision} value={localConfig.timeDecayFactor} onChange={(v) => handleValueChange('timeDecayFactor', v || 0.01)} style={{ width: '100%' }} />
+            </Col>
+          </Row>
         </Col>
-        <Col span={6}>
-          <div style={{ marginBottom: '8px' }}>&nbsp;</div>
-          <InputNumber
-            min={0.001}
-            max={0.1}
-            step={0.001}
-            value={localConfig.timeDecayFactor}
-            onChange={(value) => handleValueChange('timeDecayFactor', value || 0.01)}
-            precision={3}
-            style={{ width: '100%' }}
-          />
-        </Col>
-      </Row>
-
-      <Divider />
-
-      {/* 业务参数 */}
-      <h4>业务参数</h4>
-      
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-        <Col span={12}>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-            <span>最少观测次数</span>
+        <Col {...colPairProps}>
+          <div style={{ marginBottom: kalmanLayout.labelMarginBottom, display: 'flex', alignItems: 'center' }}>
+            <span>{kalmanText.labels.minObservations}</span>
             <Tooltip title={getParameterDescription('minObservations')}>
-              <InfoCircleOutlined style={{ marginLeft: '4px', color: '#999' }} />
+              <InfoCircleOutlined style={{ marginLeft: 4, color: 'var(--ant-color-text-tertiary)' }} />
             </Tooltip>
           </div>
-          <InputNumber
-            min={1}
-            max={10}
-            value={localConfig.minObservations}
-            onChange={(value) => handleValueChange('minObservations', value || 3)}
-            style={{ width: '100%' }}
-          />
-        </Col>
-        <Col span={12}>
-          <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-            <span>最大天数间隔</span>
-            <Tooltip title={getParameterDescription('maxDaysBetween')}>
-              <InfoCircleOutlined style={{ marginLeft: '4px', color: '#999' }} />
-            </Tooltip>
-          </div>
-          <InputNumber
-            min={7}
-            max={90}
-            value={localConfig.maxDaysBetween}
-            onChange={(value) => handleValueChange('maxDaysBetween', value || 30)}
-            style={{ width: '100%' }}
-          />
+          <InputNumber min={1} max={10} value={localConfig.minObservations} onChange={(v) => handleValueChange('minObservations', v || 3)} style={{ width: '100%' }} />
         </Col>
       </Row>
 
-      {/* 配置说明 */}
-      <Alert
-        message="参数调优建议"
-        description={
-          <div>
-            <p><strong>快速响应场景：</strong>增大过程噪声，减小时间衰减因子，适合需要快速反应的情况。</p>
-            <p><strong>稳定跟踪场景：</strong>减小过程噪声，增大初始不确定性，适合长期稳定观察。</p>
-            <p><strong>数据稀少场景：</strong>减少最少观测次数，增大最大天数间隔，适合观测频率较低的情况。</p>
+      <Row gutter={kalmanLayout.rowGutter} style={{ marginBottom: kalmanLayout.sectionGap }}>
+        {/* 行3：maxDaysBetween（单列） */}
+        <Col {...colSingleProps}>
+          <div style={{ marginBottom: kalmanLayout.labelMarginBottom, display: 'flex', alignItems: 'center' }}>
+            <span>{kalmanText.labels.maxDaysBetween}</span>
+            <Tooltip title={getParameterDescription('maxDaysBetween')}>
+              <InfoCircleOutlined style={{ marginLeft: 4, color: 'var(--ant-color-text-tertiary)' }} />
+            </Tooltip>
           </div>
-        }
-        type="info"
-        showIcon
-        style={{ marginTop: '16px' }}
-      />
+          <InputNumber min={7} max={90} value={localConfig.maxDaysBetween} onChange={(v) => handleValueChange('maxDaysBetween', v || 30)} style={{ width: 240 }} />
+        </Col>
+      </Row>
     </Card>
   );
 };

@@ -1,10 +1,11 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Space, Button, message, Card, Divider } from 'antd';
+import { Typography, Row, Col, Space, message, Divider, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import { 
   ReloadOutlined, 
   TeamOutlined, 
   BookOutlined, 
-  DollarOutlined, 
   DownloadOutlined,
   DatabaseOutlined,
   UserOutlined,
@@ -13,7 +14,7 @@ import {
   DashboardOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import FinancialOverviewCard from '@/components/dashboard/FinancialOverviewCard';
+import { useResponsive } from '@/hooks/useResponsive';
 import FollowUpRemindersCard from '@/components/dashboard/FollowUpRemindersCard';
 import OverviewStatsCard from '@/components/dashboard/OverviewStatsCard';
 import CustomerStatsCard from '@/components/dashboard/CustomerStatsCard';
@@ -28,13 +29,13 @@ import {
   downloadFile as downloadBlob,
   generateTimestampedFilename
 } from '@/api/export';
-import type { FinancialData } from '@/components/dashboard/FinancialOverviewCard';
 import type { FollowUpCustomer } from '@/components/dashboard/FollowUpRemindersCard';
 
 const { Title, Text } = Typography;
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardSummaryResponse | null>(null);
@@ -76,12 +77,6 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
-
-  // 财务卡片点击处理 - 跳转到财务中心
-  const handleFinancialCardClick = () => {
-    // 根据 DashboardWorkflow.md: 点击卡片会跳转至"极简财务中心"模块主页
-    navigate('/finance');
-  };
 
   // 客户点击处理 - 跳转到客户档案页面
   const handleCustomerClick = (customer: any) => {
@@ -135,12 +130,6 @@ const DashboardPage: React.FC = () => {
   };
 
   // 转换数据格式以适配组件接口
-  const financialData: FinancialData | undefined = dashboardData ? {
-    monthlyReceived: dashboardData.financial.monthlyReceived,
-    monthlyDue: dashboardData.financial.monthlyDue,
-    totalOutstanding: dashboardData.financial.totalOutstanding
-  } : undefined;
-
   const followUpCustomers: FollowUpCustomer[] = dashboardData?.followUps || [];
 
   // 快速导航卡片配置
@@ -150,21 +139,14 @@ const DashboardPage: React.FC = () => {
       description: '管理客户档案和跟进',
       icon: <TeamOutlined />,
       path: '/crm',
-      color: '#1890ff'
+      color: 'var(--ant-color-primary)'
     },
     {
       title: '学生成长',
       description: '记录学生成长日志',
       icon: <BookOutlined />,
       path: '/student-log',
-      color: '#52c41a'
-    },
-    {
-      title: '财务中心',
-      description: '管理收费和订单',
-      icon: <DollarOutlined />,
-      path: '/finance',
-      color: '#fa8c16'
+      color: 'var(--ant-color-success)'
     }
   ];
 
@@ -175,26 +157,26 @@ const DashboardPage: React.FC = () => {
       description: '导出客户档案数据',
       icon: <UserOutlined />,
       type: 'customers' as const,
-      color: '#1890ff'
+      color: 'var(--ant-color-primary)'
     },
     {
       title: '成长记录',
       description: '导出学生成长日志',
       icon: <RocketOutlined />,
       type: 'growth-logs' as const,
-      color: '#52c41a'
+      color: 'var(--ant-color-success)'
     },
     {
       title: '财务数据',
       description: '导出订单和收款记录',
       icon: <FileExcelOutlined />,
       type: 'finance' as const,
-      color: '#fa8c16'
+      color: 'var(--ant-color-warning)'
     }
   ];
 
   return (
-    <div style={{ padding: '0' }}>
+    <div data-page-container>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 页面标题和刷新按钮 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -202,20 +184,18 @@ const DashboardPage: React.FC = () => {
             <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
               核心仪表盘
             </Title>
-            <Text type="secondary">
-              欢迎回来！这里是您的业务概览和今日待办事项。
-            </Text>
+            {/* 移除欢迎副标题以提升信息密度 */}
           </div>
           
           {/* 手动刷新按钮 */}
-          <Button 
+          <AppButton 
             icon={<ReloadOutlined />}
             loading={refreshing}
             onClick={handleRefresh}
             style={{ flexShrink: 0 }}
           >
             刷新数据
-          </Button>
+          </AppButton>
         </div>
 
         {/* 错误提示 */}
@@ -230,14 +210,14 @@ const DashboardPage: React.FC = () => {
             <Text type="danger">
               {error}
             </Text>
-            <Button 
-              type="link" 
-              size="small" 
+            <AppButton 
+              hierarchy="link" 
+              size="sm" 
               onClick={() => loadDashboardData()}
               style={{ marginLeft: '8px', padding: 0, height: 'auto' }}
             >
               重试
-            </Button>
+            </AppButton>
           </div>
         )}
 
@@ -253,18 +233,7 @@ const DashboardPage: React.FC = () => {
         </Divider>
 
         {/* 主要业务数据卡片 */}
-        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
-          {/* 财务速览卡片 */}
-          <Col xs={24} lg={12} style={{ display: 'flex' }}>
-            <div style={{ width: '100%' }}>
-              <FinancialOverviewCard 
-                data={financialData}
-                loading={loading}
-                onClick={handleFinancialCardClick}
-              />
-            </div>
-          </Col>
-
+      <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ marginBottom: 'var(--space-6)' }}>
           {/* 客户统计卡片 */}
           <Col xs={24} lg={12} style={{ display: 'flex' }}>
             <div style={{ width: '100%' }}>
@@ -277,7 +246,7 @@ const DashboardPage: React.FC = () => {
         </Row>
 
         {/* 考勤和考试统计 */}
-        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+      <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ marginBottom: 'var(--space-6)' }}>
           <Col xs={24} lg={12} style={{ display: 'flex' }}>
             <div style={{ width: '100%' }}>
               <AttendanceStatsCard 
@@ -298,7 +267,7 @@ const DashboardPage: React.FC = () => {
         </Row>
 
         {/* 成长活动和待办提醒 */}
-        <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+      <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ marginBottom: 'var(--space-6)' }}>
           <Col xs={24} lg={12} style={{ display: 'flex' }}>
             <div style={{ width: '100%' }}>
               <GrowthActivityCard 
@@ -319,42 +288,7 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* 快速导航卡片 */}
-        <div>
-          <Title level={3} style={{ marginBottom: '16px' }}>
-            快速导航
-          </Title>
-          <Row gutter={[16, 16]}>
-            {quickNavItems.map((item) => (
-              <Col xs={24} sm={12} lg={8} key={item.path}>
-                <Card
-                  hoverable
-                  onClick={() => handleQuickNavigation(item.path)}
-                  style={{ 
-                    textAlign: 'center',
-                    borderRadius: '8px',
-                    cursor: 'pointer'
-                  }}
-                  styles={{ body: { padding: '24px 16px' } }}
-                >
-                  <div style={{ 
-                    fontSize: '32px', 
-                    color: item.color, 
-                    marginBottom: '12px' 
-                  }}>
-                    {item.icon}
-                  </div>
-                  <Title level={4} style={{ margin: '0 0 8px 0' }}>
-                    {item.title}
-                  </Title>
-                  <Text type="secondary">
-                    {item.description}
-                  </Text>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
+        {/* 快速导航已移除，保留核心业务模块 */}
 
         {/* 数据导出中心 */}
         <div>
@@ -370,17 +304,17 @@ const DashboardPage: React.FC = () => {
                     textAlign: 'center',
                     borderRadius: '8px'
                   }}
-                  styles={{ body: { padding: '24px 16px' } }}
+                  styles={{ body: { padding: 'var(--space-6) var(--space-4)' } }}
                   actions={[
-                    <Button
-                      type="primary"
+                    <AppButton
+                      hierarchy="primary"
                       icon={<DownloadOutlined />}
                       loading={exporting[item.type]}
                       onClick={() => handleExport(item.type)}
                       style={{ backgroundColor: item.color, borderColor: item.color }}
                     >
                       {exporting[item.type] ? '导出中...' : '导出CSV'}
-                    </Button>
+                    </AppButton>
                   ]}
                 >
                   <div style={{ 

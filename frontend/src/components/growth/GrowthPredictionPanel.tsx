@@ -1,20 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Space,
-  Button,
-  DatePicker,
-  Select,
-  Row,
-  Col,
-  Statistic,
-  Typography,
-  message,
-  Card,
-  List,
-  Tag,
-  Tooltip,
-  Alert
-} from 'antd';
+import { Space, DatePicker, Select, Row, Col, Statistic, Typography, message, List, Tag, Tooltip, Alert, Card } from 'antd';
 import {
   ThunderboltOutlined,
   LineChartOutlined,
@@ -26,7 +12,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-import ProjectCard from '@/components/ui/ProjectCard';
+
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import { GrowthApi } from '@/api/growthApi';
 import type { GrowthTag } from '@/api/growthApi';
@@ -47,7 +33,7 @@ import {
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+ 
 
 // ================================
 // 类型定义
@@ -184,11 +170,11 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
 
   const getTrendIcon = (trend: number) => {
     if (trend > 0.05) {
-      return <RiseOutlined style={{ color: '#52c41a' }} />;
+      return <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />;
     } else if (trend < -0.05) {
-      return <FallOutlined style={{ color: '#ff4d4f' }} />;
+      return <FallOutlined style={{ color: 'var(--ant-color-error)' }} />;
     } else {
-      return <MinusOutlined style={{ color: '#fa8c16' }} />;
+      return <MinusOutlined style={{ color: 'var(--ant-color-warning)' }} />;
     }
   };
 
@@ -203,25 +189,25 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
   };
 
   return (
-    <ProjectCard 
+    <Card 
       title={
         <Space>
           <ThunderboltOutlined />
           <Title level={4} style={{ margin: 0 }}>成长预测分析</Title>
         </Space>
       }
-      style={{ marginBottom: '24px' }}
+      style={{ marginBottom: 'var(--space-6)' }}
     >
       <Alert
         message="预测功能说明"
         description="基于卡尔曼滤波器算法，对学生未来的成长趋势进行科学预测。预测结果仅供参考，实际表现可能受多种因素影响。"
         type="info"
         showIcon
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: 'var(--space-6)' }}
       />
 
       {/* 预测参数设置 */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
+      <Row gutter={16} style={{ marginBottom: 'var(--space-6)' }}>
         <Col xs={24} sm={8}>
           <div style={{ marginBottom: '8px' }}>
             <Text strong>选择标签</Text>
@@ -252,7 +238,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
           <DatePicker
             value={targetDate}
             onChange={(date) => date && setTargetDate(date)}
-            style={{ width: '100%' }}
+            className="w-full"
             disabledDate={(current) => current && current.isBefore(dayjs().add(1, 'day'))}
             placeholder="选择预测日期"
           />
@@ -262,8 +248,8 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
           <div style={{ marginBottom: '8px' }}>
             <Text strong>执行预测</Text>
           </div>
-          <Button
-            type="primary"
+          <AppButton
+            hierarchy="primary"
             icon={<ThunderboltOutlined />}
             onClick={handlePredict}
             loading={loading}
@@ -271,20 +257,20 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
             disabled={!selectedTagId}
           >
             开始预测
-          </Button>
+          </AppButton>
         </Col>
       </Row>
 
       {/* 预测结果 */}
       {predictionData && (
-        <Row gutter={16} style={{ marginBottom: '24px' }}>
+        <Row gutter={16} style={{ marginBottom: 'var(--space-6)' }}>
           <Col xs={24} sm={8}>
             <Card size="small">
               <Statistic
                 title="预测水平"
                 value={predictionData.predictedLevel.toFixed(2)}
                 precision={2}
-                valueStyle={{ fontSize: '20px', color: '#1677ff' }}
+                valueStyle={{ fontSize: '20px', color: 'var(--ant-color-primary)' }}
               />
             </Card>
           </Col>
@@ -297,7 +283,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                 prefix={getTrendIcon(predictionData.predictedTrend)}
                 valueStyle={{ 
                   fontSize: '20px',
-                  color: predictionData.predictedTrend > 0 ? '#52c41a' : '#ff4d4f'
+                  color: predictionData.predictedTrend > 0 ? 'var(--ant-color-success)' : 'var(--ant-color-error)'
                 }}
               />
             </Card>
@@ -319,11 +305,11 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
 
       {/* 预测趋势图表 */}
       {timeSeriesData.length > 0 && (
-        <div style={{ marginBottom: '24px' }}>
-          <Title level={5} style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <Title level={5} style={{ marginBottom: 'var(--space-4)' }}>
             <LineChartOutlined /> 预测趋势图表
           </Title>
-          <div style={{ height: '300px' }}>
+          <div style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={timeSeriesData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -348,7 +334,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                   dataKey="confidenceInterval.upper"
                   stackId="confidence"
                   stroke="none"
-                  fill="#1677ff"
+                  fill="var(--ant-color-primary)"
                   fillOpacity={0.1}
                   name="置信区间上界"
                 />
@@ -357,7 +343,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                   dataKey="confidenceInterval.lower"
                   stackId="confidence"
                   stroke="none"
-                  fill="#ffffff"
+                  fill="var(--ant-color-bg-container)"
                   fillOpacity={1}
                   name="置信区间下界"
                 />
@@ -366,7 +352,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                 <Line
                   type="monotone"
                   dataKey="predictedLevel"
-                  stroke="#1677ff"
+                  stroke="var(--ant-color-primary)"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="预测水平"
@@ -374,7 +360,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                 <Line
                   type="monotone"
                   dataKey="predictedTrend"
-                  stroke="#52c41a"
+                  stroke="var(--ant-color-success)"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={{ r: 2 }}
@@ -392,7 +378,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
           <List size="small">
             <List.Item>
               <Space>
-                <InfoCircleOutlined style={{ color: '#1677ff' }} />
+                <InfoCircleOutlined style={{ color: 'var(--ant-color-primary)' }} />
                 <Text>
                   预测到 {targetDate.format('YYYY年MM月DD日')}，该标签的成长水平将达到 
                   <Text strong> {predictionData.predictedLevel.toFixed(2)}</Text>
@@ -410,7 +396,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
             </List.Item>
             <List.Item>
               <Space>
-                <InfoCircleOutlined style={{ color: '#fa8c16' }} />
+                <InfoCircleOutlined style={{ color: 'var(--ant-color-warning)' }} />
                 <Text>
                   预测置信区间为 [{predictionData.confidenceInterval.lower.toFixed(2)}, {predictionData.confidenceInterval.upper.toFixed(2)}]，
                   区间宽度反映了预测的不确定性
@@ -423,12 +409,12 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
 
       {/* 空状态 */}
       {!predictionData && !loading && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-          <CalendarOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+        <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--ant-color-text-tertiary)' }}>
+          <CalendarOutlined style={{ fontSize: '48px', marginBottom: 'var(--space-4)' }} />
           <div>选择标签和日期，点击"开始预测"查看成长趋势预测</div>
         </div>
       )}
-    </ProjectCard>
+    </Card>
   );
 };
 

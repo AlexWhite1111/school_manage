@@ -1,11 +1,12 @@
+import AppButton from '@/components/AppButton';
 import React, { useState } from 'react';
-import { Avatar, Dropdown, Typography, Space, Button, Tooltip } from 'antd';
-import { UserOutlined, LogoutOutlined, SettingOutlined, QrcodeOutlined } from '@ant-design/icons';
+import { Avatar, Dropdown, Typography, Space } from 'antd';
+import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
-import QRCodeModal from '@/components/ui/QRCodeModal';
+import { semanticTokens, semanticTokensDark } from '@/theme/tokens';
 import * as authApi from '@/api/authApi';
 import type { MenuProps } from 'antd';
 
@@ -16,7 +17,7 @@ const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme } = useThemeStore();
   const { isSmall } = useResponsive();
-  const [qrModalVisible, setQrModalVisible] = useState(false);
+  const baseTokens = theme === 'dark' ? semanticTokensDark : semanticTokens;
 
   // 处理登出
   const handleLogout = async () => {
@@ -64,23 +65,7 @@ const Header: React.FC = () => {
   return (
     <>
       <Space size="middle">
-        {/* 二维码按钮 */}
-        <Tooltip title="生成二维码，方便移动设备访问">
-          <Button
-            type="text"
-            icon={<QrcodeOutlined />}
-            onClick={() => setQrModalVisible(true)}
-            style={{
-              borderRadius: '8px',
-              color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
-              display: 'flex',
-              alignItems: 'center',
-              padding: isSmall ? '4px 6px' : '6px 8px',
-            }}
-          >
-            {!isSmall && '扫码访问'}
-          </Button>
-        </Tooltip>
+        
 
         {/* 用户信息 */}
         {user ? (
@@ -90,8 +75,8 @@ const Header: React.FC = () => {
             arrow
             trigger={['click']}
           >
-            <Button
-              type="text"
+            <AppButton
+              hierarchy="tertiary"
               style={{
                 height: 'auto',
                 padding: isSmall ? '6px 8px' : '8px 12px',
@@ -108,7 +93,7 @@ const Header: React.FC = () => {
                 size={isSmall ? 24 : 28}
                 icon={<UserOutlined />}
                 style={{ 
-                  backgroundColor: '#1890ff',
+                  backgroundColor: baseTokens.color.primary,
                   transition: 'all 0.3s ease'
                 }}
               />
@@ -136,11 +121,11 @@ const Header: React.FC = () => {
                   )}
                 </Space>
               )}
-            </Button>
+            </AppButton>
           </Dropdown>
         ) : (
-          <Button 
-            type="primary" 
+          <AppButton 
+            hierarchy="primary" 
             onClick={() => navigate('/login')}
             style={{
               borderRadius: '8px',
@@ -148,15 +133,11 @@ const Header: React.FC = () => {
             }}
           >
             登录
-          </Button>
+          </AppButton>
         )}
       </Space>
 
-      {/* 二维码模态框 */}
-      <QRCodeModal
-        visible={qrModalVisible}
-        onClose={() => setQrModalVisible(false)}
-      />
+      
     </>
   );
 };

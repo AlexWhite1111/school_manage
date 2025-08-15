@@ -1,5 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState } from 'react';
-import { Button, Modal, Slider, Input, message, Tooltip, Space } from 'antd';
+import { Modal, Slider, Input, message, Tooltip, Space } from 'antd';
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import { GrowthTag, GrowthLogRequest } from '../../api/growthApi';
 import { growthUtils } from '../../utils/growthUtils';
@@ -84,7 +85,7 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
   };
 
   const getButtonColor = () => {
-    return tag.sentiment === 'POSITIVE' ? '#52c41a' : '#ff4d4f';
+    return tag.sentiment === 'POSITIVE' ? 'var(--ant-color-success)' : 'var(--ant-color-error)';
   };
 
   return (
@@ -92,7 +93,7 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
       <Space.Compact>
         {/* 主按钮 - 快速记录 */}
         <Tooltip title={`快速记录"${tag.text}"（权重${tag.defaultWeight}）`}>
-          <Button
+          <AppButton
             type={type}
             size={size}
             icon={<TagOutlined />}
@@ -105,13 +106,13 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
             }}
           >
             {tag.text}
-          </Button>
+          </AppButton>
         </Tooltip>
 
         {/* 详细记录按钮 */}
         {showQuickRecord && (
           <Tooltip title="自定义权重和上下文">
-            <Button
+            <AppButton
               type={type}
               size={size}
               icon={<PlusOutlined />}
@@ -146,9 +147,9 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
         cancelText="取消"
         width={480}
       >
-        <div style={{ padding: '16px 0' }}>
+          <div style={{ padding: 'var(--space-4) 0' }}>
           {/* 学生和标签信息 */}
-          <div style={{ marginBottom: '24px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px' }}>
+            <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-3)', backgroundColor: 'var(--ant-color-bg-layout)', borderRadius: 'var(--radius-sm)' }}>
             <div style={{ marginBottom: '4px' }}>
               <strong>学生：</strong>{studentName}
             </div>
@@ -158,24 +159,24 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
               <span style={{ 
                 marginLeft: '8px', 
                 fontSize: '12px', 
-                color: '#666',
+                color: 'var(--ant-color-text-tertiary)',
                 padding: '2px 6px',
-                backgroundColor: tag.sentiment === 'POSITIVE' ? '#f6ffed' : '#fff2f0',
+                backgroundColor: tag.sentiment === 'POSITIVE' ? 'var(--ant-color-success-bg)' : 'var(--ant-color-error-bg)',
                 borderRadius: '4px'
               }}>
                 {tag.sentiment === 'POSITIVE' ? '正面' : '负面'}
               </span>
             </div>
             {tag.description && (
-              <div style={{ fontSize: '12px', color: '#666' }}>
+              <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>
                 {tag.description}
               </div>
             )}
           </div>
 
           {/* 权重选择 */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ marginBottom: 'var(--space-6)' }}>
+              <div style={{ marginBottom: 'var(--space-3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontWeight: 'medium' }}>表现权重</span>
               <span style={{ 
                 fontSize: '16px', 
@@ -196,16 +197,16 @@ const GrowthTagButton: React.FC<GrowthTagButtonProps> = ({
                 formatter: (value) => `${value} - ${growthUtils.getWeightDescription(value!)}`
               }}
             />
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)', marginTop: '8px' }}>
               权重越高表示该次表现越突出，对成长分数影响越大
             </div>
           </div>
 
           {/* 上下文输入 */}
-          <div>
-            <div style={{ marginBottom: '8px', fontWeight: 'medium' }}>
+            <div>
+              <div style={{ marginBottom: 'var(--space-2)', fontWeight: 'medium' }}>
               上下文说明
-              <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
+              <span style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)', marginLeft: '8px' }}>
                 （可选，最多50字符）
               </span>
             </div>

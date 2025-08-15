@@ -1,0 +1,752 @@
+{
+  "totalDistinctLiterals": 116,
+  "mergedDistinctColors": 34,
+  "dedupRatio": 0.7068965517241379,
+  "top20": [
+    {
+      "color": "rgba(255, 255, 255, 0.85)",
+      "count": 16,
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0, 0, 0, 0.65)",
+      "count": 15,
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0, 0, 0, 0.3)",
+      "count": 13,
+      "examples": [
+        "frontend/src/components/unified-growth-report/core/StudentInfoHeader.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/finance/components/FinanceDetailView.tsx",
+        "frontend/src/index.css"
+      ]
+    },
+    {
+      "color": "rgba(255, 255, 255, 0.65)",
+      "count": 12,
+      "examples": [
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0, 0, 0, 0.1)",
+      "count": 12,
+      "examples": [
+        "frontend/src/components/unified-growth-report/core/StudentInfoHeader.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/finance/components/FinanceDetailView.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0, 0, 0, 0.85)",
+      "count": 11,
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx"
+      ]
+    },
+    {
+      "color": "#389e0d",
+      "count": 10,
+      "examples": [
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/pages/SubjectTrendPage.tsx"
+      ]
+    },
+    {
+      "color": "#d48806",
+      "count": 10,
+      "examples": [
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/pages/SubjectTrendPage.tsx"
+      ]
+    },
+    {
+      "color": "#f5f5f5",
+      "count": 9,
+      "examples": [
+        "frontend/src/components/exam/ExamTagManagerModal.tsx",
+        "frontend/src/components/growth/GrowthTagButton.tsx",
+        "frontend/src/components/growth/KalmanTrendChart.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/auth/ProfilePage.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    {
+      "color": "#303030",
+      "count": 9,
+      "examples": [
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    {
+      "color": "#f0f0f0",
+      "count": 8,
+      "examples": [
+        "frontend/src/components/growth/KalmanTrendChart.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/auth/ProfilePage.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/features/finance/FinancePage.tsx",
+        "frontend/src/features/student-log/components/ExamTagManager.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx"
+      ]
+    },
+    {
+      "color": "#667eea",
+      "count": 8,
+      "examples": [
+        "frontend/src/components/unified-growth-report/core/GrowthOverview.tsx",
+        "frontend/src/components/unified-growth-report/features/GrowthScoreDisplay.tsx",
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx",
+        "frontend/src/features/auth/ResetPasswordPage.tsx"
+      ]
+    },
+    {
+      "color": "#764ba2",
+      "count": 8,
+      "examples": [
+        "frontend/src/components/unified-growth-report/core/GrowthOverview.tsx",
+        "frontend/src/components/unified-growth-report/features/GrowthScoreDisplay.tsx",
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx",
+        "frontend/src/features/auth/ResetPasswordPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0,0,0,.25)",
+      "count": 8,
+      "examples": [
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx",
+        "frontend/src/features/auth/ResetPasswordPage.tsx"
+      ]
+    },
+    {
+      "color": "#fafafa",
+      "count": 7,
+      "examples": [
+        "frontend/src/components/growth/KalmanTrendChart.tsx",
+        "frontend/src/components/unified-growth-report/panels/KalmanStatePanel.tsx",
+        "frontend/src/features/student-log/components/ExamTagManager.tsx",
+        "frontend/src/features/student-log/components/StudentCard.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx"
+      ]
+    },
+    {
+      "color": "#eb2f96",
+      "count": 6,
+      "examples": [
+        "frontend/src/api/studentLogApi.ts",
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/features/student-log/components/EnhancedGrowthTagSelector.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0,0,0,0.2)",
+      "count": 6,
+      "examples": [
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx",
+        "frontend/src/features/auth/ResetPasswordPage.tsx"
+      ]
+    },
+    {
+      "color": "rgba(255, 255, 255, 0.95)",
+      "count": 5,
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/index.css"
+      ]
+    },
+    {
+      "color": "#13c2c2",
+      "count": 5,
+      "examples": [
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx"
+      ]
+    },
+    {
+      "color": "rgba(0, 0, 0, 0.7)",
+      "count": 5,
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx"
+      ]
+    }
+  ],
+  "clusters": {
+    "#eb2f96": {
+      "count": 27,
+      "members": [
+        "#111b26",
+        "#13c2c2",
+        "#2c3e50",
+        "#34495e",
+        "#40a9ff",
+        "#91d5ff",
+        "#c3cfe2",
+        "#e6f7ff",
+        "#e9ecef",
+        "#eb2f96",
+        "#f5f7fa",
+        "#f8f9fa"
+      ],
+      "examples": [
+        "frontend/src/api/studentLogApi.ts",
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/features/student-log/components/EnhancedGrowthTagSelector.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/components/dashboard/CustomerStatsCard.tsx",
+        "frontend/src/index.css"
+      ]
+    },
+    "#434343": {
+      "count": 6,
+      "members": [
+        "#424242",
+        "#434343"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/finance/FinancePage.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#a0a0a0": {
+      "count": 3,
+      "members": [
+        "#a0a0a0",
+        "#a8a8a8",
+        "#aaa"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/components/unified-growth-report/charts/SubjectRadarChart.tsx",
+        "frontend/src/index.css"
+      ]
+    },
+    "#ffffff": {
+      "count": 71,
+      "members": [
+        "#FFFFFF",
+        "#f5f5f5",
+        "#fafafa",
+        "#ffffff",
+        "rgba(255, 255, 255, 0.04)",
+        "rgba(255, 255, 255, 0.05)",
+        "rgba(255, 255, 255, 0.06)",
+        "rgba(255, 255, 255, 0.12)",
+        "rgba(255, 255, 255, 0.2)",
+        "rgba(255, 255, 255, 0.3)",
+        "rgba(255, 255, 255, 0.45)",
+        "rgba(255, 255, 255, 0.5)",
+        "rgba(255, 255, 255, 0.65)",
+        "rgba(255, 255, 255, 0.8)",
+        "rgba(255, 255, 255, 0.85)",
+        "rgba(255, 255, 255, 0.9)",
+        "rgba(255, 255, 255, 0.95)",
+        "rgba(255,255,255,0.12)",
+        "rgba(255,255,255,0.9)"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/index.css",
+        "frontend/src/components/exam/ExamTagManagerModal.tsx",
+        "frontend/src/components/growth/GrowthTagButton.tsx",
+        "frontend/src/components/growth/KalmanTrendChart.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/auth/ProfilePage.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx"
+      ]
+    },
+    "#141414": {
+      "count": 7,
+      "members": [
+        "#141414",
+        "#1a1a1a",
+        "rgba(20, 20, 20, 0.95)",
+        "rgba(5, 5, 5, 0.06)"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/features/finance/components/FinanceDetailView.tsx",
+        "frontend/src/theme/tokens.ts",
+        "frontend/src/features/student-log/components/StudentCard.tsx"
+      ]
+    },
+    "#000000": {
+      "count": 99,
+      "members": [
+        "rgba(0, 0, 0, 0.02)",
+        "rgba(0, 0, 0, 0.04)",
+        "rgba(0, 0, 0, 0.06)",
+        "rgba(0, 0, 0, 0.08)",
+        "rgba(0, 0, 0, 0.1)",
+        "rgba(0, 0, 0, 0.12)",
+        "rgba(0, 0, 0, 0.3)",
+        "rgba(0, 0, 0, 0.4)",
+        "rgba(0, 0, 0, 0.45)",
+        "rgba(0, 0, 0, 0.5)",
+        "rgba(0, 0, 0, 0.6)",
+        "rgba(0, 0, 0, 0.65)",
+        "rgba(0, 0, 0, 0.7)",
+        "rgba(0, 0, 0, 0.85)",
+        "rgba(0, 0, 0, 0.88)",
+        "rgba(0,0,0,.25)",
+        "rgba(0,0,0,0.06)",
+        "rgba(0,0,0,0.08)",
+        "rgba(0,0,0,0.1)",
+        "rgba(0,0,0,0.15)",
+        "rgba(0,0,0,0.2)",
+        "rgba(0,0,0,0.3)",
+        "rgba(0,0,0,0.4)",
+        "rgba(0,0,0,0.45)"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/index.css",
+        "frontend/src/components/dashboard/FollowUpRemindersCard.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/components/layout/Header.tsx",
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx"
+      ]
+    },
+    "#303030": {
+      "count": 17,
+      "members": [
+        "#262626",
+        "#2a2a2a",
+        "#303030",
+        "rgba(42, 42, 42, 0.8)",
+        "rgba(42, 42, 42, 0.95)"
+      ],
+      "examples": [
+        "frontend/src/assets/styles/global.css",
+        "frontend/src/index.css",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/components/unified-growth-report/core/StudentInfoHeader.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx"
+      ]
+    },
+    "#f5222d": {
+      "count": 4,
+      "members": [
+        "#f5222d"
+      ],
+      "examples": [
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/components/dashboard/OverviewStatsCard.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx"
+      ]
+    },
+    "#a0d911": {
+      "count": 2,
+      "members": [
+        "#a0d911"
+      ],
+      "examples": [
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx"
+      ]
+    },
+    "#667eea": {
+      "count": 23,
+      "members": [
+        "#1677ff",
+        "#1890ff",
+        "#2f54eb",
+        "#667eea",
+        "rgba(24, 144, 255, 0.1)",
+        "rgba(24, 144, 255, 0.15)",
+        "rgba(24, 144, 255, 0.3)"
+      ],
+      "examples": [
+        "frontend/src/components/advanced/IntelligentWordCloud.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/features/student-log/StudentLogPage.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/components/unified-growth-report/core/GrowthOverview.tsx",
+        "frontend/src/components/unified-growth-report/features/GrowthScoreDisplay.tsx",
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx"
+      ]
+    },
+    "#ff7a45": {
+      "count": 2,
+      "members": [
+        "#ff7a45"
+      ],
+      "examples": [
+        "frontend/src/components/dashboard/CustomerStatsCard.tsx",
+        "frontend/src/components/growth/KalmanStatePanel.tsx"
+      ]
+    },
+    "#f6ffed": {
+      "count": 2,
+      "members": [
+        "#f6ffed"
+      ],
+      "examples": [
+        "frontend/src/components/growth/GrowthTagButton.tsx",
+        "frontend/src/components/unified-growth-report/panels/GrowthPredictionPanel.tsx"
+      ]
+    },
+    "#fff2f0": {
+      "count": 1,
+      "members": [
+        "#fff2f0"
+      ],
+      "examples": [
+        "frontend/src/components/growth/GrowthTagButton.tsx"
+      ]
+    },
+    "#f0f0f0": {
+      "count": 9,
+      "members": [
+        "#e8e8e8",
+        "#f0f0f0"
+      ],
+      "examples": [
+        "frontend/src/components/growth/KalmanTrendChart.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/auth/ProfilePage.tsx",
+        "frontend/src/features/crm/CrmPage.tsx",
+        "frontend/src/features/finance/FinancePage.tsx",
+        "frontend/src/features/student-log/components/ExamTagManager.tsx",
+        "frontend/src/features/student-log/components/StudentListView.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#fadb14": {
+      "count": 4,
+      "members": [
+        "#FFD700",
+        "#fadb14",
+        "rgba(250, 219, 20, 0.1)",
+        "rgba(250, 219, 20, 0.3)"
+      ],
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx"
+      ]
+    },
+    "#1f1f1f": {
+      "count": 5,
+      "members": [
+        "#1f1f1f",
+        "rgba(31, 31, 31, 0.8)",
+        "rgba(31, 31, 31, 0.95)"
+      ],
+      "examples": [
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/theme/tokens.ts",
+        "frontend/src/index.css"
+      ]
+    },
+    "#389e0d": {
+      "count": 10,
+      "members": [
+        "#389e0d"
+      ],
+      "examples": [
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/pages/SubjectTrendPage.tsx"
+      ]
+    },
+    "#d48806": {
+      "count": 10,
+      "members": [
+        "#d48806"
+      ],
+      "examples": [
+        "frontend/src/components/ui/SubjectTrendModal.tsx",
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx",
+        "frontend/src/features/analytics/components/StudentAnalyticsTab.tsx",
+        "frontend/src/features/student-log/components/ExamScoreTrendChart.tsx",
+        "frontend/src/features/student-log/components/SubjectDetailModal.tsx",
+        "frontend/src/pages/ExamDetailPage.tsx",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/pages/SubjectTrendPage.tsx"
+      ]
+    },
+    "#d9d9d9": {
+      "count": 7,
+      "members": [
+        "#d4d4d4",
+        "#d9d9d9"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/charts/SubjectRadarChart.tsx",
+        "frontend/src/pages/StudentTrendPage.tsx",
+        "frontend/src/theme/tokens.ts",
+        "frontend/src/index.css"
+      ]
+    },
+    "#764ba2": {
+      "count": 8,
+      "members": [
+        "#764ba2"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/core/GrowthOverview.tsx",
+        "frontend/src/components/unified-growth-report/features/GrowthScoreDisplay.tsx",
+        "frontend/src/features/auth/ForgotPasswordPage.tsx",
+        "frontend/src/features/auth/LoginPage.tsx",
+        "frontend/src/features/auth/RegisterPage.tsx",
+        "frontend/src/features/auth/ResetPasswordPage.tsx"
+      ]
+    },
+    "#52c41a": {
+      "count": 7,
+      "members": [
+        "#52c41a",
+        "rgba(82, 196, 26, 0.8)",
+        "rgba(82, 196, 26, 0.9)"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#ff4d4f": {
+      "count": 5,
+      "members": [
+        "#ff4d4f",
+        "rgba(255, 77, 79, 0.8)",
+        "rgba(255, 77, 79, 0.9)"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#faad14": {
+      "count": 5,
+      "members": [
+        "#faad14",
+        "rgba(250, 173, 20, 0.8)",
+        "rgba(250, 173, 20, 0.9)"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/panels/ExamAnalysisPanel.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#73d13d": {
+      "count": 2,
+      "members": [
+        "#73d13d"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/panels/GrowthPredictionPanel.tsx"
+      ]
+    },
+    "#b7eb8f": {
+      "count": 1,
+      "members": [
+        "#b7eb8f"
+      ],
+      "examples": [
+        "frontend/src/components/unified-growth-report/panels/GrowthPredictionPanel.tsx"
+      ]
+    },
+    "#9254de": {
+      "count": 1,
+      "members": [
+        "#9254de"
+      ],
+      "examples": [
+        "frontend/src/features/analytics/components/CustomerAnalyticsTab.tsx"
+      ]
+    },
+    "#bfbfbf": {
+      "count": 3,
+      "members": [
+        "#C0C0C0",
+        "#bfbfbf"
+      ],
+      "examples": [
+        "frontend/src/features/student-log/components/StudentCard.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/ExamSubjectDetailPage.tsx"
+      ]
+    },
+    "#722ed1": {
+      "count": 3,
+      "members": [
+        "#722ed1"
+      ],
+      "examples": [
+        "frontend/src/features/student-log/StudentLogPage.tsx",
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#ff7875": {
+      "count": 1,
+      "members": [
+        "#ff7875"
+      ],
+      "examples": [
+        "frontend/src/index.css"
+      ]
+    },
+    "#95de64": {
+      "count": 1,
+      "members": [
+        "#95de64"
+      ],
+      "examples": [
+        "frontend/src/index.css"
+      ]
+    },
+    "#555555": {
+      "count": 2,
+      "members": [
+        "#555"
+      ],
+      "examples": [
+        "frontend/src/index.css"
+      ]
+    },
+    "#cd7f32": {
+      "count": 1,
+      "members": [
+        "#CD7F32"
+      ],
+      "examples": [
+        "frontend/src/pages/ExamSubjectDetailPage.tsx"
+      ]
+    },
+    "#8c8c8c": {
+      "count": 2,
+      "members": [
+        "#8c8c8c"
+      ],
+      "examples": [
+        "frontend/src/theme/tokens.ts"
+      ]
+    },
+    "#fa8c16": {
+      "count": 2,
+      "members": [
+        "#fa8c16"
+      ],
+      "examples": [
+        "frontend/src/theme/tokens.ts"
+      ]
+    }
+  }
+}

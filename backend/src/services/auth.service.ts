@@ -4,7 +4,7 @@
 import { UserRole } from '@prisma/client';
 import { prisma } from '../utils/database';
 import bcrypt from 'bcryptjs';
-import { generateToken } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
 import crypto from 'crypto';
 
 
@@ -50,12 +50,13 @@ export const loginUser = async (username: string, password: string): Promise<str
       role: user.role
     };
 
-    const token = generateToken(tokenPayload);
+    const accessToken = generateAccessToken(tokenPayload);
+    const refreshToken = generateRefreshToken({ userId: user.id });
     
     console.log(`用户 "${username}" 登录成功`);
 
-    // 4. 返回令牌
-    return token;
+    // 4. 返回令牌对
+    return JSON.stringify({ accessToken, refreshToken });
 
   } catch (error) {
     console.error('登录处理过程中发生错误:', error);

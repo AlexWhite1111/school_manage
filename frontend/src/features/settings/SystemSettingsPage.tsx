@@ -1,23 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
-  Switch, 
-  Select, 
-  message, 
-  Modal, 
-  Typography,
-  Descriptions,
-  Row,
-  Col,
-  Statistic,
-  Divider,
-  Input,
-  Tabs
-} from 'antd';
+import { Table, Space, Tag, Switch, Select, message, Modal, Typography, Descriptions, Row, Col, Statistic, Divider, Input, Tabs, Card } from 'antd';
 import { 
   PlusOutlined, 
   EditOutlined, 
@@ -26,7 +9,8 @@ import {
   UserOutlined,
   SafetyOutlined,
   SearchOutlined,
-  SettingOutlined
+  SettingOutlined,
+  KeyOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -38,6 +22,7 @@ import {
   UserRole,
   type User 
 } from '@/api/authApi';
+import * as crmApi from '@/api/crmApi';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useResponsive } from '@/hooks/useResponsive';
 import GrowthConfigPanel from '@/components/growth/GrowthConfigPanel';
@@ -58,7 +43,7 @@ const SystemSettingsPage: React.FC = () => {
   // 权限检查
   if (!isSuperAdmin()) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+<div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
         <Title level={3} type="danger">权限不足</Title>
         <Text>只有超级管理员才能访问系统设置</Text>
       </div>
@@ -164,24 +149,58 @@ const SystemSettingsPage: React.FC = () => {
 
   const stats = getUserStats();
 
-  // 表格列配置
-  const columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 80,
-      responsive: ['lg'] as any,
-    },
+  // 跳转辅助：校验是否学生并已绑定客户
+  const ensureStudentWithCustomer = (user: User): boolean => {
+    if (user.role !== UserRole.STUDENT) {
+      Modal.warning({
+        title: '无法跳转',
+        content: '仅学生用户支持跳转到客户档案或成长报告。',
+      });
+      return false;
+    }
+    if (!user.linkedCustomerId) {
+      Modal.warning({
+        title: '无法跳转',
+        content: '该学生未绑定客户档案，无法跳转。',
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const goToCrmProfile = async (user: User) => {
+    if (!ensureStudentWithCustomer(user)) return;
+    try {
+      const customer = await crmApi.getCustomerById(user.linkedCustomerId!);
+      navigate(`/crm/${customer.publicId}`);
+    } catch (err) {
+      console.error('跳转客户档案失败:', err);
+      message.error('未找到对应客户档案');
+    }
+  };
+
+  const goToGrowthReport = async (user: User) => {
+    if (!ensureStudentWithCustomer(user)) return;
+    try {
+      const customer = await crmApi.getCustomerById(user.linkedCustomerId!);
+      navigate(`/student-log/report/${customer.publicId}`);
+    } catch (err) {
+      console.error('跳转成长报告失败:', err);
+      message.error('未找到对应学生成长报告');
+    }
+  };
+
+  // 表格列配置（根据设备区分；已删除 ID 列）
+  const desktopColumns = [
     {
       title: '用户名',
       dataIndex: 'username',
       key: 'username',
       render: (username: string, record: User) => (
-        <Space direction={isMobile ? 'vertical' : 'horizontal'} size="small">
-          <Space>
+        <Space direction={'horizontal'} size="small">
+          <Space onClick={() => goToCrmProfile(record)} style={{ cursor: 'pointer' }}>
             <UserOutlined />
-            <Text strong style={{ fontSize: isMobile ? '13px' : '14px' }}>
+            <Text strong style={{ fontSize: '14px' }}>
               {username}
             </Text>
           </Space>
@@ -193,9 +212,8 @@ const SystemSettingsPage: React.FC = () => {
       title: '昵称',
       dataIndex: 'displayName',
       key: 'displayName',
-      responsive: ['md'] as any,
       render: (displayName: string, record: User) => (
-        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+        <Text style={{ fontSize: '14px', cursor: 'pointer' }} onClick={() => goToGrowthReport(record)}>
           {displayName || record.username}
         </Text>
       ),
@@ -205,26 +223,29 @@ const SystemSettingsPage: React.FC = () => {
       dataIndex: 'role',
       key: 'role',
       render: (role: UserRole, record: User) => (
-        <Select
-          value={role}
-          style={{ width: isMobile ? 100 : 120 }}
-          size={isMobile ? 'small' : 'middle'}
-          onChange={(newRole) => handleRoleChange(record.id, newRole)}
-          disabled={record.role === UserRole.SUPER_ADMIN}
-        >
-          <Option value={UserRole.MANAGER}>管理员</Option>
-          <Option value={UserRole.TEACHER}>教师</Option>
-          <Option value={UserRole.STUDENT}>学生</Option>
-        </Select>
+        record.role === UserRole.SUPER_ADMIN ? (
+          <Text style={{ fontSize: '14px' }}>超管</Text>
+        ) : (
+          <Select
+            value={role}
+            style={{ width: 120 }}
+            size={'middle'}
+            onChange={(newRole) => handleRoleChange(record.id, newRole)}
+            options={[
+              { value: UserRole.MANAGER, label: '管理员' },
+              { value: UserRole.TEACHER, label: '教师' },
+              { value: UserRole.STUDENT, label: '学生' },
+            ]}
+          />
+        )
       ),
     },
     {
       title: '邮箱',
       dataIndex: 'email',
       key: 'email',
-      responsive: ['lg'] as any,
       render: (email: string) => (
-        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+        <Text style={{ fontSize: '14px' }}>
           {email || '-'}
         </Text>
       ),
@@ -233,9 +254,8 @@ const SystemSettingsPage: React.FC = () => {
       title: '手机',
       dataIndex: 'phone',
       key: 'phone',
-      responsive: ['lg'] as any,
       render: (phone: string) => (
-        <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
+        <Text style={{ fontSize: '14px' }}>
           {phone || '-'}
         </Text>
       ),
@@ -244,7 +264,6 @@ const SystemSettingsPage: React.FC = () => {
       title: '最后登录',
       dataIndex: 'lastLoginAt',
       key: 'lastLoginAt',
-      responsive: ['xl'] as any,
       render: (date: string) => {
         if (!date) return '从未登录';
         return new Date(date).toLocaleString('zh-CN');
@@ -261,34 +280,122 @@ const SystemSettingsPage: React.FC = () => {
           disabled={record.role === UserRole.SUPER_ADMIN}
           checkedChildren="启用"
           unCheckedChildren="停用"
-          size={isMobile ? 'small' : 'default'}
         />
       ),
     },
     {
       title: '操作',
       key: 'actions',
-      width: isMobile ? 80 : 120,
+      width: 120,
       render: (_: any, record: User) => (
-        <Button
-          type="text"
-          size="small"
+        <AppButton
+          hierarchy="tertiary"
+          size="sm"
           icon={<SafetyOutlined />}
           onClick={() => handleResetPassword(record.id, record.username)}
           disabled={record.role === UserRole.SUPER_ADMIN}
-          style={{ fontSize: isMobile ? '12px' : '14px' }}
+          style={{ fontSize: '14px' }}
         >
-          {isMobile ? '重置' : '重置密码'}
-        </Button>
+          重置密码
+        </AppButton>
       ),
     },
   ];
+
+  const mobileColumns = [
+    {
+      title: '用户名',
+      dataIndex: 'username',
+      key: 'username',
+      width: '34%',
+      ellipsis: true as any,
+      render: (username: string, record: User) => (
+        <Text
+          strong
+          onClick={() => goToCrmProfile(record)}
+          style={{
+            cursor: 'pointer',
+            fontSize: '13px',
+            display: 'inline-block',
+            maxWidth: '100%',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
+          {username}
+        </Text>
+      ),
+    },
+    {
+      title: '昵称',
+      dataIndex: 'displayName',
+      key: 'displayName',
+      width: '28%',
+      ellipsis: true as any,
+      render: (displayName: string, record: User) => (
+        <Text
+          onClick={() => goToGrowthReport(record)}
+          style={{
+            cursor: 'pointer',
+            fontSize: '12px',
+            display: 'inline-block',
+            maxWidth: '100%',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
+          {displayName || record.username}
+        </Text>
+      ),
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      key: 'role',
+      width: '22%',
+      render: (role: UserRole, record: User) => (
+        record.role === UserRole.SUPER_ADMIN ? (
+          <Text style={{ fontSize: '12px' }}>超管</Text>
+        ) : (
+          <Select
+            value={role}
+            style={{ width: 78 }}
+            size={'small'}
+            onChange={(newRole) => handleRoleChange(record.id, newRole)}
+            options={[
+              { value: UserRole.MANAGER, label: '管理员' },
+              { value: UserRole.TEACHER, label: '教师' },
+              { value: UserRole.STUDENT, label: '学生' },
+            ]}
+          />
+        )
+      ),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: '16%',
+      render: (_: any, record: User) => (
+        <AppButton
+          hierarchy="tertiary"
+          size="sm"
+          icon={<KeyOutlined />}
+          onClick={() => handleResetPassword(record.id, record.username)}
+          disabled={record.role === UserRole.SUPER_ADMIN}
+          style={{ fontSize: '12px', minWidth: 32, padding: 0 }}
+        />
+      ),
+    },
+  ];
+  const columns = isMobile ? mobileColumns : desktopColumns;
 
   // 用户管理内容组件
   const UserManagementContent = () => (
     <>
       {/* 统计信息 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: isMobile ? 16 : 24 }}>
+              <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ marginBottom: isMobile ? 16 : 24 }}>
         <Col xs={12} sm={6} lg={6}>
           <Card size={isMobile ? 'small' : 'default'}>
             <Statistic 
@@ -305,7 +412,7 @@ const SystemSettingsPage: React.FC = () => {
               title="活跃用户" 
               value={stats.active} 
               valueStyle={{ 
-                color: '#3f8600',
+                color: 'var(--ant-color-success)',
                 fontSize: isMobile ? '18px' : '24px'
               }}
             />
@@ -317,7 +424,7 @@ const SystemSettingsPage: React.FC = () => {
               title="停用用户" 
               value={stats.inactive} 
               valueStyle={{ 
-                color: '#cf1322',
+                color: 'var(--ant-color-error)',
                 fontSize: isMobile ? '18px' : '24px'
               }}
             />
@@ -343,74 +450,109 @@ const SystemSettingsPage: React.FC = () => {
 
       {/* 用户管理 */}
       <Card title="用户管理" size={isMobile ? 'small' : 'default'}>
-        <div style={{ 
-          marginBottom: 16, 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: isMobile ? 'flex-start' : 'center', 
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: 16 
-        }}>
-          <Space size="middle" wrap>
-            <Text style={{ fontSize: isMobile ? '13px' : '14px' }}>角色筛选：</Text>
-            <Select
-              value={selectedRole}
-              onChange={setSelectedRole}
-              style={{ width: isMobile ? 120 : 150 }}
-              size={isMobile ? 'small' : 'middle'}
-            >
-              <Option value="ALL">全部用户</Option>
-              <Option value={UserRole.SUPER_ADMIN}>超级管理员</Option>
-              <Option value={UserRole.MANAGER}>管理员</Option>
-              <Option value={UserRole.TEACHER}>教师</Option>
-              <Option value={UserRole.STUDENT}>学生</Option>
-            </Select>
-          </Space>
-
-          <Space size="middle" wrap style={{ width: isMobile ? '100%' : 'auto' }}>
-            <Input
-              placeholder={isMobile ? "搜索用户" : "搜索用户名、昵称、邮箱、手机号"}
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              allowClear
-              style={{ width: isMobile ? '100%' : 280 }}
-              size={isMobile ? 'small' : 'middle'}
-              prefix={<SearchOutlined />}
-            />
-            <Button 
-              icon={<ReloadOutlined />}
-              onClick={loadUsers}
-              loading={loading}
-              size={isMobile ? 'small' : 'middle'}
-            >
-              {isMobile ? '刷新' : '刷新'}
-            </Button>
-            <Button 
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => navigate('/register')}
-              size={isMobile ? 'small' : 'middle'}
-            >
-              {isMobile ? '新增' : '新增用户'}
-            </Button>
-          </Space>
+        <div
+          style={
+            isMobile
+              ? {
+                  marginBottom: 12,
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto auto',
+                  gap: 8,
+                  alignItems: 'center',
+                }
+              : {
+                  marginBottom: 16,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 16,
+                }
+          }
+        >
+          {isMobile ? (
+            <>
+              <Input
+                placeholder="搜索用户"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                allowClear
+                style={{ width: '100%', gridColumn: '1 / -1' }}
+                size="small"
+                prefix={<SearchOutlined />}
+              />
+              <Select
+                value={selectedRole}
+                onChange={setSelectedRole}
+                style={{ width: 120 }}
+                size="small"
+              >
+                <Option value="ALL">全部用户</Option>
+                <Option value={UserRole.SUPER_ADMIN}>超级管理员</Option>
+                <Option value={UserRole.MANAGER}>管理员</Option>
+                <Option value={UserRole.TEACHER}>教师</Option>
+                <Option value={UserRole.STUDENT}>学生</Option>
+              </Select>
+              <AppButton icon={<ReloadOutlined />} onClick={loadUsers} loading={loading} size="small">
+                刷新
+              </AppButton>
+              <AppButton hierarchy="primary" icon={<PlusOutlined />} onClick={() => navigate('/register')} size="small">
+                新增
+              </AppButton>
+            </>
+          ) : (
+            <>
+              <Space size="middle" wrap>
+                <Select
+                  value={selectedRole}
+                  onChange={setSelectedRole}
+                  style={{ width: 150 }}
+                  size="middle"
+                >
+                  <Option value="ALL">全部用户</Option>
+                  <Option value={UserRole.SUPER_ADMIN}>超级管理员</Option>
+                  <Option value={UserRole.MANAGER}>管理员</Option>
+                  <Option value={UserRole.TEACHER}>教师</Option>
+                  <Option value={UserRole.STUDENT}>学生</Option>
+                </Select>
+              </Space>
+              <Space size="middle" wrap>
+                <Input
+                  placeholder="搜索用户名、昵称、邮箱、手机号"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  allowClear
+                  style={{ width: 280 }}
+                  size="middle"
+                  prefix={<SearchOutlined />}
+                />
+                <AppButton icon={<ReloadOutlined />} onClick={loadUsers} loading={loading} size="middle">
+                  刷新
+                </AppButton>
+                <AppButton hierarchy="primary" icon={<PlusOutlined />} onClick={() => navigate('/register')} size="middle">
+                  新增用户
+                </AppButton>
+              </Space>
+            </>
+          )}
         </div>
 
         <Table
+          className={isMobile ? 'settings-user-table-mobile' : undefined}
           columns={columns}
-          dataSource={filteredUsers} // 使用 filteredUsers 作为数据源
+          dataSource={filteredUsers}
           rowKey="id"
           loading={loading}
           pagination={{
-            total: filteredUsers.length, // 显示过滤后的总数
-            pageSize: isMobile ? 5 : 10,
+            total: filteredUsers.length,
+            pageSize: isMobile ? 8 : 10, // 移动端更紧凑，单页更多
             showSizeChanger: !isMobile,
             showQuickJumper: !isMobile,
             showTotal: (total) => `共 ${total} 个用户`,
             size: isMobile ? 'small' : undefined,
             simple: isMobile,
           }}
-          scroll={{ x: isMobile ? 800 : 1000 }}
+          tableLayout={isMobile ? 'fixed' : undefined}
+          scroll={isMobile ? undefined : { x: 1000 }}
           size={isMobile ? 'small' : 'middle'}
         />
       </Card>
@@ -418,7 +560,7 @@ const SystemSettingsPage: React.FC = () => {
   );
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div data-page-container>
       <Title level={2} style={{ fontSize: isMobile ? '20px' : '28px' }}>
         系统设置
       </Title>

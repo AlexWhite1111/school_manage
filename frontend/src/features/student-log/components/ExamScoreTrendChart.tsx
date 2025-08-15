@@ -1,18 +1,7 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Select,
-  Radio,
-  Space,
-  Typography,
-  Spin,
-  Empty,
-  Tooltip,
-  Tag,
-  Button
-} from 'antd';
+import { Row, Col, Select, Radio, Space, Typography, Spin, Empty, Tooltip, Tag, Card } from 'antd';
 import {
   LineChartOutlined,
   InfoCircleOutlined,
@@ -30,6 +19,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { useThemeStore } from '@/stores/themeStore';
+import { theme as antdTheme } from 'antd';
+import { getAppTokens } from '@/theme/tokens';
 import { useResponsive } from '@/hooks/useResponsive';
 import * as examApi from '@/api/examApi';
 import dayjs from 'dayjs';
@@ -50,11 +41,8 @@ const subjectLabels: Record<string, string> = {
   'POLITICS': '政治'
 };
 
-// 颜色配置
-const SUBJECT_COLORS = [
-  '#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1',
-  '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#2f54eb'
-];
+// 颜色配置由 tokens 统一提供（避免分散）
+const getSubjectColors = (mode: 'light' | 'dark') => getAppTokens(mode).colors.subjectPalette;
 
 interface ExamScoreTrendChartProps {
   studentId?: number;  // 保持向后兼容
@@ -73,6 +61,8 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
   dateRange
 }) => {
   const { theme } = useThemeStore();
+  const { token } = antdTheme.useToken();
+  const appTokens = getAppTokens(theme);
   const { isMobile } = useResponsive();
 
   // 状态管理
@@ -85,15 +75,15 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
 
   // 主题样式
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-  };
+    cardBackground: token.colorBgContainer,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    borderColor: token.colorBorder,
+  } as const;
 
   // 加载考试数据和班级统计数据
   const loadExamData = async () => {
@@ -403,10 +393,10 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
           </Tooltip>
         </Space>
       }
-      style={{ marginBottom: '24px' }}
+style={{ marginBottom: 'var(--space-6)' }}
     >
       {/* 控制器区域 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+<Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-4)' }}>
                   <Col xs={24} sm={12} md={6}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -414,14 +404,14 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
                   <BookOutlined style={{ marginRight: '4px' }} />
                   选择科目
                 </Text>
-                <Button 
-                  type="link" 
-                  size="small" 
+                <AppButton 
+                  hierarchy="link" 
+                  size="sm" 
                   onClick={handleSelectAll}
                   style={{ padding: 0, height: 'auto', fontSize: '12px' }}
                 >
                   {isAllSelected ? '取消全选' : '全选'}
-                </Button>
+                </AppButton>
               </div>
               <Select
                 mode="multiple"
@@ -442,48 +432,81 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
           </Col>
           
           <Col xs={24} sm={12} md={6}>
-            <Space direction="vertical" size={0} style={{ width: '100%' }}>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                <TrophyOutlined style={{ marginRight: '4px' }} />
-                参考线科目
-              </Text>
-              <Select
-                style={{ width: '100%' }}
-                value={selectedReferenceSubject}
-                onChange={setSelectedReferenceSubject}
-                size={isMobile ? 'middle' : 'small'}
-                disabled={selectedSubjects.length === 0}
-                placeholder="选择参考基准科目"
-              >
-                {selectedSubjects.map(subject => (
-                  <Option key={subject} value={subject}>
-                    {subjectLabels[subject]}
-                  </Option>
-                ))}
-              </Select>
-              <Text type="secondary" style={{ fontSize: '10px', marginTop: '2px' }}>
-                显示该科目在各次考试的基准线
-              </Text>
-            </Space>
+            {isMobile ? (
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, width: '100%' }}>
+                <div style={{ flex: 1 }}>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <TrophyOutlined style={{ marginRight: '4px' }} />参考线科目
+                  </Text>
+                  <Select
+                    style={{ width: '100%' }}
+                    value={selectedReferenceSubject}
+                    onChange={setSelectedReferenceSubject}
+                    size="middle"
+                    disabled={selectedSubjects.length === 0}
+                    placeholder="选择参考基准科目"
+                  >
+                    {selectedSubjects.map(subject => (
+                      <Option key={subject} value={subject}>
+                        {subjectLabels[subject]}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Radio.Group
+                    value={scoreMode}
+                    onChange={(e) => setScoreMode(e.target.value)}
+                    size="middle"
+                  >
+                    <Radio.Button value="normalized">归一化</Radio.Button>
+                    <Radio.Button value="original">原始分</Radio.Button>
+                  </Radio.Group>
+                </div>
+              </div>
+            ) : (
+              <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  <TrophyOutlined style={{ marginRight: '4px' }} />
+                  参考线科目
+                </Text>
+                <Select
+                  style={{ width: '100%' }}
+                  value={selectedReferenceSubject}
+                  onChange={setSelectedReferenceSubject}
+                  size="small"
+                  disabled={selectedSubjects.length === 0}
+                  placeholder="选择参考基准科目"
+                >
+                  {selectedSubjects.map(subject => (
+                    <Option key={subject} value={subject}>
+                      {subjectLabels[subject]}
+                    </Option>
+                  ))}
+                </Select>
+                <Text type="secondary" style={{ fontSize: '10px', marginTop: '2px' }}>
+                  显示该科目在各次考试的基准线
+                </Text>
+              </Space>
+            )}
           </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <Space direction="vertical" size={0} style={{ width: '100%' }}>
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              成绩模式
-            </Text>
-            <Radio.Group
-              value={scoreMode}
-              onChange={(e) => setScoreMode(e.target.value)}
-              size={isMobile ? 'middle' : 'small'}
-            >
-              <Radio.Button value="normalized">归一化</Radio.Button>
-              <Radio.Button value="original">原始分</Radio.Button>
-            </Radio.Group>
-          </Space>
-        </Col>
-        
-        <Col xs={24} sm={24} md={6}>
+          
+          <Col xs={24} sm={12} md={6}>
+            {!isMobile && (
+              <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                <Radio.Group
+                  value={scoreMode}
+                  onChange={(e) => setScoreMode(e.target.value)}
+                  size={isMobile ? 'middle' : 'small'}
+                >
+                  <Radio.Button value="normalized">归一化</Radio.Button>
+                  <Radio.Button value="original">原始分</Radio.Button>
+                </Radio.Group>
+              </Space>
+            )}
+          </Col>
+          
+          <Col xs={24} sm={24} md={6}>
           <Space direction="vertical" size={0}>
             <Text type="secondary" style={{ fontSize: '12px' }}>参考线说明</Text>
             <Space wrap>
@@ -501,7 +524,7 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
                 }
               </Tag>
             </Space>
-            <Text type="secondary" style={{ fontSize: '10px', marginTop: '4px' }}>
+<Text type="secondary" style={{ fontSize: '10px', marginTop: '4px' }}>
               平均分和优秀线基于该科目每次考试动态计算
             </Text>
           </Space>
@@ -511,14 +534,14 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
       {/* 图表区域 */}
       <Spin spinning={loading}>
         {chartData.length > 0 ? (
-          <div style={{ height: isMobile ? '300px' : '400px' }}>
+          <div style={{ height: isMobile ? '300px' : '400px', width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart 
                 data={chartData}
                 margin={{ 
-                  top: 20, 
-                  right: 30, 
-                  left: 20, 
+                  top: 12, 
+                  right: isMobile ? 10 : 30, 
+                  left: isMobile ? 8 : 20, 
                   bottom: isMobile ? 40 : 60 
                 }}
               >
@@ -535,7 +558,13 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
                   }}
                   angle={isMobile ? -45 : 0}
                   textAnchor={isMobile ? 'end' : 'middle'}
-                  height={isMobile ? 40 : 60}
+                  height={isMobile ? 48 : 68}
+                  label={{
+                    value: scoreMode === 'normalized' ? '归一化成绩' : '原始成绩',
+                    position: 'insideBottom',
+                    offset: -4,
+                    style: { fill: themeStyles.textSecondary, fontSize: isMobile ? 10 : 12 }
+                  }}
                 />
                 <YAxis 
                   tick={{ 
@@ -543,12 +572,8 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
                     fill: themeStyles.textSecondary 
                   }}
                   domain={scoreMode === 'normalized' ? [0, 100] : ['dataMin - 10', 'dataMax + 10']}
-                  label={{ 
-                    value: scoreMode === 'normalized' ? '归一化成绩' : '原始成绩', 
-                    angle: -90, 
-                    position: 'insideLeft',
-                    style: { textAnchor: 'middle' }
-                  }}
+                  width={isMobile ? 28 : 40}
+                  label={undefined}
                 />
                 <RechartsTooltip 
                   contentStyle={{
@@ -584,7 +609,7 @@ const ExamScoreTrendChart: React.FC<ExamScoreTrendChartProps> = ({
                     key={subject}
                     type="monotone"
                     dataKey={subjectLabels[subject]}
-                    stroke={SUBJECT_COLORS[index % SUBJECT_COLORS.length]}
+            stroke={getSubjectColors(theme)[index % getSubjectColors(theme).length]}
                     strokeWidth={2}
                     dot={{ 
                       r: isMobile ? 3 : 4,

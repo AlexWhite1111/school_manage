@@ -1,25 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  List,
-  Card,
-  Avatar,
-  Button,
-  Input,
-  Space,
-  Typography,
-  Tag,
-  Empty,
-  Spin,
-  Row,
-  Col,
-  message,
-  Tooltip,
-  Badge,
-  Select,
-  Statistic,
-  Progress,
-  Pagination
-} from 'antd';
+import { List, Avatar, Input, Space, Typography, Tag, Empty, Spin, Row, Col, message, Tooltip, Badge, Select, Statistic, Progress, Pagination, Card } from 'antd';
 import {
   UserOutlined,
   SearchOutlined,
@@ -281,20 +262,20 @@ const StudentListView: React.FC<StudentListViewProps> = ({
           <Col>
             <Space>
               {showExportButton && (
-                <Button
+                <AppButton
                   icon={<DownloadOutlined />}
                   onClick={() => message.info('导出功能开发中...')}
                 >
                   导出数据
-                </Button>
+                </AppButton>
               )}
-              <Button
+              <AppButton
                 icon={<ReloadOutlined />}
                 onClick={handleRefresh}
                 loading={loading}
               >
                 刷新
-              </Button>
+              </AppButton>
             </Space>
           </Col>
         </Row>
@@ -306,8 +287,8 @@ const StudentListView: React.FC<StudentListViewProps> = ({
               <Statistic
                 title="学生总数"
                 value={totalStudents}
-                prefix={<TeamOutlined style={{ color: '#1890ff' }} />}
-                valueStyle={{ color: '#1890ff' }}
+                prefix={<TeamOutlined style={{ color: 'var(--ant-color-primary)' }} />}
+                valueStyle={{ color: 'var(--ant-color-primary)' }}
               />
             </Card>
           </Col>
@@ -316,8 +297,8 @@ const StudentListView: React.FC<StudentListViewProps> = ({
               <Statistic
                 title="已报名"
                 value={enrolledStudents}
-                prefix={<UserOutlined style={{ color: '#52c41a' }} />}
-                valueStyle={{ color: '#52c41a' }}
+                prefix={<UserOutlined style={{ color: 'var(--ant-color-success)' }} />}
+                valueStyle={{ color: 'var(--ant-color-success)' }}
               />
             </Card>
           </Col>
@@ -326,8 +307,8 @@ const StudentListView: React.FC<StudentListViewProps> = ({
               <Statistic
                 title="试听中"
                 value={trialStudents}
-                prefix={<BookOutlined style={{ color: '#faad14' }} />}
-                valueStyle={{ color: '#faad14' }}
+                prefix={<BookOutlined style={{ color: 'var(--ant-color-warning)' }} />}
+                valueStyle={{ color: 'var(--ant-color-warning)' }}
               />
             </Card>
           </Col>
@@ -336,8 +317,8 @@ const StudentListView: React.FC<StudentListViewProps> = ({
               <Statistic
                 title="成长记录"
                 value={totalGrowthLogs}
-                prefix={<BarChartOutlined style={{ color: '#722ed1' }} />}
-                valueStyle={{ color: '#722ed1' }}
+                prefix={<BarChartOutlined style={{ color: 'var(--ant-color-info)' }} />}
+                valueStyle={{ color: 'var(--ant-color-info)' }}
               />
             </Card>
           </Col>
@@ -347,7 +328,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
         <Card
           size="small"
           style={{
-            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#fafafa',
+            backgroundColor: theme === 'dark' ? 'var(--ant-color-bg-container)' : '#fafafa',
             border: theme === 'dark' ? '1px solid #303030' : undefined
           }}
         >
@@ -431,13 +412,13 @@ const StudentListView: React.FC<StudentListViewProps> = ({
         }}
         actions={[
           <Tooltip title="查看详细成长报告" key="view">
-            <Button
-              type="text"
+            <AppButton
+              hierarchy="tertiary"
               icon={<EyeOutlined />}
-              style={{ color: '#1890ff' }}
+              style={{ color: 'var(--ant-color-primary)' }}
             >
               查看报告
-            </Button>
+            </AppButton>
           </Tooltip>
         ]}
       >
@@ -451,7 +432,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
           <Avatar
             size={48}
             style={{
-              backgroundColor: '#1890ff',
+              backgroundColor: 'var(--ant-color-primary)',
               fontSize: 18
             }}
           >
@@ -471,7 +452,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
               <Title level={5} style={{ margin: 0, fontSize: 16 }}>
                 {student.name}
               </Title>
-              <ArrowRightOutlined style={{ color: '#8c8c8c', fontSize: 12 }} />
+              <ArrowRightOutlined style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12 }} />
             </div>
 
             <Space size="small" wrap>
@@ -491,7 +472,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
         {student.school && (
           <div style={{ marginBottom: 12 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              <BankOutlined style={{ marginRight: 4, color: '#8c8c8c' }} />
+              <BankOutlined style={{ marginRight: 4, color: 'var(--ant-color-text-secondary)' }} />
               {student.school}
             </Text>
           </div>
@@ -501,26 +482,26 @@ const StudentListView: React.FC<StudentListViewProps> = ({
         <Row gutter={8} style={{ marginBottom: 12 }}>
           <Col span={8}>
             <Statistic
-              title={<Text style={{ fontSize: 11, color: '#8c8c8c' }}>总记录</Text>}
+              title={<Text style={{ fontSize: 11, color: 'var(--ant-color-text-secondary)' }}>总记录</Text>}
               value={growthStats?.totalLogs || 0}
-              valueStyle={{ fontSize: 16, color: '#1890ff', fontWeight: 600 }}
+              valueStyle={{ fontSize: 16, color: 'var(--ant-color-primary)', fontWeight: 600 }}
               prefix={<BookOutlined style={{ fontSize: 12 }} />}
             />
           </Col>
           <Col span={8}>
             <Statistic
-              title={<Text style={{ fontSize: 11, color: '#8c8c8c' }}>正面率</Text>}
+              title={<Text style={{ fontSize: 11, color: 'var(--ant-color-text-secondary)' }}>正面率</Text>}
               value={positiveRatio}
               suffix="%"
-              valueStyle={{ fontSize: 16, color: '#52c41a', fontWeight: 600 }}
+              valueStyle={{ fontSize: 16, color: 'var(--ant-color-success)', fontWeight: 600 }}
               prefix={<SmileOutlined style={{ fontSize: 12 }} />}
             />
           </Col>
           <Col span={8}>
             <Statistic
-              title={<Text style={{ fontSize: 11, color: '#8c8c8c' }}>成长指数</Text>}
+              title={<Text style={{ fontSize: 11, color: 'var(--ant-color-text-secondary)' }}>成长指数</Text>}
               value={growthScore}
-              valueStyle={{ fontSize: 16, color: '#faad14', fontWeight: 600 }}
+              valueStyle={{ fontSize: 16, color: 'var(--ant-color-warning)', fontWeight: 600 }}
               prefix={<RocketOutlined style={{ fontSize: 12 }} />}
             />
           </Col>
@@ -534,7 +515,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
             alignItems: 'center',
             marginBottom: 6
           }}>
-            <Text style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>
+            <Text style={{ fontSize: 12, color: 'var(--ant-color-text-tertiary)', fontWeight: 500 }}>
               成长表现
             </Text>
             <Space size={8}>
@@ -543,18 +524,18 @@ const StudentListView: React.FC<StudentListViewProps> = ({
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  backgroundColor: '#52c41a'
+                  backgroundColor: 'var(--ant-color-success)'
                 }} />
-                <Text style={{ fontSize: 10, color: '#52c41a' }}>正面</Text>
+                <Text style={{ fontSize: 10, color: 'var(--ant-color-success)' }}>正面</Text>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <div style={{
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  backgroundColor: '#ff4d4f'
+                  backgroundColor: 'var(--ant-color-error)'
                 }} />
-                <Text style={{ fontSize: 10, color: '#ff4d4f' }}>待改进</Text>
+                <Text style={{ fontSize: 10, color: 'var(--ant-color-error)' }}>待改进</Text>
               </div>
             </Space>
           </div>
@@ -563,7 +544,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
             <Progress
               percent={positiveRatio + negativeRatio}
               success={{ percent: positiveRatio }}
-              strokeColor="#ff4d4f"
+              strokeColor="var(--ant-color-error)"
               showInfo={false}
               size="small"
               strokeWidth={8}
@@ -612,9 +593,9 @@ const StudentListView: React.FC<StudentListViewProps> = ({
             }
           >
             {!(searchKeyword || statusFilter !== 'all' || gradeFilter !== 'all' || schoolFilter !== 'all') && (
-              <Button type="primary" onClick={handleRefresh}>
+              <AppButton hierarchy="primary" onClick={handleRefresh}>
                 重新加载
-              </Button>
+              </AppButton>
             )}
           </Empty>
         </div>
@@ -639,7 +620,7 @@ const StudentListView: React.FC<StudentListViewProps> = ({
   return (
     <div style={{
       padding: isMobile ? 16 : 24,
-      background: theme === 'dark' ? '#141414' : '#f5f5f5',
+      background: theme === 'dark' ? 'var(--ant-color-bg-layout)' : '#f5f5f5',
       minHeight: '100vh'
     }}>
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>

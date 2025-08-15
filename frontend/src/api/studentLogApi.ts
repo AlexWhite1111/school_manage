@@ -363,16 +363,16 @@ export const formatAttendanceStatus = (status: AttendanceStatus | null | undefin
  * 获取考勤状态颜色
  */
 export const getAttendanceStatusColor = (status: AttendanceStatus | null | undefined): string => {
-  if (!status) return '#d9d9d9';
+  if (!status) return 'var(--ant-color-border)';
   
   const colorMap = {
-    PRESENT: '#52c41a',
-    LATE: '#faad14',
-    ABSENT: '#1890ff',
-    NO_SHOW: '#ff4d4f'
+    PRESENT: 'var(--ant-color-success)',
+    LATE: 'var(--ant-color-warning)',
+    ABSENT: 'var(--ant-color-primary)',
+    NO_SHOW: 'var(--ant-color-error)'
   };
   
-  return colorMap[status] || '#d9d9d9';
+  return colorMap[status] || 'var(--ant-color-border)';
 };
 
 /**
@@ -416,12 +416,12 @@ export const formatStudentName = (name: string | undefined): string => {
  */
 export const getStudentAvatarColor = (gender?: 'MALE' | 'FEMALE' | 'OTHER'): string => {
   const colorMap = {
-    MALE: '#1890ff',
+    MALE: 'var(--ant-color-primary)',
     FEMALE: '#eb2f96',
-    OTHER: '#722ed1'
+    OTHER: 'var(--ant-color-info)'
   };
   
-  return colorMap[gender || 'OTHER'] || '#722ed1';
+  return colorMap[gender || 'OTHER'] || 'var(--ant-color-info)';
 };
 
 /**

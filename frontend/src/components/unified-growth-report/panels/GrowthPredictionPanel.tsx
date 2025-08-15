@@ -1,17 +1,6 @@
+
 import React, { useMemo } from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  Typography,
-  Space,
-  Tag,
-  Alert,
-  Empty,
-  Divider
-} from 'antd';
+import { Row, Col, Statistic, Progress, Typography, Space, Tag, Alert, Empty, Divider, Card } from 'antd';
 import {
   RocketOutlined,
   RiseOutlined,
@@ -81,8 +70,8 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
     if (growthRate > 0.1) {
       return {
         trend: 'STRONG_GROWTH',
-        icon: <RiseOutlined style={{ color: '#52c41a' }} />,
-        color: '#52c41a',
+        icon: <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />,
+        color: 'var(--ant-color-success)',
         text: '强劲增长',
         description: '预计未来表现将显著提升'
       };
@@ -97,16 +86,16 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
     } else if (growthRate > -0.1) {
       return {
         trend: 'STABLE',
-        icon: <ThunderboltOutlined style={{ color: '#1890ff' }} />,
-        color: '#1890ff',
+        icon: <ThunderboltOutlined style={{ color: 'var(--ant-color-primary)' }} />,
+        color: 'var(--ant-color-primary)',
         text: '趋势稳定',
         description: '预计未来表现保持现有水平'
       };
     } else {
       return {
         trend: 'NEEDS_ATTENTION',
-        icon: <FallOutlined style={{ color: '#ff4d4f' }} />,
-        color: '#ff4d4f',
+        icon: <FallOutlined style={{ color: 'var(--ant-color-error)' }} />,
+        color: 'var(--ant-color-error)',
         text: '需要关注',
         description: '建议加强相关方面的指导'
       };
@@ -237,7 +226,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
               precision={1}
               suffix="%"
               valueStyle={{ 
-                color: predictionStats.averageConfidence > 0.7 ? '#3f8600' : '#faad14' 
+                color: predictionStats.averageConfidence > 0.7 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)' 
               }}
             />
           </Col>
@@ -246,7 +235,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
               title="高置信预测"
               value={predictionStats.highConfidenceCount}
               suffix={` / ${predictionStats.totalDimensions}`}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               prefix={<EyeOutlined />}
             />
           </Col>
@@ -255,7 +244,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
               title="进步趋势"
               value={predictionStats.improvingTrends}
               suffix={` / ${predictionStats.totalDimensions}`}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               prefix={<RiseOutlined />}
             />
           </Col>
@@ -269,7 +258,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                 <Text>模型可靠性</Text>
                 <Progress 
                   percent={predictionStats.modelReliability * 100}
-                  strokeColor={predictionStats.modelReliability > 0.7 ? "#52c41a" : "#faad14"}
+                  strokeColor={predictionStats.modelReliability > 0.7 ? "var(--ant-color-success)" : "var(--ant-color-warning)"}
                   format={() => `${(predictionStats.modelReliability * 100).toFixed(1)}%`}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -284,7 +273,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                 <Text>预测准确性</Text>
                 <Progress 
                   percent={predictionStats.averageConfidence * 100}
-                  strokeColor="#1890ff"
+                  strokeColor="var(--ant-color-primary)"
                   format={() => `${(predictionStats.averageConfidence * 100).toFixed(1)}%`}
                 />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -327,7 +316,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                     <Progress
                       percent={item.confidence * 100}
                       size="small"
-                      strokeColor={item.trend > 0 ? '#52c41a' : item.trend < 0 ? '#ff4d4f' : '#1890ff'}
+                      strokeColor={item.trend > 0 ? 'var(--ant-color-success)' : item.trend < 0 ? 'var(--ant-color-error)' : 'var(--ant-color-primary)'}
                       format={() => `${(item.confidence * 100).toFixed(0)}%`}
                     />
                     
@@ -337,16 +326,16 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
                       </Text>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         {item.trend > 0 ? (
-                          <RiseOutlined style={{ color: '#52c41a', fontSize: '10px' }} />
+                          <RiseOutlined style={{ color: 'var(--ant-color-success)', fontSize: '10px' }} />
                         ) : item.trend < 0 ? (
-                          <FallOutlined style={{ color: '#ff4d4f', fontSize: '10px' }} />
+                          <FallOutlined style={{ color: 'var(--ant-color-error)', fontSize: '10px' }} />
                         ) : (
-                          <ThunderboltOutlined style={{ color: '#1890ff', fontSize: '10px' }} />
+                          <ThunderboltOutlined style={{ color: 'var(--ant-color-primary)', fontSize: '10px' }} />
                         )}
                         <Text style={{ 
                           fontSize: '10px', 
                           marginInlineStart: '2px',
-                          color: item.trend > 0 ? '#52c41a' : item.trend < 0 ? '#ff4d4f' : '#1890ff'
+                          color: item.trend > 0 ? 'var(--ant-color-success)' : item.trend < 0 ? 'var(--ant-color-error)' : 'var(--ant-color-primary)'
                         }}>
                           {item.trendDirection || '稳定'}
                         </Text>
@@ -378,7 +367,7 @@ const GrowthPredictionPanel: React.FC<GrowthPredictionPanelProps> = ({
             }
             type="info"
             showIcon={false}
-            style={{ background: '#f6ffed', border: '1px solid #b7eb8f' }}
+            style={{ background: 'var(--ant-color-success-bg)', border: '1px solid var(--ant-color-success-border)' }}
           />
         )}
       </Space>

@@ -1,7 +1,10 @@
 {
   "scripts": {
     "dev": "npm run dev --prefix frontend",
-    "backend": "npm run dev --prefix backend"
+    "backend": "npm run dev --prefix backend",
+    "scan:colors": "node tools/color-scan.mjs",
+    "replace:css": "node tools/replace-css-colors.mjs",
+    "replace:js": "node tools/replace-js-colors.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.1.0"

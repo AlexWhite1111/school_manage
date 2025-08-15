@@ -73,17 +73,17 @@ interface PublicRouteProps {
 // 占位符页面组件
 const PlaceholderPage: React.FC<{ title: string; description: string }> = ({ title, description }) => (
   <div style={{ 
-    padding: '24px', 
+    padding: 'var(--space-6)', 
     textAlign: 'center',
     background: 'var(--ant-color-bg-container)',
-    borderRadius: '12px',
-    minHeight: '400px',
+    borderRadius: 'var(--radius-lg)',
+    minHeight: 400,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center'
   }}>
-    <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ant-color-text)' }}>{title}</h2>
+    <h2 style={{ fontSize: '24px', marginBottom: 'var(--space-4)', color: 'var(--ant-color-text)' }}>{title}</h2>
     <p style={{ fontSize: '16px', color: 'var(--ant-color-text-secondary)' }}>{description}</p>
   </div>
 );
@@ -280,7 +280,7 @@ const AppRouter: React.FC = () => {
       {/* 404页面 */}
       <Route path="*" element={
         <div style={{ 
-          padding: '24px', 
+          padding: 'var(--space-6)', 
           textAlign: 'center', 
           minHeight: '100vh', 
           display: 'flex', 

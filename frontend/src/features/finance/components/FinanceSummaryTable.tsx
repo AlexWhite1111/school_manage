@@ -1,5 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Select, Tag, Spin, App, Space } from 'antd';
+import { Table, Input, Select, Tag, Spin, App, Space } from 'antd';
 import { SearchOutlined, EyeOutlined, ExportOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
@@ -242,17 +243,17 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
       fixed: isMobile ? ('left' as const) : false,
       render: (name: string, record: StudentFinanceSummary) => (
         <div>
-          <Button 
-            type="link" 
-            size="small"
+          <AppButton 
+            hierarchy="link" 
+            size="sm"
             onClick={() => handleViewDetails(record)}
             style={{ padding: 0, fontSize: '14px', fontWeight: 500 }}
           >
             {name}
-          </Button>
+          </AppButton>
           {/* ✅ 显示年级信息 */}
           {record.grade && (
-            <div style={{ fontSize: '12px', color: '#666', marginTop: 2 }}>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)', marginTop: 2 }}>
               {getGradeLabel(record.grade)}
             </div>
           )}
@@ -274,11 +275,11 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
       hidden: isMobile,
       render: (_: any, record: StudentFinanceSummary) => (
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontWeight: 500, color: '#1890ff' }}>
+          <div style={{ fontWeight: 500, color: 'var(--ant-color-primary)' }}>
             {record.orderCount}单
           </div>
           {record.lastOrderDate && (
-            <div style={{ fontSize: '12px', color: '#666' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>
               {new Date(record.lastOrderDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
             </div>
           )}
@@ -299,7 +300,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
       width: isMobile ? 90 : 120,
       align: 'right' as const,
       render: (amount: string) => (
-        <span style={{ fontWeight: 500, color: '#1890ff' }}>
+        <span style={{ fontWeight: 500, color: 'var(--ant-color-primary)' }}>
           {formatAmount(amount)}
         </span>
       ),
@@ -311,7 +312,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
       width: isMobile ? 90 : 120,
       align: 'right' as const,
       render: (amount: string) => (
-        <span style={{ fontWeight: 500, color: '#52c41a' }}>
+        <span style={{ fontWeight: 500, color: 'var(--ant-color-success)' }}>
           {formatAmount(amount)}
         </span>
       ),
@@ -327,7 +328,7 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
         return (
           <span style={{ 
             fontWeight: 500, 
-            color: numAmount > 0 ? '#ff4d4f' : '#52c41a' 
+            color: numAmount > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)' 
           }}>
             {formatAmount(amount)}
           </span>
@@ -367,14 +368,14 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
       fixed: isMobile ? ('right' as const) : false,
       align: 'center' as const,
       render: (_: any, record: StudentFinanceSummary) => (
-        <Button
-          type="text"
-          size="small"
+        <AppButton
+          hierarchy="tertiary"
+          size="sm"
           icon={<EyeOutlined />}
           onClick={() => handleViewDetails(record)}
         >
           {!isMobile && '查看详情'}
-        </Button>
+        </AppButton>
       ),
     },
   ].filter(col => !col.hidden); // 过滤掉隐藏的列
@@ -415,45 +416,45 @@ const FinanceSummaryTable: React.FC<FinanceSummaryTableProps> = ({ onStudentSele
           {/* ✅ 批量操作按钮 */}
           {selectedRowKeys.length > 0 && (
             <>
-              <Button
-                type="primary"
-                ghost
+              <AppButton
+                hierarchy="primary"
+               
                 onClick={handleBatchReminder}
-                size="small"
+                size="sm"
               >
                 收款提醒 ({selectedRowKeys.length})
-              </Button>
-              <Button
+              </AppButton>
+              <AppButton
                 onClick={handleBatchExport}
                 loading={exporting}
-                size="small"
+                size="sm"
               >
                 导出选中
-              </Button>
+              </AppButton>
             </>
           )}
           
           {/* ✅ 新增：从CRM同步按钮 */}
-          <Button
+          <AppButton
             icon={<PlusOutlined />}
             onClick={handleQuickCreateOrder}
             loading={loading}
             style={{ 
-              background: '#52c41a', 
-              borderColor: '#52c41a',
+              background: 'var(--ant-color-success)', 
+              borderColor: 'var(--ant-color-success)',
               color: 'white'
             }}
           >
             {isMobile ? '同步CRM' : '从CRM同步学生'}
-          </Button>
+          </AppButton>
           
-          <Button
+          <AppButton
             icon={<ExportOutlined />}
             onClick={handleExport}
             loading={exporting}
           >
             {isMobile ? '导出' : '导出财务数据'}
-          </Button>
+          </AppButton>
         </Space>
       </div>
 

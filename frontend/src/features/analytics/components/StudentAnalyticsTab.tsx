@@ -1,22 +1,7 @@
+import { Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import React, { useState, useEffect } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Select, 
-  Alert, 
-  Spin, 
-  Empty,
-  Typography,
-  Tag,
-  Statistic,
-  Space,
-  Divider,
-  Progress,
-  List,
-  Avatar,
-  Tooltip
-} from 'antd';
+import { Row, Col, Select, Alert, Spin, Empty, Typography, Tag, Statistic, Space, Divider, Progress, List, Avatar, Tooltip, theme as themeApi } from 'antd';
 import { 
   LineChart, 
   Line, 
@@ -76,18 +61,19 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
   // 主题适配的样式配置
   // ===============================
 
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    positiveColor: theme === 'dark' ? '#52c41a' : '#52c41a',
-    negativeColor: theme === 'dark' ? '#ff7875' : '#ff4d4f'
-  };
+    cardBackground: token.colorBgContainer,
+    borderColor: token.colorBorder,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    positiveColor: token.colorSuccess,
+    negativeColor: token.colorError
+  } as const;
 
   // ===============================
   // 加载学生列表
@@ -205,7 +191,7 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
             <Line
               type="monotone"
               dataKey="正面标签"
-              stroke="#52c41a"
+              stroke="var(--ant-color-success)"
               strokeWidth={isMobile ? 2 : 3}
               dot={{ r: isMobile ? 3 : 4 }}
               name="正面标签"
@@ -213,7 +199,7 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
             <Line
               type="monotone"
               dataKey="需要改进"
-              stroke="#ff7875"
+              stroke="var(--ant-color-error)"
               strokeWidth={isMobile ? 2 : 3}
               dot={{ r: isMobile ? 3 : 4 }}
               name="需要改进"
@@ -435,19 +421,15 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
   // 渲染主要内容
   // ===============================
 
+  const preset = UnifiedCardPresets.desktopDefault(false);
+
   return (
-    <div style={{ padding: '0 24px' }}>
+    <div data-page-container>
       {/* 学生选择器 */}
       <Card
         bordered={false}
-        style={{ 
-          background: themeStyles.cardBackground,
-          borderRadius: '12px',
-          marginBottom: '24px',
-          boxShadow: theme === 'dark' 
-            ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-            : '0 2px 8px rgba(0, 0, 0, 0.1)'
-        }}
+        style={{ ...preset.style, background: themeStyles.cardBackground, marginBottom: 'var(--space-6)' }}
+        styles={preset.styles}
       >
         <Row align="middle" gutter={[16, 0]}>
           <Col span={4}>
@@ -490,7 +472,7 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
             <Col span={12}>
               <Space size="large">
                 <Text style={{ color: themeStyles.textSecondary }}>
-                  分析周期：{growthData.dateRange.startDate} 至 {growthData.dateRange.endDate}
+                  {growthData.dateRange.startDate} 至 {growthData.dateRange.endDate}
                 </Text>
                 <Tag color={themeStyles.primaryColor}>
                   {growthData.studentName}
@@ -516,14 +498,8 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
                   </Space>
                 }
                 bordered={false}
-                style={{ 
-                  background: themeStyles.cardBackground,
-                  borderRadius: '12px',
-                  marginBottom: '24px',
-                  boxShadow: theme === 'dark' 
-                    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}
+                style={{ ...preset.style, background: themeStyles.cardBackground, marginBottom: 'var(--space-6)' }}
+                styles={preset.styles}
               >
                 <div style={{ minHeight: '300px' }}>
                   {renderGrowthTrendChart()}
@@ -543,14 +519,8 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
                   </Space>
                 }
                 bordered={false}
-                style={{ 
-                  background: themeStyles.cardBackground,
-                  borderRadius: '12px',
-                  marginBottom: '24px',
-                  boxShadow: theme === 'dark' 
-                    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}
+                style={{ ...preset.style, background: themeStyles.cardBackground, marginBottom: 'var(--space-6)' }}
+                styles={preset.styles}
               >
                 {renderTopTags()}
               </Card>
@@ -568,13 +538,8 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
                   </Space>
                 }
                 bordered={false}
-                style={{ 
-                  background: themeStyles.cardBackground,
-                  borderRadius: '12px',
-                  boxShadow: theme === 'dark' 
-                    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                    : '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}
+                style={{ ...preset.style, background: themeStyles.cardBackground }}
+                styles={preset.styles}
               >
                 {renderAttendanceSummary()}
               </Card>
@@ -586,12 +551,8 @@ const StudentAnalyticsTab: React.FC<StudentAnalyticsTabProps> = ({
       {!selectedStudentId && !loading && (
         <Card
           bordered={false}
-          style={{ 
-            background: themeStyles.cardBackground,
-            borderRadius: '12px',
-            textAlign: 'center',
-            padding: '60px 20px'
-          }}
+          style={{ ...preset.style, background: themeStyles.cardBackground, textAlign: 'center', padding: 'var(--space-8) var(--space-4)' }}
+          styles={preset.styles}
         >
           <Empty
             description={

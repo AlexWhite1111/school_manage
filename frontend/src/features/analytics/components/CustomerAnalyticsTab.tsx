@@ -1,20 +1,7 @@
+import { Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import React, { useState, useEffect } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Statistic, 
-  Table, 
-  Alert, 
-  Spin, 
-  Empty,
-  Typography,
-  Tag,
-  Progress,
-  Tooltip,
-  Space,
-  Divider
-} from 'antd';
+import { Row, Col, Statistic, Table, Alert, Spin, Empty, Typography, Tag, Progress, Tooltip, Space, Divider, theme as themeApi } from 'antd';
 import { 
   ArrowUpOutlined, 
   ArrowDownOutlined, 
@@ -39,7 +26,9 @@ import type {
   CustomerStatus 
 } from '@/types/api';
 import { useResponsive } from '@/hooks/useResponsive';
+import { getAppTokens } from '@/theme/tokens';
 import { getSourceChannelLabel } from '@/utils/enumMappings';
+import { getFunnelStageColor } from '@/config/analyticsColors';
 
 const { Title, Text } = Typography;
 const { Column } = Table;
@@ -103,24 +92,18 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
   // 主题适配的样式配置
   // ===============================
 
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    funnelColors: [
-      theme === 'dark' ? '#722ed1' : '#9254de',  // 潜在客户
-      theme === 'dark' ? '#1890ff' : '#1890ff',  // 初步沟通
-      theme === 'dark' ? '#13c2c2' : '#13c2c2',  // 意向客户
-      theme === 'dark' ? '#52c41a' : '#52c41a',  // 试课
-      theme === 'dark' ? '#fa8c16' : '#fa8c16',  // 报名
-      theme === 'dark' ? '#ff4d4f' : '#ff7875',  // 流失
-    ]
-  };
+    cardBackground: token.colorBgContainer,
+    borderColor: token.colorBorder,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    // 颜色不再在组件内定义，通过配置按阶段映射
+  } as const;
 
   // ===============================
   // 渲染指标变化
@@ -190,8 +173,8 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
     return (
       <div style={{ padding: isMobile ? '12px' : '20px' }}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          {funnelData.stages.map((stage, index) => {
-            const color = themeStyles.funnelColors[index] || themeStyles.primaryColor;
+          {funnelData.stages.map((stage) => {
+            const color = getFunnelStageColor(stage.stage);
             const widthPercentage = stage.percentage;
             
             return (
@@ -213,7 +196,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
                         percent={widthPercentage} 
                         showInfo={false}
                         strokeColor={color}
-                        trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
+                        trailColor={theme === 'dark' ? 'var(--ant-color-bg-layout)' : 'var(--ant-color-bg-layout)'}
                         strokeWidth={16}
                       />
                     </div>
@@ -255,7 +238,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
                         percent={widthPercentage} 
                         showInfo={false}
                         strokeColor={color}
-                        trailColor={theme === 'dark' ? '#262626' : '#f5f5f5'}
+                        trailColor={token.colorBgLayout}
                         strokeWidth={20}
                       />
                     </Col>
@@ -290,8 +273,8 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
         </Space>
         
         {/* 总体统计 */}
-        <Divider style={{ borderColor: themeStyles.borderColor }} />
-        <Row gutter={[16, 16]}>
+        <Divider style={{ borderColor: themeStyles.borderColor, margin: isMobile ? '12px 0' : undefined }} />
+        <Row gutter={isMobile ? [8, 8] : [16, 16]}>
           <Col xs={24} sm={8}>
             <Statistic
               title="总新增客户"
@@ -358,7 +341,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
         }}
       >
         <Column
-          title="来源渠道"
+          title="来源"
           dataIndex="channel"
           key="channel"
           render={(channel: string) => (
@@ -368,7 +351,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
           )}
         />
         <Column
-          title="客户数量"
+          title="客户"
           dataIndex="customerCount"
           key="customerCount"
           align="center"
@@ -377,7 +360,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
           )}
         />
         <Column
-          title="报名数量"
+          title="报名"
           dataIndex="enrolledCount"
           key="enrolledCount"
           align="center"
@@ -386,7 +369,7 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
           )}
         />
         <Column
-          title="转化率"
+          title="转化"
           dataIndex="conversionRate"
           key="conversionRate"
           align="center"
@@ -426,133 +409,105 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
   // 渲染主要内容
   // ===============================
 
+  const preset = UnifiedCardPresets.mobileCompact(isMobile);
+
   return (
     <Spin spinning={loading} tip="正在加载客户分析数据...">
-      <div style={{ padding: '0 24px' }}>
-        {/* 核心指标卡片 */}
-        <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-          <Col xs={24} sm={12} lg={6}>
-            <Card 
-              bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              <Statistic
-                title={
-                  <Text style={{ color: themeStyles.textSecondary }}>
-                    新增客户
-                  </Text>
-                }
-                value={keyMetrics?.newCustomers.current || 0}
-                prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />}
-                valueStyle={{ color: themeStyles.textPrimary }}
-              />
-              {renderMetricChange(
-                keyMetrics?.newCustomers.current || 0,
-                keyMetrics?.newCustomers.change,
-                keyMetrics?.newCustomers.changePercentage
-              )}
-            </Card>
-          </Col>
-
-          <Col xs={24} sm={12} lg={6}>
-            <Card 
-              bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              <Statistic
-                title={
-                  <Text style={{ color: themeStyles.textSecondary }}>
-                    转化率
-                  </Text>
-                }
-                value={keyMetrics?.conversionRate.current || 0}
-                suffix="%"
-                precision={1}
-                prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />}
-                valueStyle={{ color: themeStyles.textPrimary }}
-              />
-              {renderMetricChange(
-                keyMetrics?.conversionRate.current || 0,
-                keyMetrics?.conversionRate.change,
-                keyMetrics?.conversionRate.changePercentage
-              )}
-            </Card>
-          </Col>
-
-          <Col xs={24} sm={12} lg={6}>
-            <Card 
-              bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              <Statistic
-                title={
-                  <Text style={{ color: themeStyles.textSecondary }}>
-                    平均转化天数
-                  </Text>
-                }
-                value={keyMetrics?.averageConversionDays.current || 0}
-                suffix="天"
-                prefix={<ClockCircleOutlined style={{ color: themeStyles.warningColor }} />}
-                valueStyle={{ color: themeStyles.textPrimary }}
-              />
-              {renderMetricChange(
-                keyMetrics?.averageConversionDays.current || 0,
-                keyMetrics?.averageConversionDays.change,
-                keyMetrics?.averageConversionDays.changePercentage
-              )}
-            </Card>
-          </Col>
-
-          <Col xs={24} sm={12} lg={6}>
-            <Card 
-              bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
-            >
-              <Statistic
-                title={
-                  <Text style={{ color: themeStyles.textSecondary }}>
-                    总收入
-                  </Text>
-                }
-                value={keyMetrics?.totalRevenue?.current || 0}
-                prefix={<DollarOutlined style={{ color: themeStyles.successColor }} />}
-                valueStyle={{ color: themeStyles.textPrimary }}
-              />
-              {keyMetrics?.totalRevenue && renderMetricChange(
-                keyMetrics.totalRevenue.current,
-                keyMetrics.totalRevenue.change,
-                keyMetrics.totalRevenue.changePercentage
-              )}
-            </Card>
-          </Col>
-        </Row>
+      <div data-page-container>
+        {/* 核心指标卡片：移动端合并为单卡片2×2，桌面端保持四卡片 */}
+        {isMobile ? (
+          (() => { const mPreset = UnifiedCardPresets.mobileCompact(isMobile); return (
+          <Card bordered={false} style={{ ...mPreset.style, background: themeStyles.cardBackground, marginBottom: 'var(--space-3)' }} styles={mPreset.styles}>
+            <Row gutter={[8, 8]}>
+              <Col span={12} style={{ paddingBottom: 0 }}>
+                <Statistic
+                  title={<Text style={{ color: themeStyles.textSecondary }}>新增客户</Text>}
+                  value={keyMetrics?.newCustomers.current || 0}
+                  prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />}
+                  valueStyle={{ color: themeStyles.textPrimary, fontSize: '18px' }}
+                />
+                {renderMetricChange(
+                  keyMetrics?.newCustomers.current || 0,
+                  keyMetrics?.newCustomers.change,
+                  keyMetrics?.newCustomers.changePercentage
+                )}
+              </Col>
+              <Col span={12} style={{ paddingBottom: 0 }}>
+                <Statistic
+                  title={<Text style={{ color: themeStyles.textSecondary }}>转化率</Text>}
+                  value={keyMetrics?.conversionRate.current || 0}
+                  suffix="%"
+                  precision={1}
+                  prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />}
+                  valueStyle={{ color: themeStyles.textPrimary, fontSize: '18px' }}
+                />
+                {renderMetricChange(
+                  keyMetrics?.conversionRate.current || 0,
+                  keyMetrics?.conversionRate.change,
+                  keyMetrics?.conversionRate.changePercentage
+                )}
+              </Col>
+              <Col span={12} style={{ paddingBottom: 0 }}>
+                <Statistic
+                  title={<Text style={{ color: themeStyles.textSecondary }}>平均转化天数</Text>}
+                  value={keyMetrics?.averageConversionDays.current || 0}
+                  suffix="天"
+                  prefix={<ClockCircleOutlined style={{ color: themeStyles.warningColor }} />}
+                  valueStyle={{ color: themeStyles.textPrimary, fontSize: '18px' }}
+                />
+                {renderMetricChange(
+                  keyMetrics?.averageConversionDays.current || 0,
+                  keyMetrics?.averageConversionDays.change,
+                  keyMetrics?.averageConversionDays.changePercentage
+                )}
+              </Col>
+              <Col span={12} style={{ paddingBottom: 0 }}>
+                <Statistic
+                  title={<Text style={{ color: themeStyles.textSecondary }}>总收入</Text>}
+                  value={keyMetrics?.totalRevenue?.current || 0}
+                  prefix={<DollarOutlined style={{ color: themeStyles.successColor }} />}
+                  valueStyle={{ color: themeStyles.textPrimary, fontSize: '18px' }}
+                />
+                {keyMetrics?.totalRevenue && renderMetricChange(
+                  keyMetrics.totalRevenue.current,
+                  keyMetrics.totalRevenue.change,
+                  keyMetrics.totalRevenue.changePercentage
+                )}
+              </Col>
+            </Row>
+          </Card>
+          ); })()
+        ) : (
+          <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ ...preset.style, background: themeStyles.cardBackground }} styles={preset.styles}>
+                <Statistic title={<Text style={{ color: themeStyles.textSecondary }}>新增客户</Text>} value={keyMetrics?.newCustomers.current || 0} prefix={<TeamOutlined style={{ color: themeStyles.primaryColor }} />} valueStyle={{ color: themeStyles.textPrimary }} />
+                {renderMetricChange(keyMetrics?.newCustomers.current || 0, keyMetrics?.newCustomers.change, keyMetrics?.newCustomers.changePercentage)}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ ...preset.style, background: themeStyles.cardBackground }} styles={preset.styles}>
+                <Statistic title={<Text style={{ color: themeStyles.textSecondary }}>转化率</Text>} value={keyMetrics?.conversionRate.current || 0} suffix="%" precision={1} prefix={<TrophyOutlined style={{ color: themeStyles.successColor }} />} valueStyle={{ color: themeStyles.textPrimary }} />
+                {renderMetricChange(keyMetrics?.conversionRate.current || 0, keyMetrics?.conversionRate.change, keyMetrics?.conversionRate.changePercentage)}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ ...preset.style, background: themeStyles.cardBackground }} styles={preset.styles}>
+                <Statistic title={<Text style={{ color: themeStyles.textSecondary }}>平均转化天数</Text>} value={keyMetrics?.averageConversionDays.current || 0} suffix="天" prefix={<ClockCircleOutlined style={{ color: themeStyles.warningColor }} />} valueStyle={{ color: themeStyles.textPrimary }} />
+                {renderMetricChange(keyMetrics?.averageConversionDays.current || 0, keyMetrics?.averageConversionDays.change, keyMetrics?.averageConversionDays.changePercentage)}
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ ...preset.style, background: themeStyles.cardBackground }} styles={preset.styles}>
+                <Statistic title={<Text style={{ color: themeStyles.textSecondary }}>总收入</Text>} value={keyMetrics?.totalRevenue?.current || 0} prefix={<DollarOutlined style={{ color: themeStyles.successColor }} />} valueStyle={{ color: themeStyles.textPrimary }} />
+                {keyMetrics?.totalRevenue && renderMetricChange(keyMetrics.totalRevenue.current, keyMetrics.totalRevenue.change, keyMetrics.totalRevenue.changePercentage)}
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         {/* 客户转化漏斗图 */}
-        <Row gutter={[16, 16]}>
+        <Row gutter={isMobile ? [8, 8] : [16, 16]}>
           <Col xs={24} lg={14}>
             <Card
               title={
@@ -564,13 +519,8 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
                 </Space>
               }
               bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
+              style={{ ...preset.style, background: themeStyles.cardBackground }}
+              styles={preset.styles}
             >
               {funnelData ? renderFunnelChart() : (
                 <Empty 
@@ -593,13 +543,8 @@ const CustomerAnalyticsTab: React.FC<CustomerAnalyticsTabProps> = ({
                 </Space>
               }
               bordered={false}
-              style={{ 
-                background: themeStyles.cardBackground,
-                borderRadius: '12px',
-                boxShadow: theme === 'dark' 
-                  ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-                  : '0 2px 8px rgba(0, 0, 0, 0.1)'
-              }}
+              style={{ ...preset.style, background: themeStyles.cardBackground }}
+              styles={preset.styles}
             >
               {channelData ? renderChannelTable() : (
                 <Empty 

@@ -1,16 +1,7 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  Form,
-  Input,
-  Button,
-  message,
-  Divider,
-  Typography,
-  Space,
-  Alert,
-  Switch,
-} from 'antd';
+import { Form, Input, message, Divider, Typography, Space, Alert, Switch, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   UserOutlined,
   MailOutlined,
@@ -190,15 +181,15 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div style={{ 
-      padding: '24px',
-      background: isDark ? '#141414' : '#f5f5f5',
+                    padding: 'var(--space-6)',
+      background: isDark ? 'var(--ant-color-bg-layout)' : '#f5f5f5',
       minHeight: '100vh'
     }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         {/* 页面头部 */}
         <div style={{ marginBottom: 24 }}>
-          <Button
-            type="text"
+          <AppButton
+            hierarchy="tertiary"
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate(-1)}
             style={{ marginBottom: 16 }}
@@ -304,14 +295,14 @@ const ProfilePage: React.FC = () => {
               </Form.Item>
 
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
+                <AppButton
+                  hierarchy="primary"
+                  type="submit"
                   loading={loading}
                   style={{ width: '120px' }}
                 >
                   {loading ? '保存中...' : '保存修改'}
-                </Button>
+                </AppButton>
               </Form.Item>
             </Form>
           </Card>
@@ -382,15 +373,15 @@ const ProfilePage: React.FC = () => {
               </Form.Item>
 
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
+                <AppButton
+                  hierarchy="primary"
+                  type="submit"
                   loading={passwordLoading}
                   danger
                   style={{ width: '120px' }}
                 >
                   {passwordLoading ? '修改中...' : '确认修改密码'}
-                </Button>
+                </AppButton>
               </Form.Item>
             </Form>
           </Card>

@@ -1,33 +1,9 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-  Card,
-  Row,
-  Col,
-  Table,
-  Input,
-  Button,
-  Space,
-  Tag,
-  Statistic,
-  Typography,
-  Alert,
-  Spin,
-  Empty,
-  Progress,
-  InputNumber,
-  Switch,
-  Checkbox,
-  Tooltip,
-  Divider,
-  Badge,
-  message,
-  Select,
-  Popover,
-  Form,
-  Modal,
-  List
-} from 'antd';
+import { Row, Col, Table, Input, Space, Tag, Statistic, Typography, Alert, Spin, Empty, Progress, InputNumber, Switch, Checkbox, Tooltip, Divider, Badge, message, Select, Popover, Form, Modal, List, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   ArrowLeftOutlined,
   SaveOutlined,
@@ -49,7 +25,7 @@ import {
 } from '@ant-design/icons';
 import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
-import { App } from 'antd';
+import { App, theme as themeApi } from 'antd';
 import * as examApi from '@/api/examApi';
 import * as studentLogApi from '@/api/studentLogApi';
 import ExamTagManagerModal from '@/components/exam/ExamTagManagerModal';
@@ -154,16 +130,17 @@ const ExamDetailPage: React.FC = () => {
   // ===============================
   // 主题适配样式
   // ===============================
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-  };
+    cardBackground: token.colorBgContainer,
+    borderColor: token.colorBorder,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+  } as const;
 
   // ===============================
   // 数据加载
@@ -544,7 +521,7 @@ const ExamDetailPage: React.FC = () => {
             padding: isMobile ? '6px' : '8px',
             border: `1px solid ${themeStyles.borderColor}`,
             borderRadius: '6px',
-            background: theme === 'dark' ? '#1f1f1f' : '#fafafa'
+            background: theme === 'dark' ? 'var(--ant-color-bg-container)' : '#fafafa'
           }}>
             {positiveExamTags.map(tag => (
               <Tag.CheckableTag
@@ -583,7 +560,7 @@ const ExamDetailPage: React.FC = () => {
             padding: isMobile ? '6px' : '8px',
             border: `1px solid ${themeStyles.borderColor}`,
             borderRadius: '6px',
-            background: theme === 'dark' ? '#1f1f1f' : '#fafafa'
+            background: theme === 'dark' ? 'var(--ant-color-bg-container)' : '#fafafa'
           }}>
             {negativeExamTags.map(tag => (
               <Tag.CheckableTag
@@ -617,14 +594,14 @@ const ExamDetailPage: React.FC = () => {
           paddingTop: isMobile ? '8px' : '12px',
           borderTop: `1px solid ${themeStyles.borderColor}`
         }}>
-          <Button
-            type="primary"
+          <AppButton
+            hierarchy="primary"
             size={isMobile ? "middle" : "small"}
             onClick={handleComplete}
             style={{ minWidth: isMobile ? '100px' : '80px' }}
           >
             完成选择
-          </Button>
+          </AppButton>
         </div>
       </div>
     );
@@ -646,10 +623,10 @@ const ExamDetailPage: React.FC = () => {
           maxWidth: isMobile ? '90vw' : '600px',
           minWidth: isMobile ? '300px' : '500px'
         }}
-        styles={{ body: { padding: isMobile ? '12px' : '16px' } }}
+        styles={{ body: { padding: isMobile ? 'var(--space-3)' : 'var(--space-4)' } }}
       >
-        <Button
-          type="text"
+        <AppButton
+          hierarchy="tertiary"
           icon={<TagsOutlined />}
           size="small"
           onClick={() => setPopoverVisible(enrollmentId, subject, true)}
@@ -658,7 +635,7 @@ const ExamDetailPage: React.FC = () => {
           }}
         >
           词条 {selectedTags.length > 0 && <Badge count={selectedTags.length} size="small" />}
-        </Button>
+        </AppButton>
       </Popover>
     );
   };
@@ -771,8 +748,8 @@ const ExamDetailPage: React.FC = () => {
         fixed: 'right' as const,
         width: 100,
         render: (_: any, record: any) => (
-          <Button
-            type="text"
+          <AppButton
+            hierarchy="tertiary"
             icon={<EditOutlined />}
             size="small"
             onClick={() => {
@@ -780,7 +757,7 @@ const ExamDetailPage: React.FC = () => {
             }}
           >
             编辑
-          </Button>
+          </AppButton>
         )
       }
     ];
@@ -793,7 +770,7 @@ const ExamDetailPage: React.FC = () => {
   // ===============================
   if (loading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
+      <div style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
         <Spin size="large" />
         <div style={{ marginTop: 16 }}>
           <Text type="secondary">加载考试详情中...</Text>
@@ -804,7 +781,7 @@ const ExamDetailPage: React.FC = () => {
 
   if (error || !examData) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div style={{ padding: 'var(--space-6)' }}>
         <Alert
           message="加载失败"
           description={error || '考试数据不存在'}
@@ -812,8 +789,8 @@ const ExamDetailPage: React.FC = () => {
           showIcon
           action={
             <Space>
-              <Button size="small" onClick={() => loadExamData()}>重试</Button>
-              <Button size="small" icon={<ArrowLeftOutlined />} onClick={() => handleBack()} />
+              <AppButton size="sm" onClick={() => loadExamData()}>重试</AppButton>
+              <AppButton size="sm" icon={<ArrowLeftOutlined />} onClick={() => handleBack()} />
             </Space>
           }
         />
@@ -827,25 +804,26 @@ const ExamDetailPage: React.FC = () => {
   // 渲染统计分析
   const renderStatistics = () => {
     if (statisticsLoading) {
-      return (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
+    return (
+      <div style={{ textAlign: 'center', padding: 'var(--space-7)' }}>
           <Spin size="large" />
-          <div style={{ marginTop: '16px' }}>正在加载统计分析数据...</div>
+          <div style={{ marginTop: 'var(--space-4)' }}>正在加载统计分析数据...</div>
         </div>
       );
     }
 
     if (!statisticsData) {
       return (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
+        <div style={{ textAlign: 'center', padding: 'var(--space-7)' }}>
           <Empty description="暂无统计分析数据" />
         </div>
       );
     }
 
     return (
-      <div style={{ padding: '16px' }}>
-        <Card size="small" style={{ marginBottom: '16px' }}>
+      <div data-page-container>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card size="small" style={{ ...preset.style, marginBottom: 'var(--space-4)' }} styles={preset.styles}>
           <Title level={4}>
             {statisticsData.exam.name} - 统计分析报告
           </Title>
@@ -855,9 +833,11 @@ const ExamDetailPage: React.FC = () => {
             班级：{statisticsData.exam.class?.name}
           </Text>
         </Card>
+        ); })()}
 
         {/* 整体概览 */}
-        <Card title={<><BarChartOutlined /> 整体概览</>} size="small" style={{ marginBottom: '16px' }}>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card title={<><BarChartOutlined /> 整体概览</>} size="small" style={{ ...preset.style, marginBottom: 'var(--space-4)' }} styles={preset.styles}>
           <Row gutter={[16, 16]}>
             <Col xs={12} sm={6}>
               <Statistic
@@ -871,7 +851,7 @@ const ExamDetailPage: React.FC = () => {
                 title="参与人数"
                 value={statisticsData.overview.participantCount}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#3f8600' }}
+                valueStyle={{ color: 'var(--ant-color-success)' }}
               />
             </Col>
             <Col xs={12} sm={6}>
@@ -880,8 +860,8 @@ const ExamDetailPage: React.FC = () => {
                 value={statisticsData.overview.participationRate}
                 suffix="%"
                 valueStyle={{
-                  color: statisticsData.overview.participationRate >= 90 ? '#3f8600' :
-                         statisticsData.overview.participationRate >= 70 ? '#faad14' : '#cf1322'
+                  color: statisticsData.overview.participationRate >= 90 ? 'var(--ant-color-success)' :
+                         statisticsData.overview.participationRate >= 70 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)'
                 }}
               />
             </Col>
@@ -889,14 +869,15 @@ const ExamDetailPage: React.FC = () => {
               <Statistic
                 title="缺考人数"
                 value={statisticsData.overview.absentCount}
-                valueStyle={{ color: statisticsData.overview.absentCount > 0 ? '#cf1322' : '#3f8600' }}
+                valueStyle={{ color: statisticsData.overview.absentCount > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)' }}
               />
             </Col>
           </Row>
-        </Card>
+        </Card> ); })()}
 
         {/* 科目分析 */}
-        <Card title={<><BookOutlined /> 科目分析</>} size="small" style={{ marginBottom: '16px' }}>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card title={<><BookOutlined /> 科目分析</>} size="small" style={{ ...preset.style, marginBottom: 'var(--space-4)' }} styles={preset.styles}>
           <Table
             dataSource={statisticsData.subjectAnalysis}
             columns={[
@@ -917,7 +898,7 @@ const ExamDetailPage: React.FC = () => {
                 key: 'average',
                 render: (value: number) => (
                   <Text style={{
-                    color: value >= 80 ? '#52c41a' : value >= 60 ? '#faad14' : '#ff4d4f'
+                    color: value >= 80 ? 'var(--ant-color-success)' : value >= 60 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)'
                   }}>
                     {value.toFixed(1)}
                   </Text>
@@ -934,76 +915,80 @@ const ExamDetailPage: React.FC = () => {
             pagination={false}
             size="small"
           />
-        </Card>
+        </Card> ); })()}
 
         {/* 考试表现词云 */}
-        {statisticsData.tagAnalysis && statisticsData.tagAnalysis.topTags && statisticsData.tagAnalysis.topTags.length > 0 && (
-          <Card
-            title={
-              <Space>
-                <TagsOutlined />
-                <span>考试表现词云</span>
-                <Tooltip title="基于考试成绩标签的表现分析，显示学生整体表现特征">
-                  <Text type="secondary" style={{ fontSize: '12px' }}>(共{statisticsData.tagAnalysis.totalTags}个标签)</Text>
-                </Tooltip>
-              </Space>
-            }
-            size="small"
-            style={{ marginBottom: '16px' }}
-          >
-            <div style={{ minHeight: '200px' }}>
-               <ExamWordCloud
-                 data={statisticsData.tagAnalysis.topTags.slice(0, 10).map((tag: any) => ({
-                   text: tag.text,
-                   value: tag.count,
-                   type: tag.type === 'EXAM_POSITIVE' ? 'positive' : 'negative'
-                 }))}
-                 loading={statisticsLoading}
-               />
-             </div>
+        {statisticsData.tagAnalysis && statisticsData.tagAnalysis.topTags && statisticsData.tagAnalysis.topTags.length > 0 && (() => {
+          const preset = UnifiedCardPresets.desktopDefault(isMobile);
+          return (
+            <Card
+              title={
+                <Space>
+                  <TagsOutlined />
+                  <span>考试表现词云</span>
+                  <Tooltip title="基于考试成绩标签的表现分析，显示学生整体表现特征">
+                    <Text type="secondary" style={{ fontSize: '12px' }}>(共{statisticsData.tagAnalysis.totalTags}个标签)</Text>
+                  </Tooltip>
+                </Space>
+              }
+              size="small"
+              style={{ ...preset.style, marginBottom: 'var(--space-4)' }}
+              styles={preset.styles}
+            >
+              <div style={{ minHeight: '200px' }}>
+                <ExamWordCloud
+                  data={statisticsData.tagAnalysis.topTags.slice(0, 10).map((tag: any) => ({
+                    text: tag.text,
+                    value: tag.count,
+                    type: tag.type === 'EXAM_POSITIVE' ? 'positive' : 'negative'
+                  }))}
+                  loading={statisticsLoading}
+                />
+              </div>
 
-            {/* 词云统计信息 */}
-            <Divider />
-            <Row gutter={[16, 8]}>
-              <Col xs={12} sm={6}>
-                <Statistic
-                  title="正面标签"
-                  value={statisticsData.tagAnalysis.positiveCount}
-                  valueStyle={{ color: '#52c41a' }}
-                  prefix={<SmileOutlined />}
-                />
-              </Col>
-              <Col xs={12} sm={6}>
-                <Statistic
-                  title="待改进标签"
-                  value={statisticsData.tagAnalysis.negativeCount}
-                  valueStyle={{ color: '#faad14' }}
-                  prefix={<FrownOutlined />}
-                />
-              </Col>
-              <Col xs={12} sm={6}>
-                <Statistic
-                  title="标签总数"
-                  value={statisticsData.tagAnalysis.totalTags}
-                  prefix={<TagsOutlined />}
-                />
-              </Col>
-              <Col xs={12} sm={6}>
-                <Statistic
-                  title="正面比例"
-                  value={statisticsData.tagAnalysis.totalTags > 0 ?
-                    Math.round((statisticsData.tagAnalysis.positiveCount / statisticsData.tagAnalysis.totalTags) * 100) : 0}
-                  suffix="%"
-                  valueStyle={{
-                    color: statisticsData.tagAnalysis.totalTags > 0 &&
-                           (statisticsData.tagAnalysis.positiveCount / statisticsData.tagAnalysis.totalTags) >= 0.6 ?
-                           '#52c41a' : '#faad14'
-                  }}
-                />
-              </Col>
-            </Row>
-          </Card>
-        )}
+              {/* 词云统计信息 */}
+              <Divider />
+              <Row gutter={[16, 8]}>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="正面标签"
+                    value={statisticsData.tagAnalysis.positiveCount}
+                    valueStyle={{ color: 'var(--ant-color-success)' }}
+                    prefix={<SmileOutlined />}
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="待改进标签"
+                    value={statisticsData.tagAnalysis.negativeCount}
+                    valueStyle={{ color: 'var(--ant-color-warning)' }}
+                    prefix={<FrownOutlined />}
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="标签总数"
+                    value={statisticsData.tagAnalysis.totalTags}
+                    prefix={<TagsOutlined />}
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="正面比例"
+                    value={statisticsData.tagAnalysis.totalTags > 0 ?
+                      Math.round((statisticsData.tagAnalysis.positiveCount / statisticsData.tagAnalysis.totalTags) * 100) : 0}
+                    suffix="%"
+                    valueStyle={{
+                      color: statisticsData.tagAnalysis.totalTags > 0 &&
+                             (statisticsData.tagAnalysis.positiveCount / statisticsData.tagAnalysis.totalTags) >= 0.6 ?
+                             'var(--ant-color-success)' : 'var(--ant-color-warning)'
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          );
+        })()}
 
         <Alert
           message="统计分析说明"
@@ -1017,7 +1002,7 @@ const ExamDetailPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '24px', position: 'relative' }}>
+    <div data-page-container style={{ position: 'relative' }}>
       {softReloading && (
         <div
           style={{
@@ -1030,9 +1015,9 @@ const ExamDetailPage: React.FC = () => {
             gap: 8,
             background: theme === 'dark' ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.9)',
             border: `1px solid ${themeStyles.borderColor}`,
-            borderRadius: 6,
-            padding: '6px 10px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            borderRadius: 'var(--radius-sm)',
+            padding: 'var(--space-2) var(--space-3)',
+            boxShadow: 'var(--app-card-shadow)'
           }}
         >
           <Spin size="small" />
@@ -1043,7 +1028,7 @@ const ExamDetailPage: React.FC = () => {
         {/* 页面头部 */}
         <div>
           <Space style={{ marginBottom: 16 }}>
-            <Button
+            <AppButton
               icon={<ArrowLeftOutlined />}
               onClick={handleBack}
               type="text"
@@ -1115,7 +1100,8 @@ const ExamDetailPage: React.FC = () => {
         </Card>
 
         {/* 操作工具栏 */}
-        <Card size="small">
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card size="small" style={preset.style} styles={preset.styles}>
           <Row justify="space-between" align="middle">
             <Col>
               <Space>
@@ -1137,20 +1123,20 @@ const ExamDetailPage: React.FC = () => {
               <Space>
                 {editingMode && pendingChanges.size > 0 && (
                   <>
-                    <Button onClick={handleDiscardChanges}>
+                    <AppButton onClick={handleDiscardChanges}>
                       取消更改
-                    </Button>
-                    <Button
-                      type="primary"
+                    </AppButton>
+                    <AppButton
+                      hierarchy="primary"
                       icon={<SaveOutlined />}
                       loading={saving}
                       onClick={handleSaveChanges}
                     >
                       保存成绩 ({pendingChanges.size})
-                    </Button>
+                    </AppButton>
                   </>
                 )}
-                <Button
+                <AppButton
                   icon={<BarChartOutlined />}
                   onClick={() => {
                     const statisticsElement = document.getElementById('exam-statistics');
@@ -1160,20 +1146,22 @@ const ExamDetailPage: React.FC = () => {
                   }}
                 >
                   查看分析
-                </Button>
-                <Button
+                </AppButton>
+                <AppButton
                   icon={<TagsOutlined />}
                   onClick={() => setTagManagerVisible(true)}
                 >
                   管理标签
-                </Button>
+                </AppButton>
               </Space>
             </Col>
           </Row>
         </Card>
+        ); })()}
 
         {/* 搜索和筛选控制区 */}
-        <Card size="small" style={{ marginBottom: '16px' }}>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card size="small" style={{ ...preset.style, marginBottom: 'var(--space-4)' }} styles={preset.styles}>
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={8} md={6}>
               <Space direction="vertical" size={0} style={{ width: '100%' }}>
@@ -1208,17 +1196,17 @@ const ExamDetailPage: React.FC = () => {
               <Space direction="vertical" size={0} style={{ width: '100%' }}>
                 <Text type="secondary" style={{ fontSize: '12px' }}>快速操作</Text>
                 <Space>
-                  <Button
-                    size="small"
+                  <AppButton
+                    size="sm"
                     onClick={() => {
                       setStudentSearchText('');
                       setSelectedSubjectFilter('all');
                     }}
                   >
                     清除筛选
-                  </Button>
-                  <Button
-                    size="small"
+                  </AppButton>
+                  <AppButton
+                    size="sm"
                     icon={<BarChartOutlined />}
                     onClick={() => {
                       const statsElement = document.getElementById('subject-statistics');
@@ -1228,14 +1216,16 @@ const ExamDetailPage: React.FC = () => {
                     }}
                   >
                     查看统计
-                  </Button>
+                  </AppButton>
                 </Space>
               </Space>
             </Col>
           </Row>
         </Card>
+        ); })()}
 
         {/* 成绩录入表格 */}
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card
           title={
             <Space>
@@ -1247,6 +1237,8 @@ const ExamDetailPage: React.FC = () => {
             </Space>
           }
           size="small"
+          style={preset.style}
+          styles={preset.styles}
         >
 
 
@@ -1287,6 +1279,7 @@ const ExamDetailPage: React.FC = () => {
             )}
           />
         </Card>
+        ); })()}
 
         {/* 科目统计 */}
         <Card
@@ -1354,6 +1347,7 @@ const ExamDetailPage: React.FC = () => {
         </Card>
 
         {/* 统计分析 */}
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card
           id="exam-statistics"
           title={
@@ -1363,9 +1357,10 @@ const ExamDetailPage: React.FC = () => {
             </Space>
           }
           size="small"
+          style={{ ...preset.style }} styles={preset.styles}
         >
           {renderStatistics()}
-        </Card>
+        </Card> ); })()}
       </Space>
 
       {/* 标签管理Modal */}

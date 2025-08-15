@@ -1,8 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { 
-  Modal, Input, Select, Button, Table, Tag, message, Space, Divider, 
-  Typography, Popconfirm, Switch, Tooltip, Badge, Alert 
-} from 'antd';
+import { Modal, Input, Select, Table, Tag, message, Space, Divider, Typography, Popconfirm, Switch, Tooltip, Badge, Alert } from 'antd';
 import { 
   PlusOutlined, DeleteOutlined, RedoOutlined, ExclamationCircleOutlined, 
   EyeOutlined, EyeInvisibleOutlined 
@@ -189,7 +187,7 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
       key: 'usageCount',
       width: '10%',
       render: (count: number) => (
-        <Badge count={count} showZero color="#faad14" />
+        <Badge count={count} showZero color="var(--ant-color-warning)" />
       )
     },
     {
@@ -229,14 +227,14 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
               okText="确定"
               cancelText="取消"
             >
-              <Button 
-                type="link" 
-                size="small" 
+              <AppButton 
+                hierarchy="link" 
+                size="sm" 
                 icon={<RedoOutlined />}
                 loading={restoring}
               >
                 恢复
-              </Button>
+              </AppButton>
             </Popconfirm>
           );
         }
@@ -252,15 +250,15 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
             okText="确定"
             cancelText="取消"
           >
-            <Button 
-              type="link" 
+            <AppButton 
+              hierarchy="link" 
               danger 
-              size="small" 
+              size="sm" 
               icon={<DeleteOutlined />}
               loading={deleting}
             >
               删除
-            </Button>
+            </AppButton>
           </Popconfirm>
         );
       }
@@ -296,9 +294,9 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
       onCancel={handleClose}
       width={1200}
       footer={[
-        <Button key="close" onClick={handleClose}>
+        <AppButton key="close" onClick={handleClose}>
           关闭
-        </Button>
+        </AppButton>
       ]}
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
@@ -314,12 +312,12 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
         {/* 创建新标签区域 */}
         <div style={{ 
           padding: '16px', 
-          backgroundColor: '#fafafa', 
+                        backgroundColor: 'var(--ant-color-bg-layout)', 
           borderRadius: '6px',
           border: '1px solid #f0f0f0'
         }}>
           <Title level={5} style={{ margin: '0 0 12px 0' }}>
-            <PlusOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+  <PlusOutlined style={{ marginRight: 'var(--space-2)', color: 'var(--ant-color-primary)' }} />
             创建新考试标签
           </Title>
           
@@ -346,14 +344,14 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
               maxLength={20}
             />
             
-            <Button 
-              type="primary" 
+            <AppButton 
+              hierarchy="primary" 
               onClick={handleCreate}
               loading={creating}
               icon={<PlusOutlined />}
             >
               创建
-            </Button>
+            </AppButton>
           </Space.Compact>
         </div>
 
@@ -365,20 +363,20 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            marginBottom: '16px'
+  marginBottom: 'var(--space-4)'
           }}>
             <Space>
               <Title level={5} style={{ margin: 0 }}>
                 考试标签列表 
                 <Badge 
                   count={filteredTags.length} 
-                  style={{ marginLeft: '8px' }}
-                  color="#1890ff"
+  style={{ marginLeft: 'var(--space-2)' }}
+                  color="var(--ant-color-primary)"
                 />
               </Title>
               
               <Tooltip title="刷新考试标签列表">
-                <Button 
+                <AppButton 
                   icon={<RedoOutlined />} 
                   onClick={refreshTags}
                   loading={refreshing}
@@ -408,14 +406,14 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
                       okText="确定"
                       cancelText="取消"
                     >
-                      <Button 
+                      <AppButton 
                         danger 
                         icon={<DeleteOutlined />}
                         loading={deleting}
                         size="small"
                       >
                         批量删除 ({selectedRowKeys.length})
-                      </Button>
+                      </AppButton>
                     </Popconfirm>
                   )}
 
@@ -426,14 +424,14 @@ const ExamTagManager: React.FC<ExamTagManagerProps> = ({
                       okText="确定"
                       cancelText="取消"
                     >
-                      <Button 
-                        type="primary"
+                      <AppButton 
+                        hierarchy="primary"
                         icon={<RedoOutlined />}
                         loading={restoring}
                         size="small"
                       >
                         批量恢复 ({selectedRowKeys.length})
-                      </Button>
+                      </AppButton>
                     </Popconfirm>
                   )}
                 </Space>

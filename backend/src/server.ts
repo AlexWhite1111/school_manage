@@ -59,6 +59,7 @@ async function startServer() {
       console.log(`📍 Server is running on http://${HOST}:${PORT}`);
       console.log(`🏠 Local access: http://localhost:${PORT}`);
       console.log(`🔐 JWT Secret FP: ${getJwtSecretFingerprint()}${isUsingDefaultJwtSecret() ? ' (DEFAULT!)' : ''}`);
+      console.log(`⏱️  JWT Access TTL: ${process.env.JWT_EXPIRES_IN || '7d'}`);
       
       // Display all available network IPs
       if (networkIPs.length > 0) {

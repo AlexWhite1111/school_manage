@@ -1,27 +1,7 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  InputNumber,
-  Row,
-  Col,
-  Table,
-  Button,
-  Tag,
-  Space,
-  Typography,
-  Card,
-  Statistic,
-  Divider,
-  List,
-  Badge,
-  Tooltip,
-  Progress,
-    Collapse,
-} from 'antd';
+import { Modal, Form, Input, Select, InputNumber, Row, Col, Table, Tag, Space, Typography, Card, Statistic, Divider, List, Badge, Tooltip, Progress, Collapse, DatePicker } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import {
   BookOutlined,
   TrophyOutlined,
@@ -41,7 +21,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 const { Search } = Input;
 const { Text, Title } = Typography;
-const { RangePicker } = DatePicker;
+ 
 const { Panel } = Collapse;
 
 // 科目中文映射
@@ -116,7 +96,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
     <Modal
       title={
         <Space>
-          <BookOutlined style={{ color: '#52c41a' }} />
+          <BookOutlined style={{ color: 'var(--ant-color-success)' }} />
           <span>为班级"{className}"创建考试</span>
         </Space>
       }
@@ -169,7 +149,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
               initialValue={dayjs()}
             >
               <DatePicker 
-                style={{ width: '100%' }}
+                className="w-full"
                 placeholder="选择考试日期"
               />
             </Form.Item>
@@ -330,11 +310,11 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
       onClick={() => onExamClick(exam)}
       actions={[
         <Tooltip title="查看详情">
-          <Button type="text" icon={<BarChartOutlined />} />
+          <AppButton hierarchy="tertiary" icon={<BarChartOutlined />} />
         </Tooltip>,
         <Tooltip title="删除考试">
-          <Button 
-            type="text" 
+          <AppButton 
+            hierarchy="tertiary" 
             danger 
             onClick={(e) => {
               e.stopPropagation();
@@ -342,7 +322,7 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
             }}
           >
             删除
-          </Button>
+          </AppButton>
         </Tooltip>
       ]}
     >
@@ -412,7 +392,7 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
     <Modal
       title={
         <Space>
-          <BarChartOutlined style={{ color: '#1890ff' }} />
+          <BarChartOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <span>班级"{className}"往期考试</span>
           <Badge count={exams.length} showZero />
         </Space>
@@ -420,9 +400,9 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
       open={open}
       onCancel={onCancel}
       footer={[
-        <Button key="close" onClick={onCancel}>
+        <AppButton key="close" onClick={onCancel}>
           关闭
-        </Button>
+        </AppButton>
       ]}
       width={900}
       style={{ top: 20 }}
@@ -436,7 +416,7 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
             key: 'search',
             label: (
               <Space>
-                <SearchOutlined style={{ color: '#1890ff' }} />
+                <SearchOutlined style={{ color: 'var(--ant-color-primary)' }} />
                 <span style={{ fontWeight: 500 }}>搜索过滤</span>
                 <Text type="secondary" style={{ fontSize: '12px' }}>
                   {(searchName || searchExamType || searchDateRange) ? '已设置过滤条件' : '点击展开搜索选项'}
@@ -481,34 +461,33 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
                 <Col xs={24} sm={24} md={8}>
                   <Space direction="vertical" size={2} style={{ width: '100%' }}>
                     <Text type="secondary" style={{ fontSize: '12px' }}>考试时间</Text>
-                    <RangePicker
+                    <UnifiedRangePicker
                       placeholder={['开始日期', '结束日期']}
                       value={searchDateRange}
                       onChange={setSearchDateRange}
                       size="small"
                       style={{ width: '100%' }}
-                      format="YYYY-MM-DD"
                     />
                   </Space>
                 </Col>
                 
                 <Col span={24}>
                   <Space>
-                    <Button 
-                      type="primary" 
-                      size="small" 
+                    <AppButton 
+                      hierarchy="primary" 
+                      size="sm" 
                       icon={<SearchOutlined />}
                       onClick={handleSearch}
                     >
                       搜索
-                    </Button>
-                    <Button 
-                      size="small" 
+                    </AppButton>
+                    <AppButton 
+                      size="sm" 
                       icon={<ClearOutlined />}
                       onClick={handleClearSearch}
                     >
                       清空
-                    </Button>
+                    </AppButton>
                     <Text type="secondary" style={{ fontSize: '11px' }}>
                       共找到 {exams.length} 场考试
                     </Text>
@@ -523,7 +502,7 @@ export const ExamHistoryModal: React.FC<ExamHistoryModalProps> = ({
       <div style={{ maxHeight: '55vh', overflowY: 'auto' }}>
         {exams.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <BookOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
+            <BookOutlined style={{ fontSize: 48, color: 'var(--ant-color-border)' }} />
             <div style={{ marginTop: 16 }}>
               <Text type="secondary">暂无考试记录</Text>
             </div>

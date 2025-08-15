@@ -1,20 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  List,
-  Tag,
-  Typography,
-  Space,
-  Button,
-  message,
-  Empty,
-  Card,
-  Badge,
-  Tooltip
-} from 'antd';
+import { Row, Col, Statistic, Progress, List, Tag, Typography, Space, message, Empty, Badge, Tooltip, Card } from 'antd';
 import {
   RiseOutlined,
   FallOutlined,
@@ -27,7 +13,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-import ProjectCard from '@/components/ui/ProjectCard';
+
 import { GrowthApi } from '@/api/growthApi';
 import type { GrowthSummary } from '@/api/growthApi';
 
@@ -79,12 +65,12 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
     switch (direction) {
       case 'UP':
       case 'IMPROVING':
-        return <RiseOutlined style={{ color: '#52c41a' }} />;
+        return <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />;
       case 'DOWN':
       case 'DECLINING':
-        return <FallOutlined style={{ color: '#ff4d4f' }} />;
+        return <FallOutlined style={{ color: 'var(--ant-color-error)' }} />;
       default:
-        return <MinusOutlined style={{ color: '#fa8c16' }} />;
+        return <MinusOutlined style={{ color: 'var(--ant-color-warning)' }} />;
     }
   };
 
@@ -118,25 +104,25 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
 
   if (loading) {
     return (
-      <ProjectCard 
+      <Card 
         title={
           <Space>
             <BarChartOutlined />
             <Title level={4} style={{ margin: 0 }}>成长分析</Title>
           </Space>
         }
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: 'var(--space-6)' }}
       >
         <div style={{ textAlign: 'center', padding: '40px' }}>
           <Text type="secondary">正在加载成长分析数据...</Text>
         </div>
-      </ProjectCard>
+      </Card>
     );
   }
 
   if (error || !summary) {
     return (
-      <ProjectCard 
+      <Card 
         title={
           <Space>
             <BarChartOutlined />
@@ -144,21 +130,21 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
           </Space>
         }
         extra={
-          <Button 
+          <AppButton 
             icon={<ReloadOutlined />} 
             onClick={fetchGrowthSummary}
             size="small"
           >
             重试
-          </Button>
+          </AppButton>
         }
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: 'var(--space-6)' }}
       >
         <Empty 
           description={error || "暂无成长分析数据"}
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
-      </ProjectCard>
+      </Card>
     );
   }
 
@@ -171,14 +157,14 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
   return (
     <div>
       {/* 成长概览统计 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
         <Col xs={24} sm={12} md={6}>
           <Card size="small">
             <Statistic
               title="成长状态总数"
               value={summary.states.length}
               prefix={<ThunderboltOutlined />}
-              valueStyle={{ color: '#1677ff' }}
+              valueStyle={{ color: 'var(--ant-color-primary)' }}
             />
           </Card>
         </Col>
@@ -188,7 +174,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
               title="正面表现"
               value={positiveStates.length}
               prefix={<RiseOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               suffix="项"
             />
           </Card>
@@ -199,7 +185,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
               title="需要关注"
               value={negativeStates.length}
               prefix={<FallOutlined />}
-              valueStyle={{ color: '#ff4d4f' }}
+              valueStyle={{ color: 'var(--ant-color-error)' }}
               suffix="项"
             />
           </Card>
@@ -212,8 +198,8 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
               suffix="%"
               prefix={<TrophyOutlined />}
               valueStyle={{ 
-                color: avgConfidence >= 0.7 ? '#52c41a' : 
-                       avgConfidence >= 0.5 ? '#fa8c16' : '#ff4d4f' 
+                color: avgConfidence >= 0.7 ? 'var(--ant-color-success)' : 
+                       avgConfidence >= 0.5 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)' 
               }}
             />
           </Card>
@@ -221,14 +207,14 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
       </Row>
 
       {/* 整体趋势展示 */}
-      <ProjectCard 
+      <Card 
         title={
           <Space>
             <LineChartOutlined />
             <Title level={5} style={{ margin: 0 }}>整体成长趋势</Title>
           </Space>
         }
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: 'var(--space-6)' }}
       >
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <Space direction="vertical" size="large">
@@ -240,8 +226,8 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
                   <Text style={{ 
                     fontSize: '18px', 
                     fontWeight: 'bold',
-                    color: summary.overallTrend === 'IMPROVING' ? '#52c41a' : 
-                           summary.overallTrend === 'DECLINING' ? '#ff4d4f' : '#fa8c16'
+                    color: summary.overallTrend === 'IMPROVING' ? 'var(--ant-color-success)' : 
+                           summary.overallTrend === 'DECLINING' ? 'var(--ant-color-error)' : 'var(--ant-color-warning)'
                   }}>
                     {summary.overallTrend === 'IMPROVING' ? '🚀 持续进步' : 
                      summary.overallTrend === 'DECLINING' ? '⚠️ 需要关注' : '📊 保持稳定'}
@@ -256,17 +242,17 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
             )}
           </Space>
         </div>
-      </ProjectCard>
+      </Card>
 
       {/* 详细标签表现 */}
-      <ProjectCard 
+      <Card 
         title={
           <Space>
             <BarChartOutlined />
             <Title level={5} style={{ margin: 0 }}>标签表现详情</Title>
           </Space>
         }
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: 'var(--space-6)' }}
       >
         {summary.states.length === 0 ? (
           <Empty description="暂无成长数据" />
@@ -305,7 +291,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
                     status={getProgressStatus(item.trendDirection) as any}
                     showInfo={false}
                   />
-                  <Text style={{ fontSize: '11px', color: '#666' }}>
+                  <Text style={{ fontSize: '11px', color: 'var(--ant-color-text-tertiary)' }}>
                     水平指数: {Math.round(item.level * 10)}
                   </Text>
                 </div>
@@ -313,11 +299,11 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
             )}
           />
         )}
-      </ProjectCard>
+      </Card>
 
       {/* 成长建议 */}
       {summary.states.length > 0 && (
-        <ProjectCard 
+        <Card 
           title={
             <Space>
               <TrophyOutlined />
@@ -329,7 +315,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
             {positiveStates.length > 0 && (
               <List.Item>
                 <Space>
-                  <RiseOutlined style={{ color: '#52c41a' }} />
+                  <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />
                   <Text>
                     <Text strong>优势领域:</Text> 在 {positiveStates.map(s => s.tagName).join('、')} 方面表现良好，继续保持！
                   </Text>
@@ -339,7 +325,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
             {negativeStates.length > 0 && (
               <List.Item>
                 <Space>
-                  <FallOutlined style={{ color: '#ff4d4f' }} />
+                  <FallOutlined style={{ color: 'var(--ant-color-error)' }} />
                   <Text>
                     <Text strong>改进建议:</Text> 在 {negativeStates.map(s => s.tagName).join('、')} 方面需要更多关注和改进。
                   </Text>
@@ -348,7 +334,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
             )}
             <List.Item>
               <Space>
-                <TrophyOutlined style={{ color: '#1677ff' }} />
+                <TrophyOutlined style={{ color: 'var(--ant-color-primary)' }} />
                 <Text>
                   <Text strong>数据质量:</Text> 当前平均置信度为 {Math.round(avgConfidence * 100)}%，
                   {avgConfidence >= 0.7 ? '数据质量良好' : '建议增加更多观测记录以提高准确性'}。
@@ -356,7 +342,7 @@ const SimpleGrowthAnalysis: React.FC<SimpleGrowthAnalysisProps> = ({
               </Space>
             </List.Item>
           </List>
-        </ProjectCard>
+        </Card>
       )}
     </div>
   );

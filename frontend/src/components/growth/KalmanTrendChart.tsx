@@ -1,12 +1,14 @@
+
 import React, { useMemo } from 'react';
-import { Card, Select, DatePicker, Switch, Tooltip, Space, Tag } from 'antd';
+import { Select, Switch, Tooltip, Space, Tag, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Line } from '@ant-design/charts';
 import { ChartData, ChartFilters } from '../../api/growthApi';
 import { growthUtils } from '../../utils/growthUtils';
 import dayjs from 'dayjs';
 
-const { RangePicker } = DatePicker;
+ 
 const { Option } = Select;
 
 interface KalmanTrendChartProps {
@@ -97,16 +99,16 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
     color: (datum: any) => {
       switch (datum.type) {
         case '预估水平':
-          return '#1890ff';
+          return 'var(--ant-color-primary)';
         case '趋势速度':
-          return '#52c41a';
+          return 'var(--ant-color-success)';
         case '置信区间上界':
         case '置信区间下界':
-          return '#d9d9d9';
+          return 'var(--ant-color-border)';
         case '实际观测':
-          return '#ff4d4f';
+          return 'var(--ant-color-error)';
         default:
-          return '#666';
+          return 'var(--ant-color-text-tertiary)';
       }
     },
     lineStyle: (datum: any) => {
@@ -130,8 +132,8 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
       style: (datum: any) => {
         if (datum.type === '实际观测') {
           return {
-            fill: '#ff4d4f',
-            stroke: '#fff',
+            fill: 'var(--ant-color-error)',
+            stroke: 'var(--ant-color-bg-container)',
             lineWidth: 2
           };
         }
@@ -143,7 +145,7 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
         // 为置信区间添加填充区域
         if (datum.type.includes('置信区间')) {
           return {
-            fill: '#1890ff',
+            fill: 'var(--ant-color-primary)',
             fillOpacity: 0.1
           };
         }
@@ -216,7 +218,7 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
         start: ['min', data.currentState.level],
         end: ['max', data.currentState.level],
         style: {
-          stroke: '#ff4d4f',
+          stroke: 'var(--ant-color-error)',
           lineDash: [2, 2],
           opacity: 0.6
         },
@@ -226,7 +228,7 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
           style: {
             textAlign: 'end',
             fontSize: 12,
-            fill: '#ff4d4f'
+            fill: 'var(--ant-color-error)'
           }
         }
       }
@@ -268,15 +270,15 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
             )}
           </Space>
           <Tooltip title="基于卡尔曼滤波器的动态趋势预测，置信区间反映预测的不确定性">
-            <InfoCircleOutlined style={{ color: '#999' }} />
+            <InfoCircleOutlined style={{ color: 'var(--ant-color-text-tertiary)' }} />
           </Tooltip>
         </div>
       }
       loading={loading}
-      style={{ marginBottom: '16px' }}
+      style={{ marginBottom: 'var(--space-4)' }}
     >
       {showControls && (
-        <div style={{ marginBottom: '16px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+        <div style={{ marginBottom: 'var(--space-4)', display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
           <div>
             <span style={{ marginRight: '8px' }}>时间周期:</span>
             <Select
@@ -293,9 +295,8 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
 
           <div>
             <span style={{ marginRight: '8px' }}>自定义范围:</span>
-            <RangePicker
+            <UnifiedRangePicker
               onChange={handleDateRangeChange}
-              format="YYYY-MM-DD"
               placeholder={['开始日期', '结束日期']}
             />
           </div>
@@ -312,18 +313,18 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
 
       {data?.currentState && (
         <div style={{ 
-          marginBottom: '16px', 
-          padding: '12px', 
-          backgroundColor: '#f5f5f5', 
-          borderRadius: '6px',
+          marginBottom: 'var(--space-4)', 
+          padding: 'var(--space-3)', 
+          backgroundColor: 'var(--ant-color-bg-layout)', 
+          borderRadius: 'var(--radius-sm)',
           display: 'flex',
           justifyContent: 'space-around'
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1890ff' }}>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ant-color-primary)' }}>
               {data.currentState.level.toFixed(2)}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>当前水平 (μ)</div>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>当前水平 (μ)</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ 
@@ -333,16 +334,16 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
             }}>
               {data.currentState.trend > 0 ? '+' : ''}{data.currentState.trend.toFixed(3)}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>趋势速度 (ν)</div>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>趋势速度 (ν)</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#52c41a' }}>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--ant-color-success)' }}>
               {growthUtils.formatConfidence(data.currentState.confidence)}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>置信度</div>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>置信度</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#666' }}>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)' }}>
               最后更新: {growthUtils.formatTimeAgo(data.currentState.lastUpdated)}
             </div>
           </div>
@@ -352,14 +353,14 @@ const KalmanTrendChart: React.FC<KalmanTrendChartProps> = ({
       <Line {...config} />
 
       <div style={{ 
-        marginTop: '12px', 
+        marginTop: 'var(--space-3)', 
         fontSize: '12px', 
-        color: '#666',
-        padding: '8px',
-        backgroundColor: '#fafafa',
-        borderRadius: '4px'
+        color: 'var(--ant-color-text-tertiary)',
+        padding: 'var(--space-2)',
+        backgroundColor: 'var(--ant-color-bg-layout)',
+        borderRadius: 'var(--radius-sm)'
       }}>
-        <InfoCircleOutlined style={{ marginRight: '4px' }} />
+        <InfoCircleOutlined style={{ marginRight: 'var(--space-1)' }} />
         <strong>图表说明：</strong>
         蓝色实线为卡尔曼滤波器预估的成长水平，绿色线为趋势变化速度，
         灰色虚线为95%置信区间，红色点为实际观测记录。

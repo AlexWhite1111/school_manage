@@ -42,10 +42,10 @@ export const growthUtils = {
    */
   getColorByTrend: (direction: 'UP' | 'DOWN' | 'STABLE'): string => {
     switch (direction) {
-      case 'UP': return '#52c41a';
-      case 'DOWN': return '#ff4d4f';
-      case 'STABLE': return '#faad14';
-      default: return '#8c8c8c';
+      case 'UP': return 'var(--ant-color-success)';
+      case 'DOWN': return 'var(--ant-color-error)';
+      case 'STABLE': return 'var(--ant-color-warning)';
+      default: return 'var(--ant-color-text-secondary)';
     }
   },
 
@@ -53,7 +53,7 @@ export const growthUtils = {
    * 根据情感极性获取颜色
    */
   getColorBySentiment: (sentiment: 'POSITIVE' | 'NEGATIVE'): string => {
-    return sentiment === 'POSITIVE' ? '#52c41a' : '#ff4d4f';
+    return sentiment === 'POSITIVE' ? 'var(--ant-color-success)' : 'var(--ant-color-error)';
   },
 
   /**

@@ -1,12 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Card,
-  Select,
-  Space,
-  Typography,
-  Tooltip,
-  Empty
-} from 'antd';
+import { Select, Space, Typography, Tooltip, Empty, Card } from 'antd';
 import {
   RadarChartOutlined,
   InfoCircleOutlined
@@ -54,10 +47,19 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
   const { theme } = useThemeStore();
   const { isMobile } = useResponsive();
   
-  // 这里简化处理，实际应该从班级数据获取
+  // 班级选择：从 examData 中推导可选班级，默认“全部班级”
   const [selectedClassId, setSelectedClassId] = useState<string | number>('all');
-  const studentClasses: any[] = []; // 简化处理
   const classesLoading = false;
+  const studentClasses: Array<{ id: string; name: string }> = useMemo(() => {
+    const classesSet = new Map<string, string>();
+    const fromExam = (examData?.subjectAnalysis || []) as any[];
+    fromExam.forEach((s: any) => {
+      if (s.classId && s.className) {
+        classesSet.set(String(s.classId), String(s.className));
+      }
+    });
+    return Array.from(classesSet.entries()).map(([id, name]) => ({ id, name }));
+  }, [examData?.subjectAnalysis]);
 
   // 处理雷达图数据
   const radarChartData = useMemo(() => {
@@ -116,7 +118,7 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
       <Card 
         title={
           <Space>
-            <RadarChartOutlined style={{ color: '#1890ff' }} />
+            <RadarChartOutlined style={{ color: 'var(--ant-color-primary)' }} />
             <span>科目表现雷达图</span>
           </Space>
         }
@@ -135,18 +137,24 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
     <Card
       title={
         <Space>
-          <RadarChartOutlined style={{ color: '#1890ff' }} />
+          <RadarChartOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <span>科目表现雷达图</span>
         </Space>
       }
-      extra={
+      style={style}
+      className={className}
+    >
+      {/* 班级选择器：移动端单独一行，避免遮挡 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 8 : 12, flexWrap: 'wrap', gap: 8 }}>
+        <Text type="secondary" style={{ fontSize: 12 }}>归一化（100分制）</Text>
         <Space>
           <Select
-            size="small"
+            size={isMobile ? 'middle' : 'small'}
             value={selectedClassId}
             onChange={setSelectedClassId}
-            style={{ width: 140 }}
+            style={{ width: isMobile ? '100%' : 180 }}
             loading={classesLoading}
+            dropdownMatchSelectWidth
           >
             <Option value="all">
               全部班级 {studentClasses.length > 0 && `(${studentClasses.length})`}
@@ -157,45 +165,40 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
               </Option>
             ))}
           </Select>
-          <Tooltip title="选择班级查看该班级的科目表现，包含个人成绩、班级平均分和班级优秀线">
-            <InfoCircleOutlined style={{ color: '#8c8c8c' }} />
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip title="选择班级查看该班级的科目表现，包含个人成绩、班级平均分和班级优秀线">
+              <InfoCircleOutlined style={{ color: 'var(--ant-color-text-secondary)' }} />
+            </Tooltip>
+          )}
         </Space>
-      }
-      style={style}
-      className={className}
-    >
+      </div>
       {radarChartData.length > 0 ? (
         <div style={{ height: isMobile ? '300px' : '400px' }}>
-          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '16px' }}>
-            基于归一化成绩的科目综合表现分析（100分制）
-            {selectedClassId === 'all' && ` - 显示所有科目的${radarChartData.length}个科目表现`}
-          </Text>
           <ResponsiveContainer width="100%" height="90%">
             <RadarChart data={radarChartData}>
               <PolarGrid gridType="polygon" />
               <PolarAngleAxis 
                 dataKey="subject" 
-                tick={{ fontSize: 12, fill: theme === 'dark' ? '#fff' : '#666' }}
+                tick={{ fontSize: 12, fill: theme === 'dark' ? 'var(--ant-color-bg-container)' : 'var(--ant-color-text-tertiary)' }}
               />
               <PolarRadiusAxis 
                 angle={90} 
                 domain={[0, 100]}
-                tick={{ fontSize: 10, fill: theme === 'dark' ? '#aaa' : '#999' }}
+                tick={{ fontSize: 10, fill: theme === 'dark' ? '#aaa' : 'var(--ant-color-text-tertiary)' }}
               />
               <Radar
                 name="个人成绩"
                 dataKey="student"
-                stroke="#1890ff"
-                fill="#1890ff"
+                stroke="var(--ant-color-primary)"
+                fill="var(--ant-color-primary)"
                 fillOpacity={0.3}
                 strokeWidth={2}
               />
               <Radar
                 name="班级平均"
                 dataKey="average"
-                stroke="#faad14"
-                fill="#faad14"
+                stroke="var(--ant-color-warning)"
+                fill="var(--ant-color-warning)"
                 fillOpacity={0.1}
                 strokeWidth={2}
                 strokeDasharray="5 5"
@@ -203,8 +206,8 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
               <Radar
                 name="班级优秀线"
                 dataKey="excellent"
-                stroke="#52c41a"
-                fill="#52c41a"
+                stroke="var(--ant-color-success)"
+                fill="var(--ant-color-success)"
                 fillOpacity={0.05}
                 strokeWidth={2}
                 strokeDasharray="3 3"
@@ -212,15 +215,18 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
               <Legend />
               <RechartsTooltip 
                 contentStyle={{
-                  backgroundColor: theme === 'dark' ? '#141414' : '#fff',
+                  backgroundColor: theme === 'dark' ? 'var(--ant-color-bg-layout)' : 'var(--ant-color-bg-container)',
                   border: '1px solid #d9d9d9',
                   borderRadius: '4px'
                 }}
-                formatter={(value: any, name: string) => [
-                  `${Number(value).toFixed(2)}分`, 
-                  name === 'student' ? '个人成绩' : 
-                  name === 'average' ? '班级平均' : '班级优秀线'
-                ]}
+                formatter={(value: any, name: string, props: any) => {
+                  // name 已经是在 <Radar name="…" /> 中设置的人类可读名称
+                  // 这里直接使用 name，避免因 dataKey 与 name 混用导致的错误映射
+                  return [
+                    `${Number(value).toFixed(2)}分`,
+                    name
+                  ];
+                }}
               />
             </RadarChart>
           </ResponsiveContainer>
@@ -230,12 +236,12 @@ const SubjectRadarChart: React.FC<SubjectRadarChartProps> = ({
           border: '1px dashed #d9d9d9', 
           borderRadius: '8px', 
           padding: '60px 20px',
-          color: '#8c8c8c',
+          color: 'var(--ant-color-text-secondary)',
           textAlign: 'center'
         }}>
-          <RadarChartOutlined style={{ fontSize: '32px', marginBottom: '16px' }} />
+<RadarChartOutlined style={{ fontSize: '32px', marginBottom: 'var(--space-4)' }} />
           <div>暂无科目数据</div>
-          <div style={{ fontSize: '12px', marginTop: '8px' }}>
+<div style={{ fontSize: '12px', marginTop: 'var(--space-2)' }}>
             该时段内该学生无有效考试成绩
           </div>
         </div>

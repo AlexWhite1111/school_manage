@@ -1,18 +1,7 @@
+import AppButton from '@/components/AppButton';
 // src/components/excel/ExcelImportModal.tsx
 import React, { useState } from 'react';
-import {
-  Modal,
-  Upload,
-  Button,
-  message,
-  Alert,
-  Progress,
-  Typography,
-  Space,
-  Divider,
-  List,
-  Tag
-} from 'antd';
+import { Modal, Upload, message, Alert, Progress, Typography, Space, Divider, List, Tag } from 'antd';
 import {
   InboxOutlined,
   DownloadOutlined,
@@ -166,14 +155,14 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
 
         {/* 下载模板 */}
         <div style={{ marginBottom: 24, textAlign: 'center' }}>
-          <Button
-            type="primary"
+          <AppButton
+            hierarchy="primary"
             icon={<DownloadOutlined />}
             size="large"
             onClick={handleDownloadTemplate}
           >
             下载导入模板
-          </Button>
+          </AppButton>
         </div>
 
         <Divider>上传文件</Divider>
@@ -181,7 +170,7 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         {/* 文件上传 */}
         <Dragger {...uploadProps} style={{ marginBottom: 24 }}>
           <p className="ant-upload-drag-icon">
-            <InboxOutlined style={{ fontSize: 48, color: '#1890ff' }} />
+            <InboxOutlined style={{ fontSize: 48, color: 'var(--ant-color-primary)' }} />
           </p>
           <p className="ant-upload-text">
             点击或拖拽文件到此区域上传
@@ -205,18 +194,18 @@ const ExcelImportModal: React.FC<ExcelImportModalProps> = ({
         {/* 导入按钮 */}
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Space>
-            <Button onClick={handleCancel}>
+            <AppButton onClick={handleCancel}>
               取消
-            </Button>
-            <Button
-              type="primary"
-              size="large"
+            </AppButton>
+            <AppButton
+              hierarchy="primary"
+              size="lg"
               loading={uploading}
               disabled={!selectedFile}
               onClick={handleImport}
             >
               {uploading ? '导入中...' : '开始导入'}
-            </Button>
+            </AppButton>
           </Space>
         </div>
 

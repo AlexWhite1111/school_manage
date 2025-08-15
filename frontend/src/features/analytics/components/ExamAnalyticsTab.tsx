@@ -1,21 +1,8 @@
+import { Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Row, 
-  Col, 
-  Card, 
-  Select, 
-  Alert, 
-  Spin, 
-  Empty,
-  Typography,
-  Tag,
-  Statistic,
-  Space,
-  Progress,
-  Button,
-  Table,
-  Badge
-} from 'antd';
+import { Row, Col, Select, Alert, Spin, Empty, Typography, Tag, Statistic, Space, Progress, Table, Badge } from 'antd';
 import { 
   LineChart, 
   Line, 
@@ -42,6 +29,8 @@ import {
 } from '@ant-design/icons';
 import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
+import { theme as themeApi } from 'antd';
+import { getAppTokens } from '@/theme/tokens';
 import { useNavigate } from 'react-router-dom';
 import * as examApi from '@/api/examApi';
 import * as studentLogApi from '@/api/studentLogApi';
@@ -124,16 +113,17 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
   // ===============================
   // 主题适配的样式配置
   // ===============================
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-  };
+    cardBackground: token.colorBgContainer,
+    borderColor: token.colorBorder,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+  } as const;
 
   // ===============================
   // 数据加载
@@ -385,15 +375,15 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
                       <div>缺考: {stats.absentCount}人</div>
                       <div>最高: {stats.highest}分 | 最低: {stats.lowest}分</div>
                     </div>
-                    <Button 
-                      type="link" 
-                      size="small" 
+                    <AppButton 
+                      hierarchy="link" 
+                      size="sm" 
                       icon={<ExpandAltOutlined />}
                       onClick={() => showSubjectTrend(subject, record.classId, currentClass?.name || '')}
                       style={{ marginTop: '4px', padding: 0 }}
                     >
                       查看趋势
-                    </Button>
+                    </AppButton>
                   </div>
                 </Card>
               </Col>
@@ -410,7 +400,7 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
   // Line图表数据 - 转换为Recharts需要的透视表格式
   const trendRawData = statistics?.trendData || [];
   const examTypes = [...new Set(trendRawData.map(item => item.examType))];
-  const chartColors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1'];
+  const chartColors = getAppTokens(theme).colors.subjectPalette;
   
   // 按日期分组并创建透视表格式
   const trendChartData = (() => {
@@ -460,16 +450,16 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
         type="error" 
         showIcon 
         action={
-          <Button size="small" onClick={loadExams}>
+          <AppButton size="sm" onClick={loadExams}>
             重试
-          </Button>
+          </AppButton>
         }
       />
     );
   }
 
   return (
-    <div style={{ padding: isMobile ? '12px' : '0' }}>
+    <div style={{ padding: isMobile ? 'var(--space-3)' : '0' }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 筛选控制区 */}
         <Card size="small">
@@ -523,9 +513,9 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
 
         {loading ? (
           <Card>
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ textAlign: 'center', padding: 'var(--space-8) 0' }}>
               <Spin size="large" />
-              <div style={{ marginTop: 16 }}>
+              <div style={{ marginTop: 'var(--space-4)' }}>
                 <Text type="secondary">加载考试数据中...</Text>
               </div>
             </div>
@@ -705,13 +695,13 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
                     dataIndex: 'name',
                     key: 'name',
                     render: (text, record) => (
-                      <Button 
-                        type="link" 
+                      <AppButton 
+                        hierarchy="link" 
                         onClick={() => handleExamClick(record)}
                         style={{ padding: 0, height: 'auto' }}
                       >
                         {text}
-                      </Button>
+                      </AppButton>
                     )
                   },
                   {
@@ -749,14 +739,14 @@ const ExamAnalyticsTab: React.FC<ExamAnalyticsTabProps> = ({
                     title: '操作',
                     key: 'action',
                     render: (_, record) => (
-                      <Button 
-                        type="text" 
+                      <AppButton 
+                        hierarchy="tertiary" 
                         icon={<EyeOutlined />}
                         size="small"
                         onClick={() => handleExamClick(record)}
                       >
                         查看详情
-                      </Button>
+                      </AppButton>
                     )
                   }
                 ]}

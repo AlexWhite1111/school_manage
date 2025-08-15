@@ -1,24 +1,8 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  Button,
-  Card,
-  Row,
-  Col,
-  Space,
-  Typography,
-  Divider,
-  Tag,
-  List,
-  Popconfirm,
-  Spin,
-  App,
-  Affix,
-  Collapse
-} from 'antd';
+import { Form, Input, Select, DatePicker, Row, Col, Space, Typography, Divider, Tag, List, Popconfirm, Spin, App, Affix, Collapse, Card, FloatButton } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   PlusOutlined,
   EditOutlined,
@@ -201,6 +185,16 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
       }
       
     } catch (error: any) {
+      // 表单校验错误：高亮首个错误项并滚动定位
+      if (error?.errorFields?.length) {
+        const first = error.errorFields[0];
+        const firstMsg = first?.errors?.[0] || '请完善必填项';
+        antMessage.error(firstMsg);
+        if (first?.name) {
+          try { form.scrollToField(first.name, { behavior: 'smooth', block: 'center' }); } catch {}
+        }
+        return;
+      }
       console.error('保存客户信息失败:', error);
       const msg = error?.message || error?.data?.message || '信息保存失败，请检查网络后重试。';
       antMessage.error(msg);
@@ -492,8 +486,10 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
     );
   }
 
+  const preset = isMobile ? UnifiedCardPresets.mobileCompact(true) : UnifiedCardPresets.desktopDefault(false);
+
   return (
-    <div style={{ padding: '0' }}>
+    <div data-page-container>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 页面标题 - 🔧 修复：动态显示标题 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -501,86 +497,16 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
             <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
               {customerPublicId ? `客户档案 - ${customer?.name || '加载中...'}` : '新建客户'}
             </Title>
-            <Text type="secondary">
-              {customerPublicId 
-                ? '页面默认为编辑模式，所有字段均可直接修改'
-                : '填写客户基础信息，点击保存创建新客户档案'
-              }
-            </Text>
+            {/* 删除说明性小字 */}
           </div>
           
-          {/* 移动端吸顶操作条 */}
-          {isMobile ? (
-            <Affix offsetTop={8}>
-              <Space>
-                <Button 
-                  icon={<ArrowLeftOutlined />}
-                  onClick={() => navigate('/crm')}
-                />
-                <Button 
-                  type="primary" 
-                  icon={<SaveOutlined />}
-                  loading={saving}
-                  onClick={handleSave}
-                  disabled={deleting}
-                >
-                  {customerPublicId ? '保存' : '创建'}
-                </Button>
-              </Space>
-            </Affix>
-          ) : (
-            <Space>
-              <Button 
-                icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/crm')}
-              />
-              {customerPublicId && customerId && customer && (
-                <Popconfirm
-                  title="确认删除客户"
-                  description={
-                    <div style={{ maxWidth: '280px' }}>
-                      <Text>确定要删除客户 <Text strong>"{customer.name}"</Text> 吗？</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        此操作将永久删除该客户的所有信息，包括沟通记录、标签关联等，且无法恢复。
-                      </Text>
-                    </div>
-                  }
-                  onConfirm={handleDelete}
-                  okText="确认删除"
-                  cancelText="取消"
-                  okType="danger"
-                  placement="bottomRight"
-                  icon={<DeleteOutlined style={{ color: '#ff4d4f' }} />}
-                >
-                  <Button 
-                    danger
-                    icon={<DeleteOutlined />}
-                    loading={deleting}
-                    disabled={saving || deleting}
-                  >
-                    删除客户
-                  </Button>
-                </Popconfirm>
-              )}
-              <Button 
-                type="primary" 
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={handleSave}
-                size="large"
-                disabled={deleting}
-              >
-                {customerPublicId ? '保存修改' : '创建客户'}
-              </Button>
-            </Space>
-          )}
+          {/* 桌面端也统一使用右下角悬浮操作按钮，不再在标题区显示按钮 */}
         </div>
 
-        <Row gutter={[24, 24]}>
+        <Row gutter={[isMobile ? 12 : 24, isMobile ? 12 : 24]}>
           {/* 基础信息区 */}
           <Col xs={24} lg={14} style={isMobile ? { paddingBottom: 64 } : undefined}>
-            <Card title="基础信息" style={{ height: '100%' }}>
+            <Card title="基础信息" style={{ ...preset.style, height: '100%', marginLeft: isMobile ? 'var(--space-1)' : 0, marginRight: isMobile ? 'var(--space-1)' : 0 }} styles={preset.styles}>
               <Form
                 form={form}
                 layout="vertical"
@@ -590,19 +516,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 }}
               >
                 {/* 移动端快速操作提示 */}
-                {isMobile && (
-                  <div style={{
-                    margin: '8px 0 12px',
-                    padding: '8px 10px',
-                    background: 'var(--ant-color-fill-secondary)',
-                    border: '1px dashed var(--ant-color-border-secondary)',
-                    borderRadius: 8,
-                    color: 'var(--ant-color-text-tertiary)',
-                    fontSize: 12
-                  }}>
-                    保存按钮已固定在底部，填写完成后直接点击保存
-                  </div>
-                )}
+                {/* 删除移动端提示小字 */}
                 {/* 孩子信息 */}
                 <Title level={4}>1. 孩子信息</Title>
                 <Row gutter={[12, 12]}>
@@ -615,7 +529,11 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                       <Input placeholder="请输入孩子的真实姓名" />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
+                </Row>
+
+                {/* 2×2：性别 | 出生年月 */}
+                <Row gutter={[12, 12]}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="性别" name="gender">
                       <Select placeholder="选择性别">
                         <Option value="MALE">男</Option>
@@ -624,23 +542,21 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                       </Select>
                     </Form.Item>
                   </Col>
-                </Row>
-
-                <Row gutter={[12, 12]}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="出生年月" name="birthDate">
-                      <DatePicker style={{ width: '100%' }} picker="date" placeholder="选择出生日期" />
+                      <DatePicker className="w-full" picker="date" placeholder="选择出生日期" />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
+                </Row>
+
+                {/* 2×2：学校 | 年级 */}
+                <Row gutter={[12, 12]}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="学校" name="school">
                       <Input placeholder="如：博文小学" />
                     </Form.Item>
                   </Col>
-                </Row>
-
-                <Row gutter={[12, 12]}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="年级" name="grade">
                       <Select placeholder="请选择年级" allowClear>
                         <Option value="CHU_YI">初一</Option>
@@ -655,28 +571,28 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 </Row>
 
                 {/* 家长信息 */}
-                <Title level={4}>2. 家长信息</Title>
+                 <Title level={4}>{isMobile ? '2. 家长' : '2. 家长信息'}</Title>
                 {/* 动态家长表单 */}
                 {Array.from({ length: parentCount }).map((_, index) => (
                   <div key={index} style={{ 
-                    marginBottom: 16, 
-                    padding: 12, 
+                    marginBottom: 'var(--space-4)', 
+                    padding: 'var(--space-3)', 
                     border: '1px solid var(--ant-color-border-secondary)',
-                    borderRadius: 6,
+                    borderRadius: 'var(--radius-sm)',
                     position: 'relative'
                   }}>
                     <div style={{ 
                       display: 'flex', 
                       justifyContent: 'space-between', 
                       alignItems: 'center',
-                      marginBottom: 12
+                      marginBottom: 'var(--space-3)'
                     }}>
                       <Text strong>家长 {index + 1}</Text>
                       {index > 0 && (
-                        <Button 
-                          type="text" 
+                        <AppButton 
+                          hierarchy="tertiary" 
                           danger 
-                          size="small"
+                          size="sm"
                           icon={<DeleteOutlined />}
                           onClick={() => {
                             setParentCount(prev => prev - 1);
@@ -687,26 +603,26 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                           }}
                         >
                           移除
-                        </Button>
+                        </AppButton>
                       )}
                     </div>
                     
                 <Row gutter={[12, 12]}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item
-                      label="家长姓名"
+                      label={isMobile ? '姓名' : '家长姓名'}
                       name={['parents', index, 'name']}
                     >
-                      <Input placeholder="选填：家长姓名" />
+                      <Input placeholder={isMobile ? '家长姓名(选填)' : '选填：家长姓名'} />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item
-                      label={<span><Text type="danger">*</Text> 与孩子关系</span>}
+                      label={isMobile ? (<span><Text type="danger">*</Text> 关系</span>) : (<span><Text type="danger">*</Text> 与孩子关系</span>)}
                           name={['parents', index, 'relationship']}
                           rules={[{ required: index === 0, message: '请选择关系' }]}
                     >
-                      <Select placeholder="与孩子关系">
+                      <Select placeholder={isMobile ? '关系' : '与孩子关系'}>
                         <Option value="父亲">父亲</Option>
                         <Option value="母亲">母亲</Option>
                         <Option value="爷爷">爷爷</Option>
@@ -720,21 +636,21 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 </Row>
 
                 <Row gutter={16}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item
-                      label={<span><Text type="danger">*</Text> 家长联系方式</span>}
+                      label={isMobile ? (<span><Text type="danger">*</Text> 联系方式</span>) : (<span><Text type="danger">*</Text> 家长联系方式</span>)}
                           name={['parents', index, 'phone']}
                       rules={[
                             { required: index === 0, message: '请输入联系电话' },
                         { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码' }
                       ]}
                     >
-                      <Input placeholder="请输入11位手机号码" />
+                      <Input placeholder={isMobile ? '联系方式' : '请输入11位手机号码'} />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
-                        <Form.Item label="家长微信号" name={['parents', index, 'wechatId']}>
-                      <Input placeholder="选填：微信号" />
+                  <Col xs={12} sm={12}>
+                        <Form.Item label={isMobile ? '微信号' : '家长微信号'} name={['parents', index, 'wechatId']}>
+                      <Input placeholder={isMobile ? '微信号(选填)' : '选填：微信号'} />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -744,19 +660,19 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 {/* 添加家长按钮 - 真正有功能的 */}
                 {parentCount < 3 && (
                 <Form.Item>
-                  <Button
-                    type="dashed"
+                  <AppButton
+                    hierarchy="tertiary"
                     icon={<PlusOutlined />}
                       onClick={() => setParentCount(prev => prev + 1)}
                     style={{ width: '100%' }}
                   >
                       添加家长 ({parentCount}/3)
-                  </Button>
+                  </AppButton>
                 </Form.Item>
                 )}
 
                 {/* 联系与来源信息 */}
-                <Title level={4}>3. 联系与来源信息</Title>
+                <Title level={4}>{isMobile ? '3. 联系/来源' : '3. 联系与来源信息'}</Title>
                 <Row gutter={16}>
                   <Col xs={24} sm={12}>
                     <Form.Item
@@ -772,7 +688,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 </Row>
 
                 <Row gutter={16}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="来源渠道" name="sourceChannel">
                       <Select placeholder="请选择来源渠道" allowClear>
                         <Option value="JIAZHANG_TUIJIAN">家长推荐</Option>
@@ -788,10 +704,10 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                       </Select>
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item label="首次接触日期" name="firstContactDate">
                       <DatePicker 
-                        style={{ width: '100%' }} 
+                        className="w-full" 
                         placeholder="选择首次接触的日期" 
                       />
                     </Form.Item>
@@ -799,11 +715,11 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 </Row>
 
                 {/* 客户状态 */}
-                <Title level={4}>4. 客户状态</Title>
+                <Title level={4}>{isMobile ? '4. 状态' : '4. 客户状态'}</Title>
                 <Row gutter={16}>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item
-                      label={<span><Text type="danger">*</Text> 当前客户状态</span>}
+                      label={isMobile ? (<span><Text type="danger">*</Text> 状态</span>) : (<span><Text type="danger">*</Text> 当前客户状态</span>)}
                       name="status"
                       rules={[{ required: true, message: '请选择客户状态' }]}
                     >
@@ -817,13 +733,12 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                       </Select>
                     </Form.Item>
                   </Col>
-                  <Col xs={24} sm={12}>
+                  <Col xs={12} sm={12}>
                     <Form.Item
-                      label="下次跟进日期"
+                      label={isMobile ? '下次跟进' : '下次跟进日期'}
                       name="nextFollowUpDate"
-                      help="设置的日期到期后，该客户将出现在主仪表盘的'待办提醒'列表中"
                     >
-                      <DatePicker style={{ width: '100%' }} placeholder="选择下次跟进日期（选填）" />
+                      <DatePicker className="w-full" placeholder="选择下次跟进日期（选填）" />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -856,12 +771,12 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 }]}
               />
             ) : (
-              <Card title="家庭画像" style={{ height: '100%' }}>
+              <Card title="家庭画像" style={{ ...preset.style, height: '100%', marginLeft: isMobile ? 'var(--space-1)' : 0, marginRight: isMobile ? 'var(--space-1)' : 0 }} styles={preset.styles}>
                 <div 
                   style={{ 
                     maxHeight: 'none',
                     overflowY: 'visible',
-                    paddingRight: '8px'
+                    paddingRight: 'var(--space-2)'
                   }}
                 >
                   {renderFamilyPortraitTags()}
@@ -873,11 +788,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
 
         {/* 沟通纪要区 - 🔧 统一：只有已保存的客户才能添加沟通纪要 */}
         {customerId && (
-          <Card title="沟通纪要" extra={
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              此区域即时保存，不依赖于页面底部的全局"确认保存"按钮
-            </Text>
-          }>
+          <Card title={isMobile ? '沟通纪要' : '沟通纪要'} style={{ ...preset.style, marginLeft: isMobile ? 'var(--space-1)' : 0, marginRight: isMobile ? 'var(--space-1)' : 0 }} styles={preset.styles}>
             {/* 添加新纪要 */}
             <div style={{ marginBottom: 16 }}>
               {addingNewLog ? (
@@ -904,12 +815,12 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                   autoFocus
                   style={{
                     border: '2px solid var(--ant-color-primary)',
-                    borderRadius: '6px'
+                    borderRadius: 'var(--radius-sm)'
                   }}
                 />
               ) : (
-                <Button 
-                  type="dashed" 
+                <AppButton 
+                  hierarchy="tertiary" 
                   onClick={() => setAddingNewLog(true)}
                   style={{ 
                     width: '100%',
@@ -920,7 +831,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                   }}
                 >
                   添加沟通纪要
-                </Button>
+                </AppButton>
               )}
             </div>
 
@@ -932,11 +843,11 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                 <List.Item
                   style={{ 
                     cursor: 'pointer',
-                    padding: '12px 8px',
-                    borderRadius: '8px',
+                    padding: 'var(--space-3) var(--space-2)',
+                    borderRadius: 'var(--radius-md)',
                     // 🚀 性能优化：只过渡需要的属性，避免transition: all
                     transition: 'background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
-                    marginBottom: '8px',
+                    marginBottom: 'var(--space-2)',
                     // 启用硬件加速
                     willChange: 'transform, background-color, box-shadow',
                   }}
@@ -967,7 +878,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                       fontFamily: 'Monaco, Consolas, monospace',
                       backgroundColor: 'var(--ant-color-fill-alter)',
                       padding: '2px 6px',
-                      borderRadius: '2px',
+                      borderRadius: 'var(--radius-xs, 4px)',
                       lineHeight: 1,
                       zIndex: 1,
                       border: '1px solid var(--ant-color-border-secondary)'
@@ -980,7 +891,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                     <div style={{
                       paddingTop: isSmall ? '22px' : '26px',
                       paddingRight: '30px',
-                      paddingLeft: '0px',
+                      paddingLeft: 0,
                       position: 'relative'
                     }}>
                       {editingLogId === log.id ? (
@@ -1013,7 +924,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                           placeholder="编辑内容，失去焦点或按回车键自动保存..."
                           style={{
                             border: '2px solid var(--ant-color-warning)',
-                            borderRadius: '6px'
+                            borderRadius: 'var(--radius-sm)'
                           }}
                         />
                       ) : (
@@ -1024,7 +935,7 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                           color: 'var(--ant-color-text)',
                           wordBreak: 'break-word',
                           cursor: 'text',
-                          padding: '4px 0'
+                          padding: 'var(--space-1) 0'
                         }}
                         onClick={() => startEditLog(log)}
                         >
@@ -1037,15 +948,15 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                         <Popconfirm
                           title={
                             <div style={{ maxWidth: '200px' }}>
-                              <div style={{ marginBottom: '4px', fontWeight: 'bold' }}>
+                              <div style={{ marginBottom: 'var(--space-1)', fontWeight: 'bold' }}>
                                 确定要删除这条纪要吗？
                               </div>
                               <div style={{ 
                                 fontSize: '12px', 
                                 color: 'var(--ant-color-text-secondary)',
                                 backgroundColor: 'var(--ant-color-fill-alter)',
-                                padding: '4px 6px',
-                                borderRadius: '3px',
+                                padding: 'var(--space-1) 6px',
+                                borderRadius: 'var(--radius-xs, 4px)',
                                 border: '1px solid var(--ant-color-border-secondary)',
                                 maxHeight: '60px',
                                 overflow: 'hidden',
@@ -1059,17 +970,17 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
                           okText="确定"
                           cancelText="取消"
                         >
-                          <Button 
-                            type="text" 
+                          <AppButton 
+                            hierarchy="tertiary" 
                             danger 
-                            size="small"
+                            size="sm"
                             icon={<DeleteOutlined />}
                             style={{ 
                               position: 'absolute',
                               right: '0px',
                               top: '50%',
                               transform: 'translateY(-50%)',
-                              padding: '4px',
+                              padding: 'var(--space-1)',
                               fontSize: '12px',
                               height: '24px',
                               width: '24px',
@@ -1088,43 +999,40 @@ const LeadProfileForm: React.FC<LeadProfileFormProps> = ({ customerPublicId, onS
           </Card>
         )}
 
-        {/* 底部吸底操作条（移动端） */}
-        {isMobile && (
-          <Affix offsetBottom={8}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-              background: 'rgba(255,255,255,0.9)',
-              backdropFilter: 'saturate(180%) blur(8px)',
-              border: '1px solid var(--ant-color-border-secondary)',
-              borderRadius: 12,
-              padding: '8px 12px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
-            }}>
-              <Button 
-                icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/crm')}
-              />
-              <Space>
-                {customerPublicId && customerId && customer && (
-                  <Popconfirm
-                    title="确认删除客户"
-                    onConfirm={handleDelete}
-                    okText="删除"
-                    cancelText="取消"
-                    okType="danger"
-                  >
-                    <Button danger icon={<DeleteOutlined />} loading={deleting} disabled={saving || deleting} />
-                  </Popconfirm>
-                )}
-                <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={handleSave}>
-                  {customerPublicId ? '保存' : '创建'}
-                </Button>
-              </Space>
-            </div>
-          </Affix>
+        {/* 移动端悬浮操作按钮（统一圆形按钮，避让底部导航与安全区） */}
+        {(isMobile || !isMobile) && (
+          <FloatButton.Group
+            shape="circle"
+            style={{
+              right: 16,
+              bottom: `calc(var(--page-bottom-safe) + var(--space-2))`,
+              zIndex: 1010
+            }}
+            trigger="hover"
+          >
+            {customerPublicId && customerId && customer && (
+              <Popconfirm
+                title="确认删除客户"
+                description={<Text>此操作无法恢复，确定删除 <Text strong>{customer.name}</Text> ？</Text>}
+                onConfirm={handleDelete}
+                okText="删除"
+                cancelText="取消"
+                okType="danger"
+              >
+                <FloatButton
+                  icon={<DeleteOutlined />}
+                  tooltip="删除"
+                  style={{ backgroundColor: 'var(--ant-color-error)', color: '#fff' }}
+                />
+              </Popconfirm>
+            )}
+            <FloatButton
+              type="primary"
+              icon={<SaveOutlined />}
+              tooltip={customerPublicId ? '保存修改' : '创建客户'}
+              onClick={handleSave}
+            />
+          </FloatButton.Group>
         )}
       </Space>
     </div>

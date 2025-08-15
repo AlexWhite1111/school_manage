@@ -1,14 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  Card,
-  Space,
-  Typography,
-  Tag,
-  Row,
-  Col,
-  Empty,
-  Divider
-} from 'antd';
+import { Space, Typography, Tag, Row, Col, Empty, Divider, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   CloudOutlined,
   SmileOutlined,
@@ -20,7 +12,7 @@ import IntelligentWordCloud from '@/components/advanced/IntelligentWordCloud';
 import type { GrowthSummary } from '@/api/growthApi';
 import type { UnifiedReportConfig } from '@/types/unifiedGrowthReport';
 import { useResponsive } from '@/hooks/useResponsive';
-import { designTokens } from '@/theme/designTokens';
+import { theme } from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -51,6 +43,8 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
   style
 }) => {
   const { isMobile } = useResponsive();
+  const preset = UnifiedCardPresets.mobileCompact(isMobile);
+  const { token } = theme.useToken();
 
   // 将成长状态转换为词云数据
   const wordCloudData = useMemo(() => {
@@ -87,18 +81,15 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
 
   // 获取标签颜色
   const getTagColor = (sentiment: string, value: number) => {
-    if (sentiment === 'POSITIVE') {
-      return value >= 70 ? designTokens.colors.success : value >= 50 ? designTokens.colors.success : designTokens.colors.success;
-    } else {
-      return value >= 70 ? designTokens.colors.error : value >= 50 ? designTokens.colors.error : designTokens.colors.error;
-    }
+    return sentiment === 'POSITIVE' ? 'var(--ant-color-success)' : 'var(--ant-color-error)';
   };
 
   if (loading) {
     return (
       <Card 
         className={className} 
-        style={style}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
         title="标签词云"
         loading={true}
       >
@@ -111,7 +102,8 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
     return (
       <Card 
         className={className} 
-        style={style}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
         title={
           <Space>
             <CloudOutlined />
@@ -121,7 +113,7 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
       >
         <Empty 
           description="暂无标签数据"
-          style={{ padding: '40px 0' }}
+          style={{ padding: 'var(--space-8) 0' }}
         />
       </Card>
     );
@@ -134,7 +126,8 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
     return (
       <Card 
         className={className} 
-        style={style}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
         title={
           <Space>
             <CloudOutlined />
@@ -146,7 +139,7 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
       >
         <div style={{ 
           textAlign: 'center', 
-          padding: '20px',
+          padding: 'var(--space-5)',
           lineHeight: '2.5'
         }}>
           {topWords.map((item, index) => (
@@ -155,9 +148,9 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
               color={getTagColor(item.sentiment, item.value)}
               style={{
                 fontSize: `${getFontSize(item.value, maxValue) * 0.8}px`,
-                margin: '4px',
-                padding: '4px 8px',
-                borderRadius: '8px'
+                margin: 'var(--space-1)',
+                padding: 'var(--space-1) var(--space-2)',
+                borderRadius: 'var(--radius-md)'
               }}
             >
               {item.text}
@@ -173,7 +166,8 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
     return (
       <Card 
         className={className} 
-        style={style}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
         title={
           <Space>
             <ThunderboltOutlined />
@@ -184,9 +178,9 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           <Row gutter={[16, 16]}>
             <Col span={12}>
-              <Card size="small" title={
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles} title={
                 <Space>
-                  <SmileOutlined style={{ color: designTokens.colors.success }} />
+                  <SmileOutlined style={{ color: 'var(--ant-color-success)' }} />
                   <span>优势标签</span>
                 </Space>
               }>
@@ -195,7 +189,7 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
                     <Tag
                       key={index}
                       color="green"
-                      style={{ marginBottom: '4px' }}
+                      style={{ marginBottom: 'var(--space-1)' }}
                     >
                       {item.text} ({item.value})
                     </Tag>
@@ -204,9 +198,9 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
               </Card>
             </Col>
             <Col span={12}>
-              <Card size="small" title={
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles} title={
                 <Space>
-                  <FrownOutlined style={{ color: designTokens.colors.error }} />
+                  <FrownOutlined style={{ color: 'var(--ant-color-error)' }} />
                   <span>关注标签</span>
                 </Space>
               }>
@@ -215,7 +209,7 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
                     <Tag
                       key={index}
                       color="red"
-                      style={{ marginBottom: '4px' }}
+                      style={{ marginBottom: 'var(--space-1)' }}
                     >
                       {item.text} ({item.value})
                     </Tag>
@@ -233,14 +227,9 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
   return (
     <Card 
       className={className} 
-      style={style}
-      title={
-        <Space>
-          <CloudOutlined />
-          <span>成长标签词云</span>
-          <Tag color="blue">{wordCloudData.length} 个标签</Tag>
-        </Space>
-      }
+      style={{ ...preset.style, ...style, boxShadow: 'none', border: 'none', background: 'transparent' }}
+      styles={{ body: { padding: 0 } }}
+      title={null}
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 主词云区域 */}
@@ -269,12 +258,12 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
               size="small" 
               title={
                 <Space>
-                  <SmileOutlined style={{ color: designTokens.colors.success }} />
+                  <SmileOutlined style={{ color: 'var(--ant-color-success)' }} />
                   <span>正面表现</span>
                   <Tag color="green">{positiveWords.length}</Tag>
                 </Space>
               }
-              bodyStyle={{ minHeight: '120px' }}
+              styles={{ body: { minHeight: '120px' } }}
             >
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {positiveWords.map((item, index) => (
@@ -284,13 +273,13 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
                     style={{
                       fontSize: '12px',
                       padding: '2px 8px',
-                      marginBottom: '4px'
+                      marginBottom: 'var(--space-1)'
                     }}
                     title={`观察次数: ${item.frequency}`}
                   >
                     {item.text}
                     <span style={{ 
-                      marginLeft: '4px',
+                      marginLeft: 'var(--space-1)',
                       fontSize: '10px',
                       opacity: 0.8
                     }}>
@@ -307,12 +296,12 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
               size="small" 
               title={
                 <Space>
-                  <FrownOutlined style={{ color: designTokens.colors.error }} />
+                  <FrownOutlined style={{ color: 'var(--ant-color-error)' }} />
                   <span>需要关注</span>
                   <Tag color="red">{negativeWords.length}</Tag>
                 </Space>
               }
-              bodyStyle={{ minHeight: '120px' }}
+              styles={{ body: { minHeight: '120px' } }}
             >
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {negativeWords.map((item, index) => (
@@ -322,13 +311,13 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
                     style={{
                       fontSize: '12px',
                       padding: '2px 8px',
-                      marginBottom: '4px'
+                      marginBottom: 'var(--space-1)'
                     }}
                     title={`观察次数: ${item.frequency}`}
                   >
                     {item.text}
                     <span style={{ 
-                      marginLeft: '4px',
+                      marginLeft: 'var(--space-1)',
                       fontSize: '10px',
                       opacity: 0.8
                     }}>
@@ -346,7 +335,7 @@ const WordCloudFeature: React.FC<WordCloudFeatureProps> = ({
           <Row gutter={[16, 8]} align="middle">
             <Col flex="auto">
               <Space>
-                <FireOutlined style={{ color: designTokens.colors.warning }} />
+                <FireOutlined style={{ color: 'var(--ant-color-warning)' }} />
                 <Text type="secondary" style={{ fontSize: '12px' }}>
                   热力指标: 最高 {maxValue} 分，
                   正面标签 {positiveWords.length} 个，

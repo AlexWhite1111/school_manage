@@ -102,7 +102,10 @@ export interface StudentFinanceDetails {
  * 创建订单请求数据
  */
 export interface CreateOrderRequest {
-  studentId: number;
+  // 后端以 publicId 作为学生公开ID字段
+  publicId: string;
+  // 兼容旧字段（可选，不再使用）
+  studentId?: number;
   name: string;
   totalDue: string | number;
   coursePeriodStart?: string;

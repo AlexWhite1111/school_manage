@@ -1,5 +1,7 @@
+// Use AntD Card directly instead of custom UnifiedCard
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, Col, Row, Statistic, Alert, Spin, Table, Tag, Space, Typography } from 'antd';
+import { Col, Row, Statistic, Alert, Spin, Table, Tag, Space, Typography, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 import { useResponsive } from '@/hooks/useResponsive';
 import { getFinanceAnalyticsSummary } from '@/api/analyticsApi';
@@ -69,7 +71,7 @@ const FinanceAnalyticsTab: React.FC<FinanceAnalyticsTabProps> = ({ timeParams, r
           </Col>
           <Col xs={24} sm={8}>
             <Card size="small">
-              <Statistic title="总欠款" value={data?.keyMetrics.totalOutstanding ?? 0} precision={2} prefix="¥" valueStyle={{ color: '#cf1322' }} />
+              <Statistic title="总欠款" value={data?.keyMetrics.totalOutstanding ?? 0} precision={2} prefix="¥" valueStyle={{ color: 'var(--ant-color-error)' }} />
             </Card>
           </Col>
         </Row>
@@ -86,7 +88,7 @@ const FinanceAnalyticsTab: React.FC<FinanceAnalyticsTabProps> = ({ timeParams, r
                     <YAxis />
                     <RechartsTooltip formatter={(value: any) => [`¥${Number(value).toFixed(2)}`, '实收']} />
                     <Legend />
-                    <Line type="monotone" dataKey="amount" name="实收" stroke="#52c41a" dot={false} />
+                    <Line type="monotone" dataKey="amount" name="实收" stroke="var(--ant-color-success)" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -102,7 +104,7 @@ const FinanceAnalyticsTab: React.FC<FinanceAnalyticsTabProps> = ({ timeParams, r
                     <YAxis />
                     <RechartsTooltip formatter={(value: any) => [`¥${Number(value).toFixed(2)}`, '应收']} />
                     <Legend />
-                    <Bar dataKey="amount" name="应收" fill="#1890ff" />
+                    <Bar dataKey="amount" name="应收" fill="var(--ant-color-primary)" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Card, Progress, Typography } from 'antd';
+import { Progress, Typography, Card } from 'antd';
 import {
   RiseOutlined,
   FallOutlined,
@@ -28,17 +29,17 @@ const GrowthScoreDisplay: React.FC<GrowthScoreDisplayProps> = ({
 }) => {
   const getTrendIcon = () => {
     switch (trend) {
-      case 'UP': return <RiseOutlined style={{ color: '#52c41a' }} />;
-      case 'DOWN': return <FallOutlined style={{ color: '#ff4d4f' }} />;
-      default: return <LineChartOutlined style={{ color: '#1890ff' }} />;
+      case 'UP': return <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />;
+      case 'DOWN': return <FallOutlined style={{ color: 'var(--ant-color-error)' }} />;
+      default: return <LineChartOutlined style={{ color: 'var(--ant-color-primary)' }} />;
     }
   };
 
   const getTrendColor = () => {
     switch (trend) {
-      case 'UP': return '#52c41a';
-      case 'DOWN': return '#ff4d4f';
-      default: return '#1890ff';
+      case 'UP': return 'var(--ant-color-success)';
+      case 'DOWN': return 'var(--ant-color-error)';
+      default: return 'var(--ant-color-primary)';
     }
   };
 
@@ -47,7 +48,7 @@ const GrowthScoreDisplay: React.FC<GrowthScoreDisplayProps> = ({
       className={`growth-score-card ${className || ''}`} 
       style={{ 
         textAlign: 'center', 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'var(--app-brand-gradient)',
         ...style
       }}
     >

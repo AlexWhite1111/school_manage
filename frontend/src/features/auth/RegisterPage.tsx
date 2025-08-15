@@ -1,5 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState } from 'react';
-import { Form, Input, Button, Select, Card, Typography, message, Space } from 'antd';
+import { Form, Input, Select, Typography, message, Space, Card } from 'antd';
 import { UserOutlined, TeamOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { registerUser, UserRole } from '@/api/authApi';
@@ -23,7 +24,7 @@ const RegisterPage: React.FC = () => {
   if (!isSuperAdmin()) {
     return (
       <div style={{ 
-        padding: '24px', 
+        padding: 'var(--space-6)', 
         textAlign: 'center',
         minHeight: '100vh',
         display: 'flex',
@@ -69,22 +70,21 @@ const RegisterPage: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'var(--app-brand-gradient)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '20px'
+      padding: 'var(--space-5)'
     }}>
       <Card
         style={{
           width: '100%',
           maxWidth: 500,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          borderRadius: '12px'
+          borderRadius: 'var(--radius-lg)'
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
+          <Title level={2} style={{ color: 'var(--ant-color-primary)', marginBottom: 8 }}>
             创建新的系统用户账号
           </Title>
           <Text type="secondary">
@@ -135,24 +135,24 @@ const RegisterPage: React.FC = () => {
 
           <Form.Item>
             <Space direction="vertical" style={{ width: '100%' }}>
-              <Button
-                type="primary"
-                htmlType="submit"
+              <AppButton
+                hierarchy="primary"
+                type="submit"
                 loading={loading}
                 block
-                style={{ height: 'auto', padding: '12px 0', fontSize: '16px' }}
+                style={{ height: 'auto', padding: 'var(--space-3) 0', fontSize: '16px' }}
               >
                 {loading ? '注册中...' : '注册用户'}
-              </Button>
+              </AppButton>
               
-                            <Button 
-                type="default"
+                            <AppButton 
+                hierarchy="secondary"
                 icon={<ArrowLeftOutlined />}
                 onClick={() => navigate('/settings')}
                 block
               >
                 设置
-              </Button>
+              </AppButton>
             </Space>
           </Form.Item>
         </Form>

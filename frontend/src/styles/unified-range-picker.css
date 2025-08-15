@@ -1,0 +1,45 @@
+/* 统一时间选择器下拉样式：预留扩展点 */
+.unified-time-range-dropdown .ant-picker-presets {
+	/* 保证预设项固定顺序、间距一致 */
+	padding: 8px 12px;
+}
+
+/* 统一：移动端下拉面板顶部快捷栏（两行：4+3） */
+.unified-time-range-dropdown .unified-quickbar {
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--ant-color-split, rgba(5,5,5,0.06));
+}
+.unified-time-range-dropdown .unified-quickbar-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+.unified-time-range-dropdown .unified-quickbar-row:last-child {
+	margin-bottom: 0;
+}
+.unified-time-range-dropdown .unified-quickbar .ant-btn {
+	/* 按钮风格走 token（Ant Button 默认即可），统一间距与尺寸 */
+	border-radius: 6px;
+}
+
+/* 移动端优化（可选）：竖向双日历展示的辅助样式占位，按需启用 */
+@media (max-width: 768px) {
+	.unified-time-range-dropdown .ant-picker-presets {
+		display: none;
+	}
+	.unified-time-range-dropdown .ant-picker-panels {
+		display: flex;
+		flex-direction: column; /* 竖向堆叠两个日历 */
+	}
+
+	/* 移动端：去除左右干扰区域，保证卡片完整显示 */
+	.unified-time-range-dropdown .ant-picker-time-panel, 
+	.unified-time-range-dropdown .ant-picker-footer-extra + .ant-picker-ranges {
+		display: none; /* 禁用碎片化额外元素 */
+	}
+
+	.unified-time-range-dropdown .ant-picker-panel-container {
+		padding: 0 8px 8px 8px;
+	}
+}
+

@@ -1,0 +1,167 @@
+[
+  {
+    "tokenName": "color.primary",
+    "role": "primary",
+    "value": "#1677ff",
+    "darkValue": "#1677ff",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/index.css",
+      "frontend/src/features/student-log/StudentLogPage.tsx",
+      "frontend/src/components/dashboard/DashboardPage.tsx"
+    ]
+  },
+  {
+    "tokenName": "color.success",
+    "role": "success",
+    "value": "#52c41a",
+    "darkValue": "#52c41a",
+    "examples": [
+      "frontend/src/utils/growthUtils.ts",
+      "frontend/src/pages/StudentTrendPage.tsx",
+      "frontend/src/components/dashboard/AttendanceStatsCard.tsx"
+    ]
+  },
+  {
+    "tokenName": "color.warning",
+    "role": "warning",
+    "value": "#faad14",
+    "darkValue": "#faad14",
+    "examples": [
+      "frontend/src/pages/ExamDetailPage.tsx",
+      "frontend/src/features/student-log/StudentLogPage.tsx",
+      "frontend/src/components/dashboard/ExamStatsCard.tsx"
+    ]
+  },
+  {
+    "tokenName": "color.error",
+    "role": "error",
+    "value": "#ff4d4f",
+    "darkValue": "#ff4d4f",
+    "examples": [
+      "frontend/src/pages/SubjectTrendPage.tsx",
+      "frontend/src/features/finance/FinancePage.tsx",
+      "frontend/src/components/growth/SimpleGrowthAnalysis.tsx"
+    ]
+  },
+  {
+    "tokenName": "color.info",
+    "role": "info",
+    "value": "#1677ff",
+    "darkValue": "#1677ff",
+    "examples": [
+      "frontend/src/components/dashboard/OverviewStatsCard.tsx",
+      "frontend/src/components/dashboard/GrowthActivityCard.tsx"
+    ]
+  },
+  {
+    "tokenName": "text.primary",
+    "role": "text",
+    "value": "rgba(0, 0, 0, 0.88)",
+    "darkValue": "rgba(255, 255, 255, 0.85)",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/pages/ExamDetailPage.tsx"
+    ]
+  },
+  {
+    "tokenName": "text.secondary",
+    "role": "text",
+    "value": "rgba(0, 0, 0, 0.65)",
+    "darkValue": "rgba(255, 255, 255, 0.65)",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/routes/AppRouter.tsx"
+    ]
+  },
+  {
+    "tokenName": "text.tertiary",
+    "role": "text",
+    "value": "rgba(0, 0, 0, 0.45)",
+    "darkValue": "rgba(255, 255, 255, 0.45)",
+    "examples": [
+      "frontend/src/theme/tokens.ts"
+    ]
+  },
+  {
+    "tokenName": "text.muted",
+    "role": "text",
+    "value": "#8c8c8c",
+    "darkValue": "#8c8c8c",
+    "examples": [
+      "frontend/src/features/student-log/StudentLogPage.tsx",
+      "frontend/src/features/student-log/components/StudentListView.tsx",
+      "frontend/src/assets/styles/global.css"
+    ]
+  },
+  {
+    "tokenName": "bg.layout",
+    "role": "bg",
+    "value": "#f5f5f5",
+    "darkValue": "#141414",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/features/auth/ProfilePage.tsx"
+    ]
+  },
+  {
+    "tokenName": "bg.container",
+    "role": "bg",
+    "value": "#ffffff",
+    "darkValue": "#1f1f1f",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/pages/StudentTrendPage.tsx"
+    ]
+  },
+  {
+    "tokenName": "border.default",
+    "role": "border",
+    "value": "#d9d9d9",
+    "darkValue": "#424242",
+    "examples": [
+      "frontend/src/theme/tokens.ts",
+      "frontend/src/components/unified-growth-report/charts/SubjectRadarChart.tsx"
+    ]
+  },
+  {
+    "tokenName": "border.secondary",
+    "role": "border",
+    "value": "#e8e8e8",
+    "darkValue": "#303030",
+    "examples": [
+      "frontend/src/pages/StudentTrendPage.tsx",
+      "frontend/src/index.css"
+    ]
+  },
+  {
+    "tokenName": "divider",
+    "role": "border",
+    "value": "rgba(5, 5, 5, 0.06)",
+    "darkValue": "rgba(255, 255, 255, 0.12)",
+    "examples": [
+      "frontend/src/theme/tokens.ts"
+    ]
+  },
+  {
+    "tokenName": "accent.volcano",
+    "role": "info",
+    "value": "#fa8c16",
+    "darkValue": "#fa8c16",
+    "examples": [
+      "frontend/src/components/dashboard/ExamStatsCard.tsx",
+      "frontend/src/components/growth/GrowthConfigPanel.tsx"
+    ]
+  },
+  {
+    "tokenName": "accent.purple",
+    "role": "info",
+    "value": "#722ed1",
+    "darkValue": "#722ed1",
+    "examples": [
+      "frontend/src/features/student-log/StudentLogPage.tsx",
+      "frontend/src/features/analytics/components/ExamAnalyticsTab.tsx"
+    ]
+  }
+]
+

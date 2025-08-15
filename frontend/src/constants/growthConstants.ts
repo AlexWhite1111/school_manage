@@ -60,7 +60,7 @@ export const getSentimentLabel = (sentiment: GrowthSentiment): string => {
 
 // 获取情感极性的颜色
 export const getSentimentColor = (sentiment: GrowthSentiment): string => {
-  return sentiment === 'POSITIVE' ? '#52c41a' : '#ff4d4f';
+  return sentiment === 'POSITIVE' ? 'var(--ant-color-success)' : 'var(--ant-color-error)';
 };
 
 // 权重等级描述
@@ -85,7 +85,7 @@ export const getWeightLabel = (weight: number): string => {
 
 // 获取权重颜色
 export const getWeightColor = (weight: number): string => {
-  if (weight <= 3) return '#ff4d4f';
-  if (weight <= 6) return '#faad14';
-  return '#52c41a';
+  if (weight <= 3) return 'var(--ant-color-error)';
+  if (weight <= 6) return 'var(--ant-color-warning)';
+  return 'var(--ant-color-success)';
 };

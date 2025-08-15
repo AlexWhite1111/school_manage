@@ -1,27 +1,8 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Typography, 
-  Row, 
-  Col, 
-  Card, 
-  Input, 
-  Button, 
-  Menu, 
-  Space, 
-  Statistic, 
-  Tag,
-  App,
-  List,
-  Avatar,
-  Dropdown,
-  Empty,
-  Spin,
-  Divider,
-  Popconfirm,
-  Table,
-  Checkbox,
-  Segmented
-} from 'antd';
+import { Typography, Row, Col, Input, Menu, Space, Statistic, Tag, App, List, Avatar, Dropdown, Empty, Spin, Divider, Popconfirm, Table, Checkbox, Segmented, Card } from 'antd';
+import AppSearchInput from '@/components/common/AppSearchInput';
+import { UnifiedCardPresets } from '@/theme/card';
 import type { MenuProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -57,9 +38,9 @@ const { useApp } = App;
 
 // 支付状态标签配置 - 匹配API返回的状态值
 const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  'PAID_FULL': { label: '已付清', color: '#52c41a' },
-  'PARTIAL_PAID': { label: '部分付款', color: '#faad14' },
-  'UNPAID': { label: '未付款', color: '#ff4d4f' }
+  'PAID_FULL': { label: '已付清', color: 'var(--ant-color-success)' },
+  'PARTIAL_PAID': { label: '部分付款', color: 'var(--ant-color-warning)' },
+  'UNPAID': { label: '未付款', color: 'var(--ant-color-error)' }
 };
 
 // 视图模式类型
@@ -118,7 +99,7 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
             <Avatar 
               size="small"
               style={{ 
-                backgroundColor: PAYMENT_STATUS_LABELS[student.paymentStatus]?.color || '#8c8c8c'
+                backgroundColor: PAYMENT_STATUS_LABELS[student.paymentStatus]?.color || 'var(--ant-color-text-secondary)'
               }}
             >
               {student.studentName?.slice(-2) || '学生'}
@@ -130,9 +111,9 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
             trigger={['click']}
             placement="bottomRight"
           >
-            <Button
-              type="text"
-              size="small"
+            <AppButton
+              hierarchy="tertiary"
+              size="sm"
               icon={<MoreOutlined />}
             />
           </Dropdown>
@@ -140,14 +121,14 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
       }
       style={{
         height: '280px',
-        borderColor: selectedRowKeys.includes(student.studentId) ? '#1890ff' : undefined,
+        borderColor: selectedRowKeys.includes(student.studentId) ? 'var(--ant-color-primary)' : undefined,
         cursor: 'pointer'
       }}
-      bodyStyle={{ padding: '12px' }}
+      styles={{ body: { padding: 'var(--space-3)' } }}
       onClick={() => onViewDetail(student)}
     >
       {/* 学生信息 */}
-      <div style={{ marginBottom: '12px', fontSize: '12px', color: '#8c8c8c' }}>
+      <div style={{ marginBottom: '12px', fontSize: '12px', color: 'var(--ant-color-text-secondary)' }}>
         <Space split={<Divider type="vertical" />} size="small">
           {student.school && <span>{student.school}</span>}
           {student.grade && <span>{getGradeLabel(student.grade)}</span>}
@@ -160,13 +141,13 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text type="secondary" style={{ fontSize: '11px' }}>应收总额</Text>
-            <Text strong style={{ fontSize: '14px', color: '#1890ff' }}>
+            <Text strong style={{ fontSize: '14px', color: 'var(--ant-color-primary)' }}>
               {formatAmount(student.totalDue)}
             </Text>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text type="secondary" style={{ fontSize: '11px' }}>已付金额</Text>
-            <Text strong style={{ fontSize: '14px', color: '#52c41a' }}>
+            <Text strong style={{ fontSize: '14px', color: 'var(--ant-color-success)' }}>
               {formatAmount(student.totalPaid)}
             </Text>
           </div>
@@ -174,7 +155,7 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
             <Text type="secondary" style={{ fontSize: '11px' }}>欠款金额</Text>
             <Text strong style={{ 
               fontSize: '14px', 
-              color: parseFloat(student.totalOwed) > 0 ? '#ff4d4f' : '#52c41a' 
+              color: parseFloat(student.totalOwed) > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)' 
             }}>
               {formatAmount(student.totalOwed)}
             </Text>
@@ -183,7 +164,7 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
       </div>
 
       {/* 最后更新时间 */}
-      <div style={{ marginBottom: '12px', fontSize: '11px', color: '#8c8c8c' }}>
+      <div style={{ marginBottom: '12px', fontSize: '11px', color: 'var(--ant-color-text-secondary)' }}>
         最后更新: {student.lastUpdateDate}
         {student.lastOrderDate && (
           <div>最近订单: {student.lastOrderDate}</div>
@@ -193,7 +174,7 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
       {/* 支付状态 */}
       <div style={{ 
         borderTop: `1px solid ${theme === 'dark' ? '#434343' : '#f0f0f0'}`, 
-        paddingTop: '8px' 
+        paddingTop: 'var(--space-2)' 
       }}>
         <div style={{ 
           display: 'flex', 
@@ -203,7 +184,7 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
         }}>
           <Text type="secondary" style={{ fontSize: '11px' }}>支付状态</Text>
           <Tag 
-            color={PAYMENT_STATUS_LABELS[student.paymentStatus]?.color || '#8c8c8c'}
+            color={PAYMENT_STATUS_LABELS[student.paymentStatus]?.color || 'var(--ant-color-text-secondary)'}
             style={{ margin: 0, fontSize: '11px' }}
           >
             {PAYMENT_STATUS_LABELS[student.paymentStatus]?.label || student.paymentStatus}
@@ -215,14 +196,14 @@ const StudentFinanceCard: React.FC<StudentFinanceCardProps> = ({
           width: '100%', 
           height: '6px', 
           backgroundColor: theme === 'dark' ? '#434343' : '#f0f0f0',
-          borderRadius: '3px',
+          borderRadius: 'var(--radius-sm)',
           overflow: 'hidden'
         }}>
           <div style={{
             width: `${getPaymentProgress()}%`,
             height: '100%',
-            backgroundColor: student.paymentStatus === 'PAID_FULL' ? '#52c41a' : 
-                           student.paymentStatus === 'PARTIAL_PAID' ? '#faad14' : '#ff4d4f',
+            backgroundColor: student.paymentStatus === 'PAID_FULL' ? 'var(--ant-color-success)' : 
+                           student.paymentStatus === 'PARTIAL_PAID' ? 'var(--ant-color-warning)' : 'var(--ant-color-error)',
             transition: 'width 0.3s ease'
           }} />
         </div>
@@ -435,7 +416,7 @@ const FinancePage: React.FC = () => {
           <Avatar 
             size="small"
             style={{ 
-              backgroundColor: PAYMENT_STATUS_LABELS[record.paymentStatus]?.color || '#8c8c8c'
+              backgroundColor: PAYMENT_STATUS_LABELS[record.paymentStatus]?.color || 'var(--ant-color-text-secondary)'
             }}
           >
             {name?.slice(-2) || '学生'}
@@ -452,7 +433,7 @@ const FinancePage: React.FC = () => {
         <div>
           <div style={{ fontWeight: 500 }}>{record.school || '-'}</div>
           {record.grade && (
-            <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{getGradeLabel(record.grade)}</div>
+            <div style={{ fontSize: '12px', color: 'var(--ant-color-text-secondary)' }}>{getGradeLabel(record.grade)}</div>
           )}
         </div>
       )
@@ -464,7 +445,7 @@ const FinancePage: React.FC = () => {
       width: isMobile ? 90 : 120,
       align: 'right',
       render: (amount: string) => (
-        <span style={{ fontWeight: 500, color: '#1890ff' }}>
+        <span style={{ fontWeight: 500, color: 'var(--ant-color-primary)' }}>
           {formatAmount(parseFloat(amount) || 0)}
         </span>
       )
@@ -476,7 +457,7 @@ const FinancePage: React.FC = () => {
       width: isMobile ? 90 : 120,
       align: 'right',
       render: (amount: string) => (
-        <span style={{ fontWeight: 500, color: '#52c41a' }}>
+        <span style={{ fontWeight: 500, color: 'var(--ant-color-success)' }}>
           {formatAmount(parseFloat(amount) || 0)}
         </span>
       )
@@ -492,7 +473,7 @@ const FinancePage: React.FC = () => {
         return (
           <span style={{ 
             fontWeight: 500, 
-            color: numAmount > 0 ? '#ff4d4f' : '#52c41a'
+            color: numAmount > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)'
           }}>
             {formatAmount(numAmount)}
           </span>
@@ -506,7 +487,7 @@ const FinancePage: React.FC = () => {
       width: isMobile ? 80 : 100,
       render: (status: string) => (
         <Tag 
-          color={PAYMENT_STATUS_LABELS[status]?.color || '#8c8c8c'}
+          color={PAYMENT_STATUS_LABELS[status]?.color || 'var(--ant-color-text-secondary)'}
           style={{ fontSize: '11px' }}
         >
           {PAYMENT_STATUS_LABELS[status]?.label || status}
@@ -535,9 +516,9 @@ const FinancePage: React.FC = () => {
        fixed: 'right',
        width: isMobile ? 60 : 80,
        render: (_: any, record: StudentFinanceSummary) => (
-        <Button
-          type="text"
-          size="small"
+        <AppButton
+          hierarchy="tertiary"
+          size="sm"
           icon={<EyeOutlined />}
           onClick={(e) => {
             e.stopPropagation();
@@ -549,38 +530,33 @@ const FinancePage: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '0' }}>
+    <div data-page-container>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 页面标题 */}
         <div>
           <Title level={2} style={{ margin: 0, marginBottom: '8px' }}>
             财务管理中心
           </Title>
-          <Text type="secondary">
-            管理学生付费记录、收款状态和财务统计
-          </Text>
+          {/* 副标题移除：按需求隐藏小字说明 */}
         </div>
 
         {/* 搜索和操作栏 */}
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} lg={14}>
-            <Search
+            <AppSearchInput
               placeholder="搜索学生姓名、学校等"
-              allowClear
-              size="large"
               value={searchKeyword}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(v) => handleSearch(v)}
               onSearch={handleSearch}
-              enterButton={<SearchOutlined />}
             />
           </Col>
           <Col xs={24} lg={10}>
             <div style={{ 
               display: 'flex', 
               justifyContent: !isDesktop ? 'center' : 'flex-end',
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? '12px' : '16px',
-              alignItems: isMobile ? 'stretch' : 'center'
+              flexDirection: 'row',
+              gap: isMobile ? 'var(--space-3)' : 'var(--space-4)',
+              alignItems: 'center'
             }}>
               {/* 视图切换 */}
               <Segmented
@@ -592,77 +568,84 @@ const FinancePage: React.FC = () => {
                 ]}
                 size={isMobile ? 'small' : 'middle'}
               />
-              
-              <Space size="middle">
-                <Button 
+              {isMobile ? (
+                <AppButton
+                  hierarchy="tertiary"
+                  size="sm"
                   icon={<DownloadOutlined />}
                   onClick={handleExport}
-                  size={isMobile ? 'middle' : 'middle'}
-                  style={{ 
-                    borderRadius: '6px',
-                    flex: isMobile ? 1 : 'none'
-                  }}
+                  aria-label="导出数据"
+                />
+              ) : (
+                <AppButton 
+                  icon={<DownloadOutlined />}
+                  onClick={handleExport}
+                  size="middle"
+                  style={{ borderRadius: '6px' }}
                 >
-                  {isMobile ? '导出' : '导出数据'}
-                </Button>
-              </Space>
+                  导出数据
+                </AppButton>
+              )}
             </div>
           </Col>
         </Row>
 
         {/* 主内容区 */}
-        <Row gutter={[24, 24]} style={{ minHeight: '500px' }}>
+        <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ minHeight: '500px' }}>
           {/* 左侧筛选导航区 - 包含统计数据 */}
           <Col xs={24} md={8} lg={6}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
               {/* 统计数据卡片 */}
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
               <Card title={
                 <Space>
                   <DollarOutlined />
                   <span>财务概览</span>
                 </Space>
-              }>
-                <Row gutter={[0, 16]}>
-                  <Col span={24}>
+              } style={preset.style} styles={preset.styles}>
+                <Row gutter={[16, 16]}>
+                  <Col xs={12} md={24}>
                     <Statistic
                       title="学生总数"
                       value={stats.totalStudents}
                       prefix={<UserOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-primary)', fontSize: 'var(--font-size-xl)' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} md={24}>
                     <Statistic
                       title="总应收"
                       value={stats.totalDue}
                       formatter={(value) => formatAmount(Number(value))}
                       prefix={<BankOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-primary)', fontSize: 'var(--font-size-xl)' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} md={24}>
                     <Statistic
                       title="总实收"
                       value={stats.totalPaid}
                       formatter={(value) => formatAmount(Number(value))}
                       prefix={<CreditCardOutlined />}
-                      valueStyle={{ color: '#52c41a', fontSize: '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-success)', fontSize: 'var(--font-size-xl)' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} md={24}>
                     <Statistic
                       title="总欠款"
                       value={stats.totalOwed}
                       formatter={(value) => formatAmount(Number(value))}
                       prefix={<AlertOutlined />}
-                      valueStyle={{ color: stats.totalOwed > 0 ? '#ff4d4f' : '#52c41a', fontSize: '20px' }}
+                      valueStyle={{ color: stats.totalOwed > 0 ? 'var(--ant-color-error)' : 'var(--ant-color-success)', fontSize: 'var(--font-size-xl)' }}
                     />
                   </Col>
                 </Row>
               </Card>
+              ); })()}
               
               {/* 状态筛选 */}
-              <Card title="状态筛选" style={{ flex: 1 }}>
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+              <Card title="状态筛选" style={{ ...preset.style, flex: 1 }} styles={preset.styles}>
                 <Menu
                   mode="vertical"
                   selectedKeys={[selectedStatusFilter]}
@@ -674,11 +657,13 @@ const FinancePage: React.FC = () => {
                   }}
                 />
               </Card>
+              ); })()}
             </Space>
           </Col>
 
           {/* 右侧学生列表区 */}
           <Col xs={24} md={16} lg={18}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
             <Card 
               title={
                 <Space>
@@ -694,15 +679,24 @@ const FinancePage: React.FC = () => {
                 </Space>
               }
               extra={
-                selectedRowKeys.length > 0 && (
-                  <Space>
+                <Space>
+                  {selectedRowKeys.length > 0 && (
                     <Text style={{ fontSize: isMobile ? '12px' : '14px' }}>
                       已选择 {selectedRowKeys.length} 名
                     </Text>
-                  </Space>
-                )
+                  )}
+                  {isMobile && (
+                    <AppButton
+                      hierarchy="tertiary"
+                      size="sm"
+                      icon={<DownloadOutlined />}
+                      onClick={handleExport}
+                    />
+                  )}
+                </Space>
               }
-              style={{ height: '100%' }}
+              style={{ ...preset.style, height: '100%' }}
+              styles={preset.styles}
             >
               {loading ? (
                 <Spin size="large" style={{ display: 'block', textAlign: 'center', margin: '40px 0' }} />
@@ -789,18 +783,19 @@ const FinancePage: React.FC = () => {
 
               {/* 统计信息 */}
               {filteredStudents.length > 0 && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  marginTop: '16px', 
-                  padding: '8px 0',
+              <div style={{ 
+                textAlign: 'center', 
+                marginTop: 'var(--space-4)', 
+                padding: 'var(--space-2) 0',
                   color: 'var(--ant-color-text-secondary)',
-                  fontSize: '12px',
-                  borderTop: '1px solid var(--ant-color-border-secondary)'
+                fontSize: '12px',
+                borderTop: '1px solid var(--ant-color-border-secondary)'
                 }}>
                   当前显示 {paginatedStudents.length} 条记录 / 筛选结果 {filteredStudents.length} 条 / 系统总计 {stats.totalStudents} 名学生
                 </div>
               )}
             </Card>
+            ); })()}
           </Col>
         </Row>
       </Space>

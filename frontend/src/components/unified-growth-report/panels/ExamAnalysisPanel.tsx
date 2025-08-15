@@ -1,18 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  Typography,
-  Space,
-  Tag,
-  Table,
-  Empty,
-  Tooltip,
-  Badge
-} from 'antd';
+import { Row, Col, Statistic, Progress, Typography, Space, Tag, Table, Empty, Tooltip, Badge, Card } from 'antd';
 import {
   TrophyOutlined,
   RiseOutlined, 
@@ -21,14 +8,14 @@ import {
   ExclamationCircleOutlined,
   CheckCircleOutlined,
   BarChartOutlined,
-  LineChartOutlined,
   UserOutlined,
   MinusOutlined
 } from '@ant-design/icons';
 import type { ExamAnalysisPanelProps } from '@/types/unifiedGrowthReport';
 import { useResponsive } from '@/hooks/useResponsive';
-import { designTokens } from '@/theme/designTokens';
+import { theme } from 'antd';
 import { getSubjectLabel } from '@/utils/enumMappings';
+import { EXCELLENT_SCORE_THRESHOLD, PASS_SCORE_THRESHOLD, getScoreBand } from '@/config/examStandards';
 
 const { Title, Text } = Typography;
 
@@ -45,6 +32,7 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
   onSubjectClick
 }) => {
   const { isMobile } = useResponsive();
+  const { token } = theme.useToken();
 
   // 计算考试统计数据
   const examStats = useMemo(() => {
@@ -69,7 +57,10 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
     // 计算出勤率
     const totalValidScores = subjects.reduce((sum, s) => sum + s.validScores, 0);
     const totalPossibleScores = subjects.reduce((sum, s) => sum + s.totalExams, 0);
-    const attendanceRate = totalPossibleScores > 0 ? (totalValidScores / totalPossibleScores) * 100 : 0;
+    // 四舍五入到1位小数，避免显示 93.60000000000001% 等浮点误差
+    const attendanceRate = totalPossibleScores > 0 
+      ? Math.round(((totalValidScores / totalPossibleScores) * 100) * 10) / 10 
+      : 0;
 
     return {
       totalExams,
@@ -106,20 +97,20 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
     switch (trend) {
       case 'improving':
         return {
-          icon: <RiseOutlined style={{ color: designTokens.colors.success }} />,
-          color: designTokens.colors.success,
+          icon: <RiseOutlined style={{ color: 'var(--ant-color-success)' }} />,
+          color: 'var(--ant-color-success)',
           text: `+${improvement.toFixed(1)}%`
         };
       case 'declining':
         return {
-          icon: <FallOutlined style={{ color: designTokens.colors.error }} />,
-          color: designTokens.colors.error,
+          icon: <FallOutlined style={{ color: 'var(--ant-color-error)' }} />,
+          color: 'var(--ant-color-error)',
           text: `${improvement.toFixed(1)}%`
         };
       default:
         return {
-          icon: <CheckCircleOutlined style={{ color: designTokens.colors.primary }} />,
-          color: designTokens.colors.primary,
+          icon: <CheckCircleOutlined style={{ color: 'var(--ant-color-primary)' }} />,
+          color: 'var(--ant-color-primary)',
           text: '稳定'
         };
     }
@@ -149,20 +140,23 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
         </Space>
       ),
     },
+    // 参与：仅显示“有效/总数”和百分比（小字，灰色），舍弃缺考计数
     {
-      title: '考试次数',
-      dataIndex: 'totalExams',
-      key: 'totalExams',
-      flex: 1,
-      minWidth: isMobile ? 70 : 90,
+      title: '参与',
+      key: 'participationOverview',
+      flex: 1.4,
+      minWidth: isMobile ? 120 : 160,
       align: 'center' as const,
-      render: (totalExams: number) => (
-        <Badge 
-          count={totalExams} 
-          style={{ backgroundColor: 'var(--ant-color-primary)' }}
-          showZero
-        />
-      ),
+      render: (_: any, record: any) => {
+        const rate = Number(record.participationRate) || 0;
+        const rateColor = rate >= 90 ? 'var(--ant-color-success)' : rate >= 70 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)';
+        return (
+          <Space direction="vertical" size={2} style={{ textAlign: 'center' }}>
+            <Text strong style={{ fontSize: '14px', color: rateColor }}>{record.validScores}/{record.totalExams}</Text>
+            <Text type="secondary" style={{ fontSize: '12px' }}>{rate.toFixed(1)}%</Text>
+          </Space>
+        );
+      }
     },
     {
       title: '平均分',
@@ -206,47 +200,6 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
             最低: {record.lowest}
           </Text>
         </Space>
-      ),
-    },
-    {
-      title: '参与情况',
-      key: 'participation',
-      flex: 1.2,
-      minWidth: isMobile ? 90 : 110,
-      align: 'center' as const,
-      render: (_: any, record: any) => (
-        <Space direction="vertical" size={2}>
-          <Text style={{ 
-            fontSize: '13px',
-            color: 'rgba(0, 0, 0, 0.7)',
-            fontWeight: 500
-          }}>
-            参与: {record.validScores}/{record.totalExams}
-          </Text>
-          <Text style={{ 
-            fontSize: '13px', 
-            color: record.participationRate >= 90 ? 'rgba(82, 196, 26, 0.9)' : 
-                   record.participationRate >= 70 ? 'rgba(250, 173, 20, 0.9)' : 'rgba(255, 77, 79, 0.9)',
-            fontWeight: 600
-          }}>
-            {record.participationRate.toFixed(1)}%
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      title: '缺考',
-      dataIndex: 'absentCount',
-      key: 'absentCount',
-      flex: 0.8,
-      minWidth: isMobile ? 50 : 70,
-      align: 'center' as const,
-      render: (count: number) => count > 0 ? (
-        <Tag color="error" icon={<ExclamationCircleOutlined />}>
-          {count}
-        </Tag>
-      ) : (
-        <Tag color="success">0</Tag>
       ),
     },
     {
@@ -318,33 +271,26 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
         <Space>
           <BookOutlined />
           <span>考试分析</span>
-          <Tag color="blue">{examStats.totalSubjects} 个科目</Tag>
+          {examStats.totalSubjects > 0 && (
+            <Tag color="blue">{examStats.totalSubjects} 个科目</Tag>
+          )}
         </Space>
       }
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {/* 总体统计 - 扩展布局 */}
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+        {/* 总体统计 - 桌面端 4 卡片；移动端合并为单卡片 2×2 Grid */}
+        {isMobile ? (
+          <Card size="small" style={{ width: '100%' }}>
+            <Card.Grid hoverable={false} style={{ width: '50%', padding: 12, textAlign: 'center', border: 'none', boxShadow: 'none' }}>
               <Statistic
                 title="总考试次数"
                 value={examStats.totalExams}
                 prefix={<TrophyOutlined style={{ color: 'var(--ant-color-primary)' }} />}
-                valueStyle={{ color: 'var(--ant-color-primary)', fontSize: '24px' }}
+                valueStyle={{ color: 'var(--ant-color-primary)', fontSize: '20px' }}
               />
-              <Text type="secondary" style={{ 
-                fontSize: '13px',
-                color: 'rgba(0, 0, 0, 0.6)',
-                fontWeight: 500,
-                letterSpacing: '0.2px'
-              }}>
-                涵盖 {examStats.totalSubjects} 个科目
-              </Text>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>涵盖 {examStats.totalSubjects} 个科目</Text>
+            </Card.Grid>
+            <Card.Grid hoverable={false} style={{ width: '50%', padding: 12, textAlign: 'center', border: 'none', boxShadow: 'none' }}>
               <Statistic
                 title="整体平均分"
                 value={examStats.averageScore}
@@ -354,42 +300,27 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
                 valueStyle={{ 
                   color: examStats.averageScore >= 80 ? 'var(--ant-color-success)' : 
                          examStats.averageScore >= 60 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)',
-                  fontSize: '24px'
+                  fontSize: '20px'
                 }}
               />
-              <Text type="secondary" style={{ 
-                fontSize: '13px',
-                color: examStats.averageScore >= 80 ? 'rgba(82, 196, 26, 0.8)' : 
-                       examStats.averageScore >= 60 ? 'rgba(250, 173, 20, 0.8)' : 'rgba(255, 77, 79, 0.8)',
-                fontWeight: 500,
-                letterSpacing: '0.2px'
-              }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
                 {examStats.averageScore >= 80 ? '优秀水平' : 
                  examStats.averageScore >= 60 ? '良好水平' : '需要提升'}
               </Text>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+            </Card.Grid>
+            <Card.Grid hoverable={false} style={{ width: '50%', padding: 12, textAlign: 'center', border: 'none', boxShadow: 'none' }}>
               <Statistic
                 title="进步科目"
                 value={examStats.improvingSubjects}
                 suffix={` / ${examStats.totalSubjects}`}
-                valueStyle={{ color: 'var(--ant-color-success)', fontSize: '24px' }}
+                valueStyle={{ color: 'var(--ant-color-success)', fontSize: '20px' }}
                 prefix={<RiseOutlined style={{ color: 'var(--ant-color-success)' }} />}
               />
-              <Text type="secondary" style={{ 
-                fontSize: '13px',
-                color: 'rgba(82, 196, 26, 0.8)',
-                fontWeight: 500,
-                letterSpacing: '0.2px'
-              }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
                 进步率: {examStats.totalSubjects > 0 ? ((examStats.improvingSubjects / examStats.totalSubjects) * 100).toFixed(1) : 0}%
               </Text>
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+            </Card.Grid>
+            <Card.Grid hoverable={false} style={{ width: '50%', padding: 12, textAlign: 'center', border: 'none', boxShadow: 'none' }}>
               <Statistic
                 title="出勤率"
                 value={examStats.attendanceRate}
@@ -398,115 +329,106 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
                 prefix={<UserOutlined style={{ color: 'var(--ant-color-warning)' }} />}
                 valueStyle={{ 
                   color: examStats.attendanceRate >= 90 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)',
-                  fontSize: '24px'
+                  fontSize: '20px'
                 }}
               />
-              <Text type="secondary" style={{ 
-                fontSize: '13px',
-                color: examStats.attendanceRate >= 90 ? 'rgba(82, 196, 26, 0.8)' : 'rgba(250, 173, 20, 0.8)',
-                fontWeight: 500,
-                letterSpacing: '0.2px'
-              }}>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
                 {examStats.attendanceRate >= 90 ? '出勤优秀' : '需要关注'}
               </Text>
-            </Card>
-          </Col>
-        </Row>
+            </Card.Grid>
+          </Card>
+        ) : (
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+                <Statistic
+                  title="总考试次数"
+                  value={examStats.totalExams}
+                  prefix={<TrophyOutlined style={{ color: 'var(--ant-color-primary)' }} />}
+                  valueStyle={{ color: 'var(--ant-color-primary)', fontSize: '24px' }}
+                />
+                <Text type="secondary" style={{ 
+                  fontSize: '13px',
+                  color: 'rgba(0, 0, 0, 0.6)',
+                  fontWeight: 500,
+                  letterSpacing: '0.2px'
+                }}>
+                  涵盖 {examStats.totalSubjects} 个科目
+                </Text>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+                <Statistic
+                  title="整体平均分"
+                  value={examStats.averageScore}
+                  precision={1}
+                  suffix=" 分"
+                  prefix={<BarChartOutlined style={{ color: 'var(--ant-color-info)' }} />}
+                  valueStyle={{ 
+                    color: examStats.averageScore >= 80 ? 'var(--ant-color-success)' : 
+                           examStats.averageScore >= 60 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)',
+                    fontSize: '24px'
+                  }}
+                />
+                <Text type="secondary" style={{ 
+                  fontSize: '13px',
+                  color: examStats.averageScore >= 80 ? 'rgba(82, 196, 26, 0.8)' : 
+                         examStats.averageScore >= 60 ? 'rgba(250, 173, 20, 0.8)' : 'rgba(255, 77, 79, 0.8)',
+                  fontWeight: 500,
+                  letterSpacing: '0.2px'
+                }}>
+                  {examStats.averageScore >= 80 ? '优秀水平' : 
+                   examStats.averageScore >= 60 ? '良好水平' : '需要提升'}
+                </Text>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+                <Statistic
+                  title="进步科目"
+                  value={examStats.improvingSubjects}
+                  suffix={` / ${examStats.totalSubjects}`}
+                  valueStyle={{ color: 'var(--ant-color-success)', fontSize: '24px' }}
+                  prefix={<RiseOutlined style={{ color: 'var(--ant-color-success)' }} />}
+                />
+                <Text type="secondary" style={{ 
+                  fontSize: '13px',
+                  color: 'rgba(82, 196, 26, 0.8)',
+                  fontWeight: 500,
+                  letterSpacing: '0.2px'
+                }}>
+                  进步率: {examStats.totalSubjects > 0 ? ((examStats.improvingSubjects / examStats.totalSubjects) * 100).toFixed(1) : 0}%
+                </Text>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Card size="small" style={{ textAlign: 'center', height: '100%' }}>
+                <Statistic
+                  title="出勤率"
+                  value={examStats.attendanceRate}
+                  precision={1}
+                  suffix="%"
+                  prefix={<UserOutlined style={{ color: 'var(--ant-color-warning)' }} />}
+                  valueStyle={{ 
+                    color: examStats.attendanceRate >= 90 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)',
+                    fontSize: '24px'
+                  }}
+                />
+                <Text type="secondary" style={{ 
+                  fontSize: '13px',
+                  color: examStats.attendanceRate >= 90 ? 'rgba(82, 196, 26, 0.8)' : 'rgba(250, 173, 20, 0.8)',
+                  fontWeight: 500,
+                  letterSpacing: '0.2px'
+                }}>
+                  {examStats.attendanceRate >= 90 ? '出勤优秀' : '需要关注'}
+                </Text>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
-        {/* 进度指标 - 扩展布局 */}
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <Card size="small" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Space>
-                  <LineChartOutlined style={{ color: 'var(--ant-color-success)' }} />
-                  <Text strong>进步比例</Text>
-                </Space>
-                <Progress 
-                  percent={examStats.totalSubjects > 0 ? (examStats.improvingSubjects / examStats.totalSubjects) * 100 : 0}
-                  strokeColor="var(--ant-color-success)"
-                  format={() => `${examStats.improvingSubjects}/${examStats.totalSubjects}`}
-                  size="default"
-                />
-                <Text type="secondary" style={{ 
-                  fontSize: '13px',
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  fontWeight: 500,
-                  letterSpacing: '0.2px'
-                }}>
-                  {examStats.decliningSubjects > 0 && `下降科目: ${examStats.decliningSubjects}`}
-                </Text>
-              </Space>
-            </Card>
-          </Col>
-          <Col xs={24} md={8}>
-            <Card size="small" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Space>
-                  <UserOutlined style={{ color: 'var(--ant-color-warning)' }} />
-                  <Text strong>出勤情况</Text>
-                </Space>
-                <Progress 
-                  percent={examStats.attendanceRate}
-                  strokeColor={examStats.attendanceRate >= 90 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)'}
-                  size="default"
-                />
-                <Text type="secondary" style={{ 
-                  fontSize: '13px',
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  fontWeight: 500,
-                  letterSpacing: '0.2px'
-                }}>
-                  参与率: {examStats.attendanceRate.toFixed(1)}%
-                </Text>
-              </Space>
-            </Card>
-          </Col>
-          <Col xs={24} md={8}>
-            <Card size="small" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Space>
-                  <BarChartOutlined style={{ color: 'var(--ant-color-info)' }} />
-                  <Text strong>成绩分布</Text>
-                </Space>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <Text style={{ 
-                    fontSize: '13px',
-                    color: 'rgba(0, 0, 0, 0.7)',
-                    fontWeight: 500,
-                    letterSpacing: '0.3px'
-                  }}>优秀(≥80)</Text>
-                  <Text style={{ 
-                    fontSize: '13px',
-                    color: 'rgba(0, 0, 0, 0.7)',
-                    fontWeight: 500,
-                    letterSpacing: '0.3px'
-                  }}>良好(60-79)</Text>
-                  <Text style={{ 
-                    fontSize: '13px',
-                    color: 'rgba(0, 0, 0, 0.7)',
-                    fontWeight: 500,
-                    letterSpacing: '0.3px'
-                  }}>待提升(&lt;60)</Text>
-                </div>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {data?.subjectAnalysis?.map((subject, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        flex: 1,
-                        height: '8px',
-                        backgroundColor: subject.average >= 80 ? 'var(--ant-color-success)' :
-                                       subject.average >= 60 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)',
-                        borderRadius: '2px'
-                      }}
-                    />
-                  ))}
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        </Row>
+        {/* 进度指标与成绩分布（移动端精简：根据反馈移除） */}
 
         {/* 详细科目表格 - 扩展布局 */}
         {showDetails && (
@@ -517,7 +439,9 @@ const ExamAnalysisPanel: React.FC<ExamAnalysisPanelProps> = ({
                   <BookOutlined style={{ marginRight: '8px', color: 'var(--ant-color-primary)' }} />
                   科目详细分析
                 </Title>
-                <Tag color="blue">{subjectTableData.length} 个科目</Tag>
+                {subjectTableData.length > 0 && (
+                  <Tag color="blue">{subjectTableData.length} 个科目</Tag>
+                )}
               </div>
               <Table
                 dataSource={subjectTableData}

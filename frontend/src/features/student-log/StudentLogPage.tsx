@@ -1,31 +1,7 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Typography, 
-  Row, 
-  Col, 
-  Card, 
-  Input, 
-  Button, 
-  Menu, 
-  Space, 
-  Statistic, 
-  Modal, 
-  Tag,
-  App,
-  List,
-  Avatar,
-  Dropdown,
-  Badge,
-  FloatButton,
-  Empty,
-  Spin,
-  Divider,
-  Grid,
-  Checkbox,
-  Popconfirm,
-  Pagination,
-  Select
-} from 'antd';
+import { Typography, Row, Col, Input, Menu, Space, Statistic, Modal, Tag, App, List, Avatar, Dropdown, Badge, FloatButton, Empty, Spin, Divider, Grid, Checkbox, Popconfirm, Pagination, Select, Card } from 'antd';
+import AppSearchInput from '@/components/common/AppSearchInput';
 import type { MenuProps } from 'antd';
 import {
   TeamOutlined,
@@ -47,7 +23,8 @@ import {
   ExclamationCircleOutlined,
   UserSwitchOutlined,
   EditOutlined,
-
+  DownOutlined,
+  UpOutlined,
   BookFilled
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -78,10 +55,10 @@ const { confirm } = Modal;
 
 // 学生状态标签
 const STUDENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  'ENROLLED': { label: '已报名', color: '#52c41a' },
-  'TRIAL_CLASS': { label: '试听中', color: '#faad14' },
-  'INTERESTED': { label: '有意向', color: '#1890ff' },
-  'POTENTIAL': { label: '潜在客户', color: '#8c8c8c' }
+  'ENROLLED': { label: '已报名', color: 'var(--ant-color-success)' },
+  'TRIAL_CLASS': { label: '试听中', color: 'var(--ant-color-warning)' },
+  'INTERESTED': { label: '有意向', color: 'var(--ant-color-primary)' },
+  'POTENTIAL': { label: '潜在客户', color: 'var(--ant-color-text-secondary)' }
 };
 
 // ================================
@@ -129,7 +106,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({
     <Modal
       title={
         <Space>
-          <PlusOutlined style={{ color: '#1890ff' }} />
+          <PlusOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <span>创建新班级</span>
         </Space>
       }
@@ -142,7 +119,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({
       destroyOnClose
       centered
       styles={{
-        body: { padding: '24px' }
+        body: { padding: 'var(--space-6)' }
       }}
     >
       <div style={{ margin: '16px 0' }}>
@@ -211,7 +188,7 @@ const EditClassModal: React.FC<EditClassModalProps> = ({
     <Modal
       title={
         <Space>
-          <EditOutlined style={{ color: '#1890ff' }} />
+          <EditOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <span>编辑班级</span>
         </Space>
       }
@@ -224,7 +201,7 @@ const EditClassModal: React.FC<EditClassModalProps> = ({
       destroyOnClose
       centered
       styles={{
-        body: { padding: '24px' }
+        body: { padding: 'var(--space-6)' }
       }}
     >
       <div style={{ margin: '16px 0' }}>
@@ -328,15 +305,15 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
           paddingRight: '40px'
         }}>
           <Space>
-            <UserAddOutlined style={{ color: '#1890ff', fontSize: '16px' }} />
+            <UserAddOutlined style={{ color: 'var(--ant-color-primary)', fontSize: '16px' }} />
             <span style={{ fontSize: '16px', fontWeight: 600 }}>添加学生到班级</span>
           </Space>
           <Badge 
             count={selectedStudentIds.length} 
-            style={{ backgroundColor: '#52c41a' }}
+            style={{ backgroundColor: 'var(--ant-color-success)' }}
             showZero={false}
           >
-            <Tag color="blue" style={{ margin: 0, padding: '4px 8px' }}>
+            <Tag color="blue" style={{ margin: 0, padding: 'var(--space-1) var(--space-2)' }}>
               {filteredStudents.length} 名可选
             </Tag>
           </Badge>
@@ -350,7 +327,7 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
       centered
       styles={{
         body: { 
-          padding: '24px',
+          padding: 'var(--space-6)',
           maxHeight: '70vh', 
           overflow: 'hidden',
           display: 'flex',
@@ -396,13 +373,13 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
                 return (
                   <List.Item
                     style={{
-                      padding: '16px',
+                      padding: 'var(--space-4)',
                       margin: '0 0 8px 0',
-                      border: `2px solid ${isSelected ? '#1890ff' : 'transparent'}`,
+                      border: `2px solid ${isSelected ? 'var(--ant-color-primary)' : 'transparent'}`,
                       borderRadius: '8px',
                       backgroundColor: isSelected 
                         ? (theme === 'dark' ? '#111b26' : '#e6f7ff')
-                        : (theme === 'dark' ? '#1f1f1f' : '#ffffff'),
+                        : (theme === 'dark' ? 'var(--ant-color-bg-container)' : 'var(--ant-color-bg-container)'),
                       cursor: 'pointer',
                       transition: 'all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1)',
                       boxShadow: isSelected 
@@ -422,8 +399,8 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
                         <Avatar 
                           size={48}
                           style={{ 
-                            backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
-                                           student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1',
+                            backgroundColor: student.gender === 'MALE' ? 'var(--ant-color-primary)' : 
+                                           student.gender === 'FEMALE' ? '#eb2f96' : 'var(--ant-color-info)',
                             fontSize: '16px',
                             fontWeight: 600
                           }}
@@ -441,13 +418,13 @@ const AddStudentsModal: React.FC<AddStudentsModalProps> = ({
                             strong 
                             style={{ 
                               fontSize: '16px',
-                              color: isSelected ? '#1890ff' : undefined
+                              color: isSelected ? 'var(--ant-color-primary)' : undefined
                             }}
                           >
                             {student.name}
                           </Text>
                           <Tag 
-                            color={STUDENT_STATUS_LABELS[student.status]?.color || '#8c8c8c'}
+                            color={STUDENT_STATUS_LABELS[student.status]?.color || 'var(--ant-color-text-secondary)'}
                             style={{ margin: 0 }}
                           >
                             {STUDENT_STATUS_LABELS[student.status]?.label || student.status}
@@ -527,7 +504,7 @@ const ReassignStudentModal: React.FC<ReassignStudentModalProps> = ({
     <Modal
       title={
         <Space>
-          <UserSwitchOutlined style={{ color: '#1890ff' }} />
+          <UserSwitchOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <span>重新分配班级</span>
         </Space>
       }
@@ -540,25 +517,25 @@ const ReassignStudentModal: React.FC<ReassignStudentModalProps> = ({
       destroyOnClose
       centered
       styles={{
-        body: { padding: '24px' }
+        body: { padding: 'var(--space-6)' }
       }}
     >
       {student && (
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: 'var(--space-6)' }}>
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: '12px',
-            padding: '16px',
-            backgroundColor: theme === 'dark' ? '#1f1f1f' : '#f5f5f5',
-            borderRadius: '8px',
-            marginBottom: '16px'
+            gap: 'var(--space-3)',
+            padding: 'var(--space-4)',
+            backgroundColor: theme === 'dark' ? 'var(--ant-color-bg-container)' : '#f5f5f5',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: 'var(--space-4)'
           }}>
             <Avatar 
               size={40}
               style={{ 
-                backgroundColor: student.gender === 'MALE' ? '#1890ff' : 
-                               student.gender === 'FEMALE' ? '#eb2f96' : '#722ed1'
+                backgroundColor: student.gender === 'MALE' ? 'var(--ant-color-primary)' : 
+                               student.gender === 'FEMALE' ? '#eb2f96' : 'var(--ant-color-info)'
               }}
             >
               {student.name?.slice(-2) || '学生'}
@@ -567,20 +544,20 @@ const ReassignStudentModal: React.FC<ReassignStudentModalProps> = ({
               <Text strong style={{ fontSize: '16px' }}>
                 {student.name}
               </Text>
-              <div style={{ fontSize: '12px', color: '#8c8c8c' }}>
+              <div style={{ fontSize: '12px', color: 'var(--ant-color-text-secondary)' }}>
                 将从"已完课学生"重新分配到班级
               </div>
             </div>
           </div>
 
-          <div style={{ marginBottom: '8px' }}>
+            <div style={{ marginBottom: 'var(--space-2)' }}>
             <Text strong>选择目标班级：</Text>
           </div>
           
           <div style={{ 
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '12px'
+            gap: 'var(--space-3)'
           }}>
             {classes.map(cls => (
               <Card
@@ -588,24 +565,24 @@ const ReassignStudentModal: React.FC<ReassignStudentModalProps> = ({
                 size="small"
                 style={{
                   cursor: 'pointer',
-                  borderColor: selectedClassId === cls.id ? '#1890ff' : undefined,
+                  borderColor: selectedClassId === cls.id ? 'var(--ant-color-primary)' : undefined,
                   backgroundColor: selectedClassId === cls.id 
                     ? (theme === 'dark' ? '#111b26' : '#e6f7ff')
                     : undefined
                 }}
-                bodyStyle={{ padding: '12px' }}
+                styles={{ body: { padding: 'var(--space-3)' } }}
                 onClick={() => setSelectedClassId(cls.id)}
               >
                 <div style={{ textAlign: 'center' }}>
                   <TeamOutlined style={{ 
                     fontSize: '20px', 
-                    color: selectedClassId === cls.id ? '#1890ff' : '#8c8c8c',
-                    marginBottom: '8px'
+                    color: selectedClassId === cls.id ? 'var(--ant-color-primary)' : 'var(--ant-color-text-secondary)',
+                    marginBottom: 'var(--space-2)'
                   }} />
                   <div style={{ 
                     fontSize: '14px', 
                     fontWeight: selectedClassId === cls.id ? 600 : 400,
-                    color: selectedClassId === cls.id ? '#1890ff' : undefined
+                    color: selectedClassId === cls.id ? 'var(--ant-color-primary)' : undefined
                   }}>
                     {cls.name}
                   </div>
@@ -683,6 +660,16 @@ const StudentLogPage: React.FC = () => {
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
   const [reassignStudentModalOpen, setReassignStudentModalOpen] = useState(false);
   const [reassigningStudent, setReassigningStudent] = useState<ClassStudent | null>(null);
+  // 手机端班级筛选折叠
+  const [filterCollapsed, setFilterCollapsed] = useState(true);
+  // 手机端数据概览折叠
+  const [overviewCollapsed, setOverviewCollapsed] = useState(true);
+
+  useEffect(() => {
+    // 移动端默认折叠，桌面端展开
+    setOverviewCollapsed(isMobile);
+    setFilterCollapsed(true);
+  }, [isMobile]);
   const [createClassLoading, setCreateClassLoading] = useState(false);
   const [editClassLoading, setEditClassLoading] = useState(false);
   const [addStudentsLoading, setAddStudentsLoading] = useState(false);
@@ -884,13 +871,13 @@ const StudentLogPage: React.FC = () => {
         <div>
           <p>您确定要删除班级 <strong>"{classInfo.name}"</strong> 吗？</p>
           {studentCount > 0 ? (
-            <p style={{ color: '#ff4d4f' }}>
+            <p style={{ color: 'var(--ant-color-error)' }}>
               ⚠️ 该班级中还有 {studentCount} 名学生，删除后这些学生将被标记为"已完课"状态。
             </p>
           ) : (
-            <p style={{ color: '#52c41a' }}>该班级中没有学生，可以安全删除。</p>
+            <p style={{ color: 'var(--ant-color-success)' }}>该班级中没有学生，可以安全删除。</p>
           )}
-          <p style={{ fontSize: '12px', color: '#8c8c8c' }}>此操作不可恢复。</p>
+          <p style={{ fontSize: '12px', color: 'var(--ant-color-text-secondary)' }}>此操作不可恢复。</p>
         </div>
       ),
       okText: '确认删除',
@@ -1294,9 +1281,9 @@ const StudentLogPage: React.FC = () => {
             </Text>
           </Space>
           <Space size={4}>
-            <Button
-              type="text"
-              size="small"
+            <AppButton
+              hierarchy="tertiary"
+              size="sm"
               icon={<EditOutlined style={{ fontSize: '12px' }} />}
               onClick={(e) => {
                 e.stopPropagation();
@@ -1304,7 +1291,7 @@ const StudentLogPage: React.FC = () => {
                 setEditClassModalOpen(true);
               }}
               style={{ 
-                padding: '2px 4px',
+                padding: 'var(--space-0) var(--space-1)',
                 height: '20px',
                 width: '20px',
                 opacity: 0.6
@@ -1321,14 +1308,14 @@ const StudentLogPage: React.FC = () => {
               okText="确定"
               cancelText="取消"
             >
-              <Button
-                type="text"
-                size="small"
+              <AppButton
+                hierarchy="tertiary"
+                size="sm"
                 danger
                 icon={<DeleteOutlined style={{ fontSize: '12px' }} />}
                 onClick={(e) => e.stopPropagation()}
                 style={{ 
-                  padding: '2px 4px',
+                  padding: 'var(--space-0) var(--space-1)',
                   height: '20px',
                   width: '20px',
                   opacity: 0.6
@@ -1346,152 +1333,115 @@ const StudentLogPage: React.FC = () => {
   const completedStudentsList = students.filter(s => completedStudents.has(s.enrollmentId));
 
   return (
-    <div style={{ padding: '0' }}>
+    <div data-page-container>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* 页面标题 */}
         <div>
           <Title level={2} style={{ margin: '0 0 8px 0' }}>
             学生成长日志
           </Title>
-          <Text type="secondary">
-            管理班级学生、记录考勤状态和成长表现
-          </Text>
         </div>
 
         {/* 搜索和操作栏 */}
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} lg={12}>
-            <Search
+            <AppSearchInput
               placeholder="搜索学生姓名、学校、年级等"
-              allowClear
-              size="large"
               value={searchKeyword}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(v) => handleSearch(v)}
               onSearch={handleSearch}
-              enterButton={<SearchOutlined />}
-              style={{
-                fontSize: isMobile ? '14px' : '16px'
-              }}
             />
           </Col>
           <Col xs={24} lg={12}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: !isDesktop ? 'center' : 'flex-end',
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: isMobile ? '12px' : '16px',
-              alignItems: isMobile ? 'stretch' : 'center'
-            }}>
-              <Button 
-                type="primary"
-                icon={<PlusOutlined />}
-                size={isMobile ? 'large' : 'large'}
-                onClick={() => setCreateClassModalOpen(true)}
-                style={{ 
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  height: isMobile ? '44px' : '48px',
-                  paddingLeft: isMobile ? '16px' : '24px',
-                  paddingRight: isMobile ? '16px' : '24px',
-                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
-                  order: isMobile ? 1 : 0,
-                  fontSize: isMobile ? '14px' : '16px'
-                }}
-              >
-                创建班级
-              </Button>
-              
-              <Space size="middle" style={{ 
-                width: isMobile ? '100%' : 'auto',
-                justifyContent: isMobile ? 'center' : 'flex-end'
-              }}>
-                <Button 
-                  icon={<DownloadOutlined />}
-                  onClick={handleExport}
-                  size={isMobile ? 'middle' : 'middle'}
-                  style={{ 
-                    borderRadius: '6px',
-                    flex: isMobile ? 1 : 'none',
-                    fontSize: isMobile ? '14px' : '14px'
-                  }}
-                >
-                  {isMobile ? '导出' : '导出数据'}
-                </Button>
-              </Space>
-            </div>
+            {/* 创建班级主按钮已移除，移动端改到“班级筛选”卡片题头的图标按钮 */}
           </Col>
         </Row>
 
         {/* 主内容区 */}
-        <Row gutter={[24, 24]} style={{ minHeight: '500px' }}>
-          {/* 左侧筛选导航区 - 包含统计数据 */}
-          <Col xs={24} md={8} lg={6}>
+        <Row gutter={isMobile ? [16, 16] : [24, 24]} style={{ minHeight: '500px' }}>
+          {/* 左侧筛选导航区 - 包含统计数据（移动端置底） */}
+          <Col xs={24} md={8} lg={6} style={{ order: isMobile ? 2 : 0 }}>
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
               {/* 统计数据卡片 */}
               <Card title={
+                <span style={{ fontSize: isMobile ? 'var(--font-size-sm)' : 'var(--font-size-lg)' }}>数据概览</span>
+              } extra={
                 <Space>
-                  <BarChartOutlined />
-                  <span style={{ fontSize: isMobile ? '14px' : '16px' }}>数据概览</span>
+                  <AppButton hierarchy="tertiary" size="sm" icon={<DownloadOutlined />} onClick={handleExport}>
+                    导出
+                  </AppButton>
+                  {isMobile && (
+                    <AppButton hierarchy="tertiary" size="sm" onClick={() => setOverviewCollapsed(!overviewCollapsed)}>
+                      {overviewCollapsed ? '展开' : '收起'} {overviewCollapsed ? <DownOutlined /> : <UpOutlined />}
+                    </AppButton>
+                  )}
                 </Space>
               }>
-                <Row gutter={[0, isMobile ? 12 : 16]}>
-                  <Col span={24}>
+                {!isMobile || !overviewCollapsed ? (
+                <Row gutter={[16, isMobile ? 12 : 16]}>
+                  <Col xs={12} sm={12} md={24}>
                     <Statistic
                       title="班级总数"
                       value={stats.totalClasses}
                       prefix={<TeamOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-primary)', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} sm={12} md={24}>
                     <Statistic
                       title="在班学生"
                       value={stats.totalStudents - stats.completedCount}
                       prefix={<UserOutlined />}
-                      valueStyle={{ color: '#52c41a', fontSize: isMobile ? '18px' : '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-success)', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} sm={12} md={24}>
                     <Statistic
                       title="今日出席"
                       value={stats.activeStudents}
                       prefix={<CheckCircleOutlined />}
-                      valueStyle={{ color: '#1890ff', fontSize: isMobile ? '18px' : '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-primary)', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
-                  <Col span={24}>
+                  <Col xs={12} sm={12} md={24}>
                     <Statistic
                       title="已完课学生"
                       value={stats.completedCount}
                       prefix={<BookFilled />}
-                      valueStyle={{ color: '#ff7875', fontSize: isMobile ? '18px' : '20px' }}
+                      valueStyle={{ color: 'var(--ant-color-error)', fontSize: isMobile ? '18px' : '20px' }}
                     />
                   </Col>
                 </Row>
+                ) : null}
               </Card>
               
-              {/* 班级筛选 - 移动端可折叠 */}
+              {/* 班级筛选 - 移动端默认折叠；题头弱化“新建班级”为图标按钮 */}
               <Card 
                 title={
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center' 
-                  }}>
-                    <span style={{ fontSize: isMobile ? '14px' : '16px' }}>班级筛选</span>
-                    {isMobile && (
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {selectedClassId === 'all' ? '全部学生' : 
-                         selectedClassId === 'completed' ? '已完课' :
-                         classes.find(c => c.id.toString() === selectedClassId)?.name || ''}
-                      </Text>
-                    )}
-                  </div>
+                  <span style={{ fontSize: isMobile ? 'var(--font-size-sm)' : 'var(--font-size-lg)' }}>班级筛选</span>
                 }
                 style={{ flex: 1 }}
                 size={isMobile ? 'small' : 'default'}
+                extra={
+                  isMobile ? (
+                    <Space align="center" size="small">
+                      <Text type="secondary" style={{ fontSize: 'var(--font-size-sm)' }}>
+                        {selectedClassId === 'all' ? '全部学生' : 
+                          selectedClassId === 'completed' ? '已完课' :
+                          classes.find(c => c.id.toString() === selectedClassId)?.name || ''}
+                      </Text>
+                      <AppButton hierarchy="tertiary" size="sm" icon={<PlusOutlined />} onClick={() => setCreateClassModalOpen(true)} />
+                      <AppButton hierarchy="tertiary" size="sm" onClick={() => setFilterCollapsed(!filterCollapsed)}>
+                        {filterCollapsed ? '展开' : '收起'} {filterCollapsed ? <DownOutlined /> : <UpOutlined />}
+                      </AppButton>
+                    </Space>
+                  ) : (
+                    undefined
+                  )
+                }
               >
-                <Menu
+                {!isMobile || !filterCollapsed ? (
+                  <Menu
                   mode="vertical"
                   selectedKeys={[selectedClassId]}
                   items={filterMenuItems}
@@ -1501,33 +1451,34 @@ const StudentLogPage: React.FC = () => {
                     fontSize: isMobile ? '13px' : '16px'
                   }}
                 />
+                ) : null}
                 
                 {/* 考试管理 - 只在选择具体班级时显示 */}
-                {selectedClassId !== 'all' && selectedClassId !== 'completed' && (
+                {!isMobile && selectedClassId !== 'all' && selectedClassId !== 'completed' && (
                   <>
                     <Divider />
                     <Space direction="vertical" style={{ width: '100%' }}>
-                      <Button
-                        type="primary"
+                      <AppButton
+                        hierarchy="primary"
                         icon={<BookOutlined />}
                         onClick={() => setExamModalVisible(true)}
                         block
                         size={isMobile ? 'small' : 'middle'}
                         style={{
-                          backgroundColor: '#52c41a',
-                          borderColor: '#52c41a'
+                          backgroundColor: 'var(--ant-color-success)',
+                          borderColor: 'var(--ant-color-success)'
                         }}
                       >
                         添加考试记录
-                      </Button>
-                      <Button
+                      </AppButton>
+                      <AppButton
                         icon={<BarChartOutlined />}
                         onClick={handleOpenExamHistory}
                         block
                         size={isMobile ? 'small' : 'middle'}
                       >
                         查看往期考试
-                      </Button>
+                      </AppButton>
                     </Space>
                   </>
                 )}
@@ -1537,16 +1488,16 @@ const StudentLogPage: React.FC = () => {
               <Card 
                 title={
                   <Space>
-                    <TrophyOutlined style={{ color: '#faad14' }} />
+                    <TrophyOutlined style={{ color: 'var(--ant-color-warning)' }} />
                     <span style={{ fontSize: isMobile ? '14px' : '16px' }}>数据追踪报告</span>
-                    <Button type="text" icon={<EditOutlined />} onClick={() => setTagManagerOpen(true)} />
+                    <AppButton hierarchy="tertiary" icon={<EditOutlined />} onClick={() => setTagManagerOpen(true)} />
                   </Space>
                 }
                 size={isMobile ? 'small' : 'default'}
               >
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                  <Button
-                    type="primary"
+                  <AppButton
+                    hierarchy="primary"
                     icon={<BarChartOutlined />}
                     block
                     size={isMobile ? 'middle' : 'large'}
@@ -1562,36 +1513,38 @@ const StudentLogPage: React.FC = () => {
                     }}
                   >
                     查看学生成长分析
-                  </Button>
+                  </AppButton>
                   
-                  <div style={{ 
-                    padding: isMobile ? '8px' : '12px', 
-                    background: theme === 'dark' ? '#1f1f1f' : '#f8f9fa', 
-                    borderRadius: '6px',
-                    border: theme === 'dark' ? '1px solid #424242' : '1px solid #e9ecef'
-                  }}>
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      <Text style={{ fontSize: isMobile ? '11px' : '12px', color: '#666', fontWeight: 500 }}>
-                        ✨ 功能亮点
-                      </Text>
-                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
-                        • 学生成长趋势分析
-                      </Text>
-                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
-                        • 个人成长报告查看
-                      </Text>
-                      <Text style={{ fontSize: isMobile ? '10px' : '11px', color: '#8c8c8c' }}>
-                        • 成长数据可视化展示
-                      </Text>
-                    </Space>
-                  </div>
+                  {!isMobile && (
+                    <div style={{ 
+                      padding: 'var(--space-3)', 
+                      background: theme === 'dark' ? 'var(--ant-color-bg-container)' : '#f8f9fa', 
+                      borderRadius: '6px',
+                      border: theme === 'dark' ? '1px solid #424242' : '1px solid #e9ecef'
+                    }}>
+                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <Text style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)', fontWeight: 500 }}>
+                          ✨ 功能亮点
+                        </Text>
+                        <Text style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)' }}>
+                          • 学生成长趋势分析
+                        </Text>
+                        <Text style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)' }}>
+                          • 个人成长报告查看
+                        </Text>
+                        <Text style={{ fontSize: '11px', color: 'var(--ant-color-text-secondary)' }}>
+                          • 成长数据可视化展示
+                        </Text>
+                      </Space>
+                    </div>
+                  )}
                 </Space>
               </Card>
             </Space>
           </Col>
 
-          {/* 右侧学生列表区 */}
-          <Col xs={24} md={16} lg={18}>
+          {/* 右侧学生列表区（移动端置顶） */}
+          <Col xs={24} md={16} lg={18} style={{ order: isMobile ? 1 : 0 }}>
             <Card 
               title={
                 <Space>
@@ -1613,7 +1566,7 @@ const StudentLogPage: React.FC = () => {
                     <Text style={{ fontSize: isMobile ? '11px' : '14px' }}>
                       已选择 {selectedRowKeys.length} 名
                     </Text>
-                    <Button 
+                    <AppButton 
                       danger 
                       size={isMobile ? 'small' : 'small'}
                       icon={<DeleteOutlined />}
@@ -1626,7 +1579,7 @@ const StudentLogPage: React.FC = () => {
                         (selectedClassId === 'completed' ? '删除' : '标记完课') : 
                         (selectedClassId === 'completed' ? '批量删除' : '批量标记完课')
                       }
-                    </Button>
+                    </AppButton>
                   </Space>
                 )
               }
@@ -1634,9 +1587,9 @@ const StudentLogPage: React.FC = () => {
                 height: '100%',
                 fontSize: isMobile ? '13px' : '14px'
               }}
-              bodyStyle={{
-                padding: isMobile ? '16px' : '24px'
-              }}
+styles={{ body: {
+                padding: isMobile ? 'var(--space-4)' : 'var(--space-6)'
+}}}
             >
               {loading ? (
                 <Spin size="large" style={{ display: 'block', textAlign: 'center', margin: '40px 0' }} />
@@ -1702,7 +1655,7 @@ const StudentLogPage: React.FC = () => {
                     <div style={{ 
                       marginTop: isMobile ? 16 : 24, 
                       textAlign: 'center',
-                      padding: isMobile ? '8px 0' : '0'
+                      padding: isMobile ? 'var(--space-2) 0' : '0'
                     }}>
                       <Pagination
                         current={pagination.current}
@@ -1718,7 +1671,7 @@ const StudentLogPage: React.FC = () => {
                         }
                         pageSizeOptions={isMobile ? ['4', '8', '12'] : ['8', '12', '16', '24']}
                         style={{ 
-                          padding: isMobile ? '8px 0' : '16px 0'
+                          padding: isMobile ? 'var(--space-2) 0' : 'var(--space-4) 0'
                         }}
                         size={isMobile ? 'small' : 'default'}
                         simple={isMobile}
@@ -1733,7 +1686,7 @@ const StudentLogPage: React.FC = () => {
                 <div style={{ 
                   textAlign: 'center', 
                   marginTop: isMobile ? '12px' : '16px', 
-                  padding: isMobile ? '6px 0' : '8px 0',
+                  padding: isMobile ? 'var(--space-1) 0' : 'var(--space-2) 0',
                   color: 'var(--ant-color-text-secondary)',
                   fontSize: isMobile ? '11px' : '12px',
                   borderTop: '1px solid var(--ant-color-border-secondary)'
@@ -1753,7 +1706,7 @@ const StudentLogPage: React.FC = () => {
         {/* 悬浮操作按钮 - 添加学生和批量操作 */}
         <FloatButton.Group
           shape="circle"
-          style={{ right: 24, bottom: 24 }}
+          style={{ right: 24, bottom: 'var(--page-bottom-safe)' }}
         >
           {selectedClassId !== 'all' && selectedClassId !== 'completed' && (
             <FloatButton
@@ -1769,8 +1722,8 @@ const StudentLogPage: React.FC = () => {
               tooltip={selectedClassId === 'completed' ? '删除已完课学生' : '标记为已完课'}
               onClick={handleBatchDelete}
               style={{
-                backgroundColor: '#ff4d4f',
-                borderColor: '#ff4d4f'
+                backgroundColor: 'var(--ant-color-error)',
+                borderColor: 'var(--ant-color-error)'
               }}
             />
           )}

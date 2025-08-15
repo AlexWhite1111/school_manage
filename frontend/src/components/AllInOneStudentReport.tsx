@@ -1,21 +1,7 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Card, 
-  Space, 
-  Button, 
-  Typography, 
-  Row, 
-  Col,
-  Spin,
-  Alert,
-  message,
-  Divider,
-  DatePicker,
-  Tag,
-  Progress,
-  theme,
-  ConfigProvider
-} from 'antd';
+import { Space, Typography, Row, Col, Spin, Alert, message, Divider, Tag, Progress, theme, ConfigProvider, Card, Segmented } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import { 
   ArrowLeftOutlined,
   ReloadOutlined,
@@ -42,7 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 // 导入设计系统
-import { designTokens, semanticColors } from '@/theme/designTokens';
+// Removed legacy designTokens import; rely on theme.useToken and CSS vars
 import { useResponsiveSize, useResponsiveColumns } from '@/hooks/useResponsiveSize';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -88,6 +74,8 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
   const { getColSpan } = useResponsiveColumns();
   const { token } = theme.useToken();
   const { isMobile } = useResponsive();
+  // 移动端切换：成长 / 考试
+  const [activeMobileSection, setActiveMobileSection] = useState<'growth' | 'exam'>('growth');
   const buttonSize: 'small' | 'middle' | 'large' = isMobile ? 'middle' : 'middle';
   const headerTitleLevel: 1 | 2 | 3 | 4 | 5 = isMobile ? 4 : 3;
   
@@ -129,6 +117,38 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
       padding: responsiveSize.cardPadding
     }
   }), [responsiveSize, token]);
+
+  // 统一题头渲染（图标 + 主标题 + 副标题），样式与主题一致
+  const renderSectionHeader = (options: { icon: React.ReactElement; title: string; subtitle?: React.ReactNode }) => {
+    const { icon, title, subtitle } = options;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorPrimaryHover})`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {React.cloneElement(icon, { style: { color: token.colorBgContainer, fontSize: 18 } })}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography.Title level={headerTitleLevel} style={{ margin: 0, color: token.colorText }}>
+            {title}
+          </Typography.Title>
+          {subtitle && (
+            <Typography.Text type="secondary" style={{ margin: 0 }}>
+              {subtitle}
+            </Typography.Text>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // 日期计算函数
   const calculateDateRange = React.useCallback(() => {
@@ -262,12 +282,12 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
           showIcon
           action={
             <Space>
-              <Button size="small" onClick={handleRefresh}>
+              <AppButton size="sm" onClick={handleRefresh}>
                 重试
-              </Button>
-              <Button size="small" onClick={handleBack}>
+              </AppButton>
+              <AppButton size="sm" onClick={handleBack}>
                 返回
-              </Button>
+              </AppButton>
             </Space>
           }
         />
@@ -286,12 +306,12 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
           showIcon
           action={
             <Space>
-              <Button size="small" onClick={handleRefresh}>
+              <AppButton size="sm" onClick={handleRefresh}>
                 刷新
-              </Button>
-              <Button size="small" onClick={handleBack}>
+              </AppButton>
+              <AppButton size="sm" onClick={handleBack}>
                 返回
-              </Button>
+              </AppButton>
             </Space>
           }
         />
@@ -303,134 +323,164 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
     <div style={responsiveStyles.container}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         
-        {/* 优化后的页面头部 - 合并头部信息和控制区域 */}
-        <Card style={responsiveStyles.card}>
-          <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
-            <Col xs={24} sm={16}>
-              <Space wrap>
-                <Button 
-                  icon={<ArrowLeftOutlined />} 
-                  onClick={handleBack}
-                  size={buttonSize}
-                >
-                  返回
-                </Button>
-                <Title level={headerTitleLevel} style={{ margin: 0, color: token.colorText }}>
-                  学生成长报告 - {growthData.student.name}
-                </Title>
-              </Space>
-            </Col>
-            <Col xs={24} sm={8} style={{ textAlign: 'right' }}>
-              <Space wrap>
-                <Button 
-                  type="primary"
-                  icon={<DownloadOutlined />}
-                  onClick={() => message.info('PDF导出功能开发中...')}
-                  size={buttonSize}
-                >
-                  导出PDF
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-          
-          {/* 集成的时间筛选和控制区域 */}
-          <Row gutter={[16, 8]} align="middle">
-            <Col xs={24} lg={14}>
-              <div style={responsiveStyles.mobileOptimized}>
-                <Typography.Text style={{ 
-                  fontSize: '11px',
-                  color: token.colorTextTertiary 
-                }}>
-                  <BarChartOutlined /> 个人成长与考试分析报告
-                </Typography.Text>
-                <br />
-                <Typography.Text style={{ 
-                  fontSize: '10px', 
-                  color: token.colorTextTertiary,
-                  lineHeight: '1.2'
-                }}>
-                  <ClockCircleOutlined /> 时间筛选影响: 考试数据、趋势图、科目详情 | <LineChartOutlined /> 成长数据: 显示全部历史记录
-                </Typography.Text>
-              </div>
-            </Col>
-            <Col xs={24} lg={10}>
-              <Space 
-                style={{ 
-                  width: '100%', 
-                  justifyContent: window.innerWidth < 768 ? 'flex-start' : 'flex-end'
-                }}
-                direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
-                size="small"
-              >
-                <DatePicker.RangePicker 
-                  size={buttonSize}
-                  style={{ width: '100%', minWidth: '280px' }}
-                  value={globalDateRange}
-                  onChange={(dates) => setGlobalDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
-                  presets={[
-                    { label: '近1月', value: [dayjs().subtract(1, 'month'), dayjs()] },
-                    { label: '近3月', value: [dayjs().subtract(3, 'month'), dayjs()] },
-                    { label: '近6月', value: [dayjs().subtract(6, 'month'), dayjs()] },
-                    { label: '本学期', value: [dayjs().subtract(4, 'month'), dayjs()] }
-                  ]}
-                  placeholder={['开始时间', '结束时间']}
-                />
-                <Button 
-                  size={buttonSize} 
-                  icon={<ReloadOutlined />} 
-                  onClick={handleRefresh}
-                >
-                  刷新
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Card>
-
-        {/* 学生信息头部 */}
-        <StudentInfoHeader
-          student={growthData.student}
+        {/* 移动端精简头部：仅保留学生卡片，下方放弱化的导出/刷新与自适应时间选择器 */}
+        <StudentInfoHeader 
+          student={growthData.student} 
           loading={false}
+          dateSelectorBottom={
+            <div>
+            <UnifiedRangePicker
+              size={buttonSize}
+                className="w-full"
+              value={globalDateRange}
+              onChange={(dates) => setGlobalDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs])}
+              placeholder={['开始时间', '结束时间']}
+            />
+              {isMobile && (
+                <div style={{ marginTop: 8 }}>
+                  <Segmented
+                    size="small"
+                    value={activeMobileSection}
+                    onChange={(val) => setActiveMobileSection(val as 'growth' | 'exam')}
+                    options={[
+                      {
+                        label: (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <LineChartOutlined /> 成长
+                          </span>
+                        ),
+                        value: 'growth',
+                      },
+                      {
+                        label: (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <BookOutlined /> 考试
+                          </span>
+                        ),
+                        value: 'exam',
+                      },
+                    ]}
+                  />
+                </div>
+              )}
+            </div>
+          }
+          onRefresh={handleRefresh}
+          onExport={() => message.info('PDF导出功能开发中...')}
         />
 
+        {/* 学生信息头部上移呈现，避免重复 */}
+
         {/* ===== 个人成长分析模块 ===== */}
+        {(!isMobile || activeMobileSection === 'growth') && (
+          <>
         <Divider orientation="left" style={{ marginTop: 32, marginBottom: 24 }}>
-          <Space>
-            <div style={{
-              background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorSuccess})`,
-              borderRadius: '50%',
-              padding: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <RocketOutlined style={{ color: '#fff', fontSize: '18px' }} />
-            </div>
-            <Typography.Title level={3} style={{ 
-              margin: 0, 
-              background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorSuccess})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              个人成长分析
-            </Typography.Title>
-            <Tag style={{ 
-              background: `linear-gradient(135deg, ${token.colorInfo}, ${token.colorInfoBg})`,
-              border: 'none',
-              color: token.colorInfoText
-            }}>卡尔曼算法</Tag>
-            <Tag style={{ 
-              background: `linear-gradient(135deg, ${token.colorWarning}, ${token.colorWarningBg})`,
-              border: 'none',
-              color: token.colorWarningText
-            }}>智能预测</Tag>
-          </Space>
+              {renderSectionHeader({
+                icon: <RocketOutlined />,
+                title: '个人成长分析',
+                subtitle: <span>卡尔曼算法 · 智能预测</span>,
+              })}
         </Divider>
 
         {/* 个人成长模块内容 - 优化布局，专注核心数据 */}
         <Row gutter={[responsiveSize.gridGutter, responsiveSize.gridGutter]} style={{ marginBottom: responsiveSize.componentSpacing }}>
+
+          {/* 成长洞察 - 合并趋势与活跃度为一个卡片（移动至题头下方优先展示） */}
+          {growthData?.states && growthData.states.length > 0 && (
+            <Col xs={24}>
+              <Card
+                style={responsiveStyles.card}
+                title={
+                  <Space>
+                    <BarChartOutlined style={{ color: token.colorPrimary }} />
+                    <span>成长洞察</span>
+                    <Tag color="processing">关键指标</Tag>
+                  </Space>
+                }
+              >
+                {(() => {
+                  const states = growthData.states;
+                  const upwardTrends = states.filter(s => s.trendDirection === 'UP');
+                  const downwardTrends = states.filter(s => s.trendDirection === 'DOWN');
+                  const stableTrends = states.filter(s => s.trendDirection === 'STABLE');
+                  const recentlyActive = states.filter(s => dayjs().diff(dayjs(s.lastUpdatedAt), 'day') <= 7);
+                  const totalObservations = states.reduce((sum, s) => sum + s.totalObservations, 0);
+                  const avgConfidence = states.reduce((sum, s) => sum + s.confidence, 0) / states.length;
+                  const mostActiveTag = states.reduce((prev, current) => prev.totalObservations > current.totalObservations ? prev : current);
+                  const topUp = upwardTrends.slice().sort((a,b)=> Math.abs(b.trend) - Math.abs(a.trend)).slice(0,2);
+                  const topDown = downwardTrends.slice().sort((a,b)=> Math.abs(b.trend) - Math.abs(a.trend)).slice(0,2);
+
+                  return (
+                    <div>
+                      <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
+                        <Col xs={6} sm={6} md={6}>
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorSuccess, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                              <ArrowUpOutlined />{upwardTrends.length}
+                            </div>
+                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>上升趋势</div>
+                          </div>
+                        </Col>
+                        <Col xs={6} sm={6} md={6}>
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorError, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                              <ArrowDownOutlined />{downwardTrends.length}
+                            </div>
+                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>下降趋势</div>
+                          </div>
+                        </Col>
+                        <Col xs={6} sm={6} md={6}>
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorWarning }}>{stableTrends.length}</div>
+                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>稳定表现</div>
+                          </div>
+                        </Col>
+                        <Col xs={6} sm={6} md={6}>
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                              <FireOutlined />{recentlyActive.length}
+                            </div>
+                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>近期活跃</div>
+                          </div>
+                        </Col>
+                      </Row>
+
+                      <Row gutter={[16, 16]}>
+                        <Col xs={24} md={12}>
+                          <div style={{ padding: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 'bold', marginBottom: 8 }}>
+                              <TrophyOutlined style={{ color: token.colorWarning }} />
+                              <span>最活跃标签</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Tag color={mostActiveTag.sentiment === 'POSITIVE' ? 'green' : 'red'} style={{ margin: 0 }}>{mostActiveTag.tagName}</Tag>
+                              <div style={{ fontSize: 12, color: token.colorTextSecondary }}>{mostActiveTag.totalObservations} 次观测</div>
+                            </div>
+                          </div>
+                        </Col>
+                        <Col xs={24} md={12}>
+                          <div style={{ padding: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 'bold', marginBottom: 8 }}>
+                              <LineChartOutlined style={{ color: token.colorPrimary }} />
+                              <span>关键趋势</span>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {topUp.map(s => (
+                                <Tag key={`up-${s.tagId}`} color="success" style={{ margin: 0 }}>{s.tagName}</Tag>
+                              ))}
+                              {topDown.map(s => (
+                                <Tag key={`down-${s.tagId}`} color="error" style={{ margin: 0 }}>{s.tagName}</Tag>
+                              ))}
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
+                    </div>
+                  );
+                })()}
+              </Card>
+            </Col>
+          )}
           
           {/* 主要成长分析面板 - 使用科学的加权平均算法 */}
           <Col xs={24}>
@@ -451,7 +501,7 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
                 }
                 style={{ height: '100%' }}
               >
-                <div style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+                <div style={{ textAlign: 'center', color: 'var(--ant-color-text-tertiary)', padding: '40px' }}>
                   <RocketOutlined style={{ fontSize: '48px', color: token.colorTextTertiary, marginBottom: '16px' }} />
                   <div style={{ fontSize: '16px', marginBottom: '8px' }}>暂无成长数据</div>
                   <div style={{ fontSize: '14px', color: token.colorTextSecondary }}>
@@ -462,306 +512,34 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
             )}
           </Col>
 
-          {/* 成长趋势洞察 - 新增趋势分析卡片 */}
-          {growthData?.states && growthData.states.length > 0 && (
-            <Col xs={24} lg={12}>
-              <Card 
-                style={responsiveStyles.card}
-                title={
-                   <Space>
-                     <RiseOutlined style={{ color: token.colorSuccess }} />
-                     <span>成长趋势洞察</span>
-                     <Tag color="processing">趋势分析</Tag>
-                   </Space>
-                 }
-              >
-                {(() => {
-                  const upwardTrends = growthData.states.filter(s => s.trendDirection === 'UP');
-                  const downwardTrends = growthData.states.filter(s => s.trendDirection === 'DOWN');
-                  const stableTrends = growthData.states.filter(s => s.trendDirection === 'STABLE');
-                  const recentlyActive = growthData.states.filter(s => {
-                    const daysSinceUpdate = dayjs().diff(dayjs(s.lastUpdatedAt), 'day');
-                    return daysSinceUpdate <= 7;
-                  });
-
-                  return (
-                    <div>
-                      {/* 趋势统计 */}
-                      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-                        <Col span={6}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ 
-                              fontSize: responsiveSize.fontSize.title, 
-                              fontWeight: 'bold', 
-                              color: token.colorSuccess,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}>
-                              <ArrowUpOutlined />
-                              {upwardTrends.length}
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              上升趋势
-                            </div>
-                          </div>
-                        </Col>
-                        <Col span={6}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ 
-                              fontSize: responsiveSize.fontSize.title, 
-                              fontWeight: 'bold', 
-                              color: token.colorWarning,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}>
-                              <MinusOutlined />
-                              {stableTrends.length}
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              稳定表现
-                            </div>
-                          </div>
-                        </Col>
-                        <Col span={6}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ 
-                              fontSize: responsiveSize.fontSize.title, 
-                              fontWeight: 'bold', 
-                              color: token.colorError,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}>
-                              <ArrowDownOutlined />
-                              {downwardTrends.length}
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              需要关注
-                            </div>
-                          </div>
-                        </Col>
-                        <Col span={6}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ 
-                              fontSize: responsiveSize.fontSize.title, 
-                              fontWeight: 'bold', 
-                              color: token.colorPrimary,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}>
-                              <FireOutlined />
-                              {recentlyActive.length}
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              近期活跃
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-
-                      {/* 重点关注区域 */}
-                      {(upwardTrends.length > 0 || downwardTrends.length > 0) && (
-                        <div>
-                          {upwardTrends.length > 0 && (
-                            <div style={{ marginBottom: '16px' }}>
-                              <div style={{ 
-                                fontSize: '14px', 
-                                fontWeight: 'bold', 
-                                color: token.colorSuccess, 
-                                marginBottom: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}>
-                                <TrophyOutlined /> 优势领域 (持续上升)
-                              </div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                {upwardTrends.slice(0, 4).map(state => (
-                                  <Tag 
-                                    key={state.tagId} 
-                                    color="success" 
-                                    style={{ margin: 0 }}
-                                  >
-                                    {state.tagName}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {downwardTrends.length > 0 && (
-                            <div>
-                              <div style={{ 
-                                fontSize: '14px', 
-                                fontWeight: 'bold', 
-                                color: token.colorError, 
-                                marginBottom: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}>
-                                <ExclamationCircleOutlined /> 改进机会 (需要关注)
-                              </div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                {downwardTrends.slice(0, 4).map(state => (
-                                  <Tag 
-                                    key={state.tagId} 
-                                    color="error" 
-                                    style={{ margin: 0 }}
-                                  >
-                                    {state.tagName}
-                                  </Tag>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-              </Card>
-            </Col>
-          )}
-
-          {/* 成长活跃度分析 */}
-          {growthData?.states && growthData.states.length > 0 && (
-            <Col xs={24} lg={12}>
-              <Card 
-                style={responsiveStyles.card}
-                title={
-                  <Space>
-                    <BarChartOutlined style={{ color: token.colorPrimary }} />
-                    <span>成长活跃度</span>
-                    <Tag color="cyan">数据洞察</Tag>
-                  </Space>
-                }
-              >
-                {(() => {
-                  const totalObservations = growthData.states.reduce((sum, s) => sum + s.totalObservations, 0);
-                  const avgConfidence = growthData.states.reduce((sum, s) => sum + s.confidence, 0) / growthData.states.length;
-                  const positiveStates = growthData.states.filter(s => s.sentiment === 'POSITIVE');
-                  const negativeStates = growthData.states.filter(s => s.sentiment === 'NEGATIVE');
-                  const mostActiveTag = growthData.states.reduce((prev, current) => 
-                    prev.totalObservations > current.totalObservations ? prev : current
-                  );
-
-                  return (
-                    <div>
-                      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-                        <Col span={12}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorPrimary }}>
-                              {totalObservations}
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              总观测次数
-                            </div>
-                          </div>
-                        </Col>
-                        <Col span={12}>
-                          <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: responsiveSize.fontSize.title, fontWeight: 'bold', color: token.colorSuccess }}>
-                              {Math.round(avgConfidence * 100)}%
-                            </div>
-                            <div style={{ fontSize: responsiveSize.fontSize.caption, color: token.colorTextSecondary }}>
-                              平均置信度
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-
-                      <div style={{ 
-                        background: `linear-gradient(135deg, ${token.colorBgLayout}, ${token.colorBgContainer})`,
-                        borderRadius: token.borderRadius,
-                        padding: '16px',
-                        marginBottom: '16px'
-                      }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>
-                          🏆 最活跃标签
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Tag color={mostActiveTag.sentiment === 'POSITIVE' ? 'green' : 'red'} style={{ fontSize: '13px' }}>
-                            {mostActiveTag.tagName}
-                          </Tag>
-                          <div style={{ fontSize: '12px', color: token.colorTextSecondary }}>
-                            {mostActiveTag.totalObservations} 次观测
-                          </div>
-                        </div>
-                      </div>
-
-                      <Row gutter={[8, 8]}>
-                        <Col span={12}>
-                          <div style={{ textAlign: 'center', padding: '12px', background: token.colorSuccessBg, borderRadius: token.borderRadius }}>
-                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: token.colorSuccess }}>
-                              {positiveStates.length}
-                            </div>
-                            <div style={{ fontSize: '12px', color: token.colorSuccess }}>正面标签</div>
-                          </div>
-                        </Col>
-                        <Col span={12}>
-                          <div style={{ textAlign: 'center', padding: '12px', background: token.colorErrorBg, borderRadius: token.borderRadius }}>
-                            <div style={{ fontSize: '16px', fontWeight: 'bold', color: token.colorError }}>
-                              {negativeStates.length}
-                            </div>
-                            <div style={{ fontSize: '12px', color: token.colorError }}>关注标签</div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  );
-                })()}
-              </Card>
-            </Col>
-          )}
-
-          {/* 成长标签词云 - 保留但优化 */}
+          {/* 成长标签词云 - 直接使用内部卡片，移除外层多余卡片 */}
           {growthData?.states && growthData.states.length > 0 && (
             <Col xs={24}>
-              <Card 
-                style={responsiveStyles.card}
-                title={
-                  <Space>
-                    <CloudOutlined style={{ color: token.colorSuccess }} />
-                    <span>成长标签词云</span>
-                    <Tag color="success" icon={<RocketOutlined />}>
-                      成长轨迹
-                    </Tag>
-                  </Space>
-                }
-              >
                 <WordCloudFeature
                   data={growthData}
                   viewMode="detailed"
                   loading={false}
                 />
-              </Card>
             </Col>
           )}
 
         </Row>
+          </>
+        )}
 
         {/* ===== 考试分析模块 ===== */}
+        {(!isMobile || activeMobileSection === 'exam') && (
+          <>
         <Divider orientation="left" style={{ 
           marginTop: 32, 
           marginBottom: 24,
           borderColor: token.colorBorder
         }}>
-          <Space>
-            <Typography.Title level={3} style={{ margin: 0 }}>
-              考试分析报告
-            </Typography.Title>
-            <Typography.Text type="secondary" style={{ fontSize: '12px' }}>
-              数据源: 考试系统 · 时间范围: 可筛选
-            </Typography.Text>
-          </Space>
+              {renderSectionHeader({
+                icon: <BookOutlined />,
+                title: '考试分析报告',
+                subtitle: <span>数据源：考试系统 · 时间范围：可筛选</span>,
+              })}
         </Divider>
 
         {/* 考试分析模块内容 - 重新布局：左侧考试分析，右侧雷达图 */}
@@ -771,23 +549,10 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
           {examData && (
             <Col xs={24} lg={14}>
               <Card 
-                style={responsiveStyles.card}
-                title={
-                  <Space>
-                    <BarChartOutlined style={{ color: token.colorPrimary }} />
-                    <span>考试统计分析</span>
-                    <Tag color="processing" icon={<FireOutlined />}>
-                      智能分析
-                    </Tag>
-                  </Space>
-                }
-                extra={
-                  <Space>
-                    <Tag color="success" icon={<StarOutlined />}>
-                      {examData.subjects?.length || 0} 个科目
-                    </Tag>
-                  </Space>
-                }
+                style={{ ...responsiveStyles.card, border: 'none', boxShadow: 'none', background: 'transparent', padding: 0 }}
+                title={null}
+                extra={null}
+                bordered={false}
               >
                 <ExamAnalysisPanel
                   data={examData}
@@ -846,22 +611,9 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
             </Col>
           )}
 
-          {/* 雷达图分析 - 移到右侧 */}
+          {/* 雷达图分析 - 仅保留核心内容，去除外框 */}
           <Col xs={24} lg={10}>
-            <Card 
-              style={responsiveStyles.card}
-              title={
-                <Space>
-                  <RadarChartOutlined style={{ color: token.colorInfo }} />
-                  <span>科目雷达分析</span>
-                  <Tag color="cyan" icon={<PieChartOutlined />}>
-                    多维对比
-                  </Tag>
-                </Space>
-              }
-            >
               <SubjectRadarChart examData={examData} />
-            </Card>
           </Col>
 
           {/* 考试成绩趋势图 - 全宽满高度 */}
@@ -908,48 +660,10 @@ const AllInOneStudentReport: React.FC<AllInOneStudentReportProps> = ({
           </Col>
 
         </Row>
+          </>
+        )}
 
-        {/* 页面底部信息和快捷操作 - 纯色背景 */}
-        <Card 
-          size="small" 
-          style={{ 
-            background: token.colorBgContainer,
-            borderTop: `1px solid ${token.colorBorder}`,
-            borderRadius: 0,
-            marginTop: 32
-          }}
-        >
-          <Row gutter={[16, 8]} align="middle">
-            <Col flex="auto">
-              <Text style={{ 
-                fontSize: responsiveSize.fontSize.caption, 
-                color: token.colorTextSecondary 
-              }}>
-                <TrophyOutlined /> All-in-One 学生成长报告 | 
-                合并了考试分析、成长预测、词云展示等所有功能 | 
-                数据来源: 成长系统 + 考试系统
-              </Text>
-            </Col>
-            <Col>
-              <Space>
-                <Button 
-                  size="small" 
-                  type="text" 
-                  onClick={() => message.info('标签管理功能已移至班级管理页面')}
-                  style={{ fontSize: responsiveSize.fontSize.caption, padding: '2px 8px' }}
-                >
-                  🏷️ 标签管理
-                </Button>
-                <Text style={{ 
-                  fontSize: responsiveSize.fontSize.caption, 
-                  color: token.colorTextSecondary 
-                }}>
-                  最后更新: {new Date().toLocaleString()}
-                </Text>
-              </Space>
-            </Col>
-          </Row>
-        </Card>
+        {/* 页面底部信息和快捷操作 - 已按需求移除 */}
 
         {/* SubjectDetailModal - 恢复的科目详情功能! */}
         {selectedSubject && (

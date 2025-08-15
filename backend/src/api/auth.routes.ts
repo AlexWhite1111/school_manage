@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware, superAdminOnly } from '../middleware/auth.middleware';
 import { loginUser, registerUser, generateResetToken, resetPassword } from '../services/auth.service';
+import { verifyRefreshToken, generateAccessToken } from '../utils/jwt';
 import { getUserById } from '../services/user.service';
 
 const router = Router();
@@ -32,14 +33,14 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // 2. 调用 services/auth.service.ts 中的 loginUser 函数
-    const token = await loginUser(username, password);
+    const tokenPairStr = await loginUser(username, password);
 
     // 3. 根据返回的令牌，响应成功 (200) 或失败 (401 Unauthorized)
-    if (token) {
-      // 登录成功，返回JWT令牌
-      res.status(200).json({
-        token: token
-      });
+    if (tokenPairStr) {
+      // 登录成功，返回JWT令牌对
+      let payload: any = null;
+      try { payload = JSON.parse(tokenPairStr); } catch {}
+      res.status(200).json(payload || { token: tokenPairStr });
     } else {
       // 登录失败，用户名或密码错误
       res.status(401).json({
@@ -225,3 +226,26 @@ router.post('/reset-password', async (req: Request, res: Response) => {
 });
 
 export default router; 
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    使用 refresh token 换取新的 access token
+ * @access  Public (需要有效的 refresh token)
+ */
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body || {};
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      return res.status(400).json({ message: '缺少 refreshToken' });
+    }
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded || !decoded.userId) {
+      return res.status(401).json({ message: '无效或过期的 refresh token' });
+    }
+    const newAccess = generateAccessToken({ userId: decoded.userId });
+    return res.status(200).json({ accessToken: newAccess });
+  } catch (error) {
+    console.error('刷新 access token 失败:', error);
+    return res.status(500).json({ message: '服务器内部错误' });
+  }
+});

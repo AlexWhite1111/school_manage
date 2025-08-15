@@ -1,16 +1,7 @@
+
 import React, { useMemo } from 'react';
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  Typography,
-  Space,
-  Tag,
-  Divider,
-  Empty
-} from 'antd';
+import { Row, Col, Statistic, Progress, Typography, Space, Tag, Divider, Empty, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   TrophyOutlined,
   RiseOutlined,
@@ -38,6 +29,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
 }) => {
   const { theme } = useThemeStore();
   const { isMobile } = useResponsive();
+  const preset = UnifiedCardPresets.mobileCompact(isMobile);
 
   // 计算概况统计
   const overviewStats = useMemo(() => {
@@ -78,19 +70,19 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
     switch (trend) {
       case 'IMPROVING':
         return { 
-          color: '#52c41a', 
+          color: 'var(--ant-color-success)', 
           icon: <RiseOutlined />, 
           text: '持续进步' 
         };
       case 'DECLINING':
         return { 
-          color: '#ff4d4f', 
+          color: 'var(--ant-color-error)', 
           icon: <FallOutlined />, 
           text: '需要关注' 
         };
       default:
         return { 
-          color: '#1890ff', 
+          color: 'var(--ant-color-primary)', 
           icon: <MinusOutlined />, 
           text: '保持稳定' 
         };
@@ -107,10 +99,10 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
 
   if (!data) {
     return (
-      <Card className={className} style={style}>
+      <Card className={className} style={{ ...preset.style, ...style }} styles={preset.styles}>
         <Empty 
           description="暂无成长数据"
-          style={{ padding: '40px 0' }}
+          style={{ padding: 'var(--space-8) 0' }}
         />
       </Card>
     );
@@ -123,27 +115,27 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
     return (
       <Card 
         className={className} 
-        style={style}
-        bodyStyle={{ padding: isMobile ? '16px' : '20px' }}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
       >
         <Row gutter={[16, 16]}>
           {/* 核心指标卡片 */}
           <Col span={24}>
             <Card
               style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'var(--app-brand-gradient)',
                 border: 'none',
-                borderRadius: '12px'
+                borderRadius: 'var(--radius-lg)'
               }}
-              bodyStyle={{ padding: '20px', textAlign: 'center' }}
+              styles={{ body: { ...preset.styles.body, textAlign: 'center' } }}
             >
               <div style={{ color: 'white' }}>
-                <div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: '8px' }}>
+<div style={{ fontSize: '36px', fontWeight: 'bold', marginBottom: 'var(--space-2)' }}>
                   {overviewStats.averageLevel.toFixed(1)}
                 </div>
-                <div style={{ fontSize: '16px', marginBottom: '12px' }}>
+<div style={{ fontSize: '16px', marginBottom: 'var(--space-3)' }}>
                   {trendDisplay.icon}
-                  <span style={{ marginLeft: '8px' }}>
+<span style={{ marginLeft: 'var(--space-2)' }}>
                     {trendDisplay.text}
                   </span>
                 </div>
@@ -172,7 +164,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
             <Statistic
               title="进步项目"
               value={overviewStats.improvingTags}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               prefix={<RiseOutlined />}
             />
           </Col>
@@ -186,7 +178,8 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
     return (
       <Card 
         className={className} 
-        style={style}
+        style={{ ...preset.style, ...style }}
+        styles={preset.styles}
         title={
           <Space>
             <ThunderboltOutlined />
@@ -197,7 +190,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
         <Row gutter={[24, 24]}>
           {/* 总体趋势 */}
           <Col span={24}>
-            <Card size="small" style={{ textAlign: 'center' }}>
+            <Card size="small" style={{ ...preset.style, textAlign: 'center' }} styles={preset.styles}>
               <Space direction="vertical" size="middle">
                 <div style={{ fontSize: '24px', color: trendDisplay.color }}>
                   {trendDisplay.icon}
@@ -229,7 +222,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
               precision={1}
               suffix="%"
               valueStyle={{ 
-                color: overviewStats.averageConfidence > 0.7 ? '#3f8600' : '#cf1322' 
+                color: overviewStats.averageConfidence > 0.7 ? 'var(--ant-color-success)' : 'var(--ant-color-error)' 
               }}
             />
           </Col>
@@ -238,7 +231,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
               title="进步趋势"
               value={overviewStats.improvingTags}
               suffix={`/ ${overviewStats.totalTags}`}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               prefix={<RiseOutlined />}
             />
           </Col>
@@ -247,7 +240,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
               title="关注项目"
               value={overviewStats.decliningTags}
               suffix={`/ ${overviewStats.totalTags}`}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: 'var(--ant-color-error)' }}
               prefix={<FallOutlined />}
             />
           </Col>
@@ -260,7 +253,8 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
   return (
     <Card 
       className={className} 
-      style={style}
+      style={{ ...preset.style, ...style }}
+      styles={preset.styles}
       title={
         <Space>
           <FireOutlined />
@@ -311,7 +305,7 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
 
         {/* 详细统计指标 */}
         <Col xs={24} sm={12} lg={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
+          <Card size="small" style={{ ...preset.style, textAlign: 'center' }} styles={preset.styles}>
             <Statistic
               title="成长维度"
               value={overviewStats.totalTags}
@@ -321,36 +315,36 @@ const GrowthOverview: React.FC<GrowthOverviewProps> = ({
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
+          <Card size="small" style={{ ...preset.style, textAlign: 'center' }} styles={preset.styles}>
             <Statistic
               title="正面表现"
               value={overviewStats.positiveTags}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               suffix={`/ ${overviewStats.totalTags}`}
             />
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
+          <Card size="small" style={{ ...preset.style, textAlign: 'center' }} styles={preset.styles}>
             <Statistic
               title="进步项目"
               value={overviewStats.improvingTags}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: 'var(--ant-color-success)' }}
               prefix={<RiseOutlined />}
             />
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card size="small" style={{ textAlign: 'center' }}>
+          <Card size="small" style={{ ...preset.style, textAlign: 'center' }} styles={preset.styles}>
             <Statistic
               title="平均置信度"
               value={overviewStats.averageConfidence * 100}
               precision={1}
               suffix="%"
               valueStyle={{ 
-                color: overviewStats.averageConfidence > 0.7 ? '#3f8600' : '#faad14' 
+                color: overviewStats.averageConfidence > 0.7 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)' 
               }}
             />
           </Card>

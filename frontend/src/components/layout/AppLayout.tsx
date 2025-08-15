@@ -1,11 +1,13 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Button, Menu, Typography } from 'antd';
+import { Layout, Menu, Typography } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   SunOutlined, 
   MoonOutlined, 
   MenuFoldOutlined, 
   MenuUnfoldOutlined,
+  LeftOutlined,
   DashboardOutlined,
   TeamOutlined,
   DollarOutlined,
@@ -17,6 +19,9 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useResponsive } from '@/hooks/useResponsive';
 import { usePermissions } from '@/hooks/usePermissions';
 import CustomHeader from './Header';
+import { useScrollRestoration } from '@/hooks/useScrollRestoration';
+import { getAppTokens, semanticTokens, semanticTokensDark } from '@/theme/tokens';
+import BottomNavigation, { BOTTOM_NAV_HEIGHT } from './BottomNavigation';
 
 const { Header: AntHeader, Sider, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -31,6 +36,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const siderRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
+  const appTokens = getAppTokens(theme);
+  const baseTokens = theme === 'dark' ? semanticTokensDark : semanticTokens;
+  const pathSegments = location.pathname.split('/').filter(Boolean);
+  const showBackButton = pathSegments.length > 1;
 
   // 响应式处理
   useEffect(() => {
@@ -128,16 +137,23 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setCollapsed(!collapsed);
   };
 
+  // 持久化每个路由的滚动位置（顶层调用 Hook）
+  useScrollRestoration(
+    location.pathname,
+    (typeof document !== 'undefined' ? document.getElementById('app-content') : null) as any
+  );
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      {/* 侧边栏 */}
+      {/* 桌面端侧边栏 - 仅在非移动端显示 */}
+      {!isMobile && (
       <Sider 
         ref={siderRef}
         trigger={null}
         collapsible
         collapsed={collapsed}
         width={220}
-        collapsedWidth={isMobile ? 0 : 70}
+        collapsedWidth={70}
         // ✅ **核心修复**：只保留这部分样式修改，解决动画冲突
         style={{
           overflow: 'auto',
@@ -146,17 +162,13 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           left: 0,
           top: 0,
           bottom: 0,
-          zIndex: isMobile ? 1001 : 100,
-          background: theme === 'light' 
-            ? 'rgba(255, 255, 255, 0.95)' 
-            : 'rgba(20, 20, 20, 0.95)',
+          zIndex: 100,
+          background: 'var(--app-glass-bg)',
           // ✅ **核心修复**：优化默认的transition，使其更平滑
           transition: 'width 0.2s cubic-bezier(0.23, 1, 0.32, 1)',
-          backdropFilter: isMobile ? 'none' : 'blur(8px)',
-          WebkitBackdropFilter: isMobile ? 'none' : 'blur(8px)',
-          borderRight: theme === 'light' 
-            ? '1px solid rgba(0,0,0,0.06)' 
-            : '1px solid rgba(255,255,255,0.12)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          borderRight: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'}`,
           boxShadow: theme === 'light' 
             ? '2px 0 8px rgba(0,0,0,0.1)' 
             : '2px 0 8px rgba(0,0,0,0.3)',
@@ -177,8 +189,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             alignItems: 'center',
             justifyContent: collapsed ? 'center' : 'flex-start',
           }}>
-            <Button
-              type="text"
+            <AppButton
+              hierarchy="tertiary"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={toggleSider}
               style={{
@@ -210,13 +222,14 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           style={{
             border: 'none',
             background: 'transparent',
-            marginTop: isMobile ? '16px' : '0',
+            marginTop: '0',
           }}
         />
       </Sider>
+      )}
 
       {/* 主布局容器 */}
-      <Layout style={{ 
+       <Layout style={{ 
         marginLeft: isMobile ? 0 : (collapsed ? 70 : 220),
         transition: 'margin-left 0.2s cubic-bezier(0.23, 1, 0.32, 1)', // ✅ **核心修复**：与Sider动画同步
       }}>
@@ -224,39 +237,45 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <AntHeader 
           style={{ 
             padding: '0 24px',
-            background: theme === 'light' 
-              ? 'rgba(255, 255, 255, 0.95)' 
-              : 'rgba(20, 20, 20, 0.95)',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)',
+            background: 'var(--app-glass-bg)',
             // 🚀 性能优化：移动端禁用毛玻璃
             backdropFilter: isMobile ? 'none' : 'blur(8px)',
             WebkitBackdropFilter: isMobile ? 'none' : 'blur(8px)',
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
+            height: 'auto',
             boxShadow: theme === 'light' 
-              ? '0 1px 8px rgba(0,0,0,0.1)' 
-              : '0 1px 8px rgba(0,0,0,0.4)',
+              ? '0 1px 8px var(--ant-color-border-secondary)' 
+              : '0 1px 8px var(--ant-color-fill-tertiary)',
             position: 'sticky',
             top: 0,
             zIndex: isMobile ? 1000 : 99,
-            borderBottom: theme === 'light' 
-              ? '1px solid rgba(0,0,0,0.06)' 
-              : '1px solid rgba(255,255,255,0.12)',
+            borderBottom: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'}`,
           }}>
           
-          {/* 左侧：移动端汉堡菜单 */}
+          {/* 左侧：返回键（分页面） */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {isMobile && (
-              <Button
-                type="text"
-                icon={<MenuUnfoldOutlined />}
-                onClick={toggleSider}
+            {showBackButton && (
+              <AppButton
+                hierarchy="tertiary"
+                shape="circle"
+                icon={<LeftOutlined />}
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    navigate(-1);
+                  } else {
+                    navigate('/dashboard');
+                  }
+                }}
                 style={{
                   fontSize: '18px',
                   width: 44,
                   height: 44,
-                  color: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.65)',
+                  color: 'var(--ant-color-text-secondary)'
                 }}
+                title="返回"
               />
             )}
           </div>
@@ -266,7 +285,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Text style={{ 
               fontSize: isSmall ? '16px' : '18px', 
               fontWeight: 600, 
-              color: '#1890ff',
+              color: 'var(--ant-color-primary)',
               display: isSmall ? 'none' : 'inline' // 超小屏隐藏标题
             }}>
               自然教育
@@ -275,8 +294,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           {/* 右侧：用户信息和主题切换 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Button
-              type="text"
+            <AppButton
+              hierarchy="tertiary"
               shape="circle"
               icon={theme === 'light' ? <SunOutlined /> : <MoonOutlined />}
               onClick={toggleTheme}
@@ -284,12 +303,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 fontSize: '18px',
                 width: 44,
                 height: 44,
-                color: theme === 'dark' ? '#fadb14' : '#1890ff',
-                background: theme === 'light' 
-                  ? 'rgba(24, 144, 255, 0.1)' 
-                  : 'rgba(250, 219, 20, 0.1)',
-                border: `1px solid ${theme === 'dark' ? 'rgba(250, 219, 20, 0.3)' : 'rgba(24, 144, 255, 0.3)'}`,
-                transition: 'all 0.3s ease',
+                // 简化：仅以图标用色表达状态，去除自定义背景/边框
+                color: theme === 'dark' ? baseTokens.color.warning : baseTokens.color.primary,
               }}
               title={theme === 'light' ? '切换到暗色模式' : '切换到亮色模式'}
             />
@@ -297,19 +312,16 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </AntHeader>
 
-        {/* 主内容区 */}
-        <Content style={{ 
-          margin: isSmall ? '16px' : '24px',
-          padding: isSmall ? '16px' : '24px',
-          background: 'var(--ant-color-bg-container)',
-          borderRadius: '12px',
+        {/* 主内容区（统一交由 data-page-container 控制内边距/底部安全区） */}
+        <Content id="app-content" style={{ 
+          margin: 0,
+          padding: 0,
+          background: 'transparent',
+          borderRadius: 0,
           minHeight: 'calc(100vh - 112px)',
           overflow: 'auto',
-          // 暗色模式下的渐变背景
-          ...(theme === 'dark' && {
-            background: 'linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.05)'
-          })
+          // 使出现纵向滚动条时左右留白保持对称（Windows 下尤为明显）
+          scrollbarGutter: 'stable both-edges'
         }}>
           {children}
         </Content>
@@ -327,48 +339,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Footer>
       </Layout>
 
-      {/* 移动端遮罩层 */}
-      {isMobile && !collapsed && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: theme === 'dark' 
-              ? 'rgba(0, 0, 0, 0.7)' 
-              : 'rgba(0, 0, 0, 0.45)',
-            // 🚀 性能优化：移动端禁用毛玻璃，减少GPU负载
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-            zIndex: 1000,
-            // 🚀 性能优化：只过渡opacity
-            transition: 'opacity 0.3s ease',
-            cursor: 'pointer'
-          }}
-          onClick={() => setCollapsed(true)}
-        />
-      )}
-
-      {/* 滑动提示 - 仅在移动端首次访问显示 */}
-      {isMobile && collapsed && (
-        <div
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '4px',
-            height: '60px',
-            background: 'linear-gradient(90deg, #1890ff, transparent)',
-            borderRadius: '0 4px 4px 0',
-            zIndex: 999,
-            opacity: 0.6,
-            animation: 'slideHint 3s ease-in-out infinite'
-          }}
-        />
-      )}
+      {/* 移动端底部导航栏 */}
+      {isMobile && <BottomNavigation />}
     </Layout>
   );
 };

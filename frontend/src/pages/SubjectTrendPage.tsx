@@ -1,24 +1,10 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Card,
-  Row,
-  Col,
-  Select,
-  Button,
-  Space,
-  Statistic,
-  Typography,
-  Alert,
-  Spin,
-  Empty,
-  DatePicker,
-  Table,
-  Tag,
-  Input,
-  Progress,
-  message
-} from 'antd';
+import { Row, Col, Select, Space, Statistic, Typography, Alert, Spin, Empty, Table, Tag, Input, Progress, message, theme as themeApi, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   ArrowLeftOutlined,
   LineChartOutlined,
@@ -41,7 +27,7 @@ import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+ 
 
 // 科目中文映射
 const subjectLabels: Record<Subject, string> = {
@@ -69,6 +55,7 @@ const SubjectTrendPage: React.FC = () => {
   const { classId, subject } = useParams<{ classId: string; subject: string }>();
   const navigate = useNavigate();
   const { theme } = useThemeStore();
+  const { token } = themeApi.useToken();
   const { isMobile } = useResponsive();
 
   // 状态管理
@@ -85,14 +72,14 @@ const SubjectTrendPage: React.FC = () => {
 
   // 主题适配样式
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-  };
+    cardBackground: token.colorBgContainer,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+  } as const;
 
   // 数据加载
   const loadClasses = async () => {
@@ -395,16 +382,16 @@ const SubjectTrendPage: React.FC = () => {
   // 渲染组件
   if (error) {
     return (
-      <div style={{ padding: isMobile ? '16px' : '24px' }}>
+      <div data-page-container>
         <Alert 
           message="数据加载失败" 
           description={error}
           type="error" 
           showIcon 
           action={
-            <Button size="small" onClick={handleRefresh}>
+            <AppButton size="sm" onClick={handleRefresh}>
               重试
-            </Button>
+            </AppButton>
           }
         />
       </div>
@@ -412,13 +399,14 @@ const SubjectTrendPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div data-page-container>
       {/* 页面头部 */}
-      <Card style={{ marginBottom: '24px' }}>
+      {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+      <Card style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}>
         <Row align="middle" justify="space-between">
           <Col>
             <Space size="large">
-              <Button 
+              <AppButton 
                 icon={<ArrowLeftOutlined />} 
                 onClick={handleBack}
                 size={isMobile ? 'middle' : 'large'}
@@ -434,19 +422,21 @@ const SubjectTrendPage: React.FC = () => {
             </Space>
           </Col>
           <Col>
-            <Button 
+            <AppButton 
               icon={<ReloadOutlined />} 
               onClick={handleRefresh}
               loading={loading}
             >
               刷新数据
-            </Button>
+            </AppButton>
           </Col>
         </Row>
       </Card>
+      ); })()}
 
       {/* 筛选控制区 */}
-      <Card style={{ marginBottom: '24px' }}>
+      {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+      <Card style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={8} md={6}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
@@ -466,11 +456,10 @@ const SubjectTrendPage: React.FC = () => {
           <Col xs={24} sm={10} md={8}>
             <Space direction="vertical" size={0} style={{ width: '100%' }}>
               <Text type="secondary" style={{ fontSize: '12px' }}>时间范围</Text>
-              <RangePicker
-                style={{ width: '100%' }}
+              <UnifiedRangePicker
+                className="w-full"
                 value={dateRange}
                 onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
-                format="YYYY-MM-DD"
                 placeholder={['开始日期', '结束日期']}
               />
             </Space>
@@ -511,28 +500,32 @@ const SubjectTrendPage: React.FC = () => {
           )}
         </Row>
       </Card>
+      ); })()}
 
       {loading ? (
-        <Card>
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+        (() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+        <Card style={preset.style} styles={preset.styles}>
+          <div style={{ textAlign: 'center', padding: 'var(--space-8) 0' }}>
             <Spin size="large" />
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 'var(--space-4)' }}>
               <Text type="secondary">加载科目分析数据中...</Text>
             </div>
           </div>
-        </Card>
+        </Card> ); })()
       ) : !trendData ? (
-        <Card>
+        (() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+        <Card style={preset.style} styles={preset.styles}>
           <Empty
             description="暂无数据"
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
-        </Card>
+        </Card> ); })()
       ) : (
         <>
           {/* 智能洞察 */}
           {generateInsights().length > 0 && (
-            <Card title="智能洞察" style={{ marginBottom: '24px' }}>
+            (() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+            <Card title="智能洞察" style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}>
               <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                 {generateInsights().map((insight, index) => (
                   <Alert
@@ -544,32 +537,36 @@ const SubjectTrendPage: React.FC = () => {
                 ))}
               </Space>
             </Card>
+            ); })()
           )}
 
           {/* 核心指标卡片 */}
-          <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
             <Col xs={12} sm={6}>
-              <Card size="small">
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+              <Card size="small" style={preset.style} styles={preset.styles}>
                 <Statistic
                   title="考试总数"
                   value={trendData.summary.totalExams}
                   prefix={<BookOutlined />}
                   valueStyle={{ color: themeStyles.primaryColor }}
                 />
-              </Card>
+              </Card> ); })()}
             </Col>
             <Col xs={12} sm={6}>
-              <Card size="small">
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+              <Card size="small" style={preset.style} styles={preset.styles}>
                 <Statistic
                   title="学生总数"
                   value={trendData.summary.totalStudents}
                   prefix={<UserOutlined />}
                   valueStyle={{ color: themeStyles.successColor }}
                 />
-              </Card>
+              </Card> ); })()}
             </Col>
             <Col xs={12} sm={6}>
-              <Card size="small">
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+              <Card size="small" style={preset.style} styles={preset.styles}>
                 <Statistic
                   title="平均成绩"
                   value={trendData.summary.averageScore}
@@ -579,10 +576,11 @@ const SubjectTrendPage: React.FC = () => {
                            trendData.summary.averageScore >= 60 ? themeStyles.warningColor : themeStyles.errorColor
                   }}
                 />
-              </Card>
+              </Card> ); })()}
             </Col>
             <Col xs={12} sm={6}>
-              <Card size="small">
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
+            <Card size="small" style={preset.style} styles={preset.styles}>
                 <Statistic
                   title="成绩趋势"
                   value={Math.abs(trendData.summary.improvement)}
@@ -599,19 +597,20 @@ const SubjectTrendPage: React.FC = () => {
                            trendData.summary.improvement < 0 ? themeStyles.errorColor : themeStyles.textSecondary
                   }}
                 />
-              </Card>
+            </Card> ); })()}
             </Col>
           </Row>
 
           {/* 趋势图表 */}
-          <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+          <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
             <Col xs={24} lg={12}>
+              {(() => { const preset = UnifiedCardPresets.desktopDefault(false); return (
               <Card title={
                 <Space>
                   <LineChartOutlined />
                   <span>成绩趋势</span>
                 </Space>
-              }>
+              } style={preset.style} styles={preset.styles}>
                 {trendChartConfig ? (
                   <div style={{ height: '300px' }}>
                     <Area {...trendChartConfig} />
@@ -620,6 +619,7 @@ const SubjectTrendPage: React.FC = () => {
                   <Empty description="暂无趋势数据" />
                 )}
               </Card>
+              ); })()}
             </Col>
             <Col xs={24} lg={12}>
               <Card title={

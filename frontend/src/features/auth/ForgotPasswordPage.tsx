@@ -1,5 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message, Result } from 'antd';
+import { Form, Input, Typography, message, Result, Card } from 'antd';
 import { UserOutlined, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '@/api/authApi';
@@ -38,18 +39,17 @@ const ForgotPasswordPage: React.FC = () => {
     return (
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'var(--app-brand-gradient)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '20px'
+        padding: 'var(--space-5)'
       }}>
         <Card
           style={{
             width: '100%',
             maxWidth: 500,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            borderRadius: '12px'
+            borderRadius: 'var(--radius-lg)'
           }}
         >
           <Result
@@ -63,10 +63,10 @@ const ForgotPasswordPage: React.FC = () => {
             }
             extra={[
               <Link to="/reset-password" key="reset">
-                <Button type="primary">前往重置密码</Button>
+                <AppButton hierarchy="primary">前往重置密码</AppButton>
               </Link>,
               <Link to="/login" key="back">
-                <Button icon={<ArrowLeftOutlined />}>登录</Button>
+                <AppButton icon={<ArrowLeftOutlined />}>登录</AppButton>
               </Link>
             ]}
           />
@@ -78,22 +78,21 @@ const ForgotPasswordPage: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'var(--app-brand-gradient)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: '20px'
+      padding: 'var(--space-5)'
     }}>
       <Card
         style={{
           width: '100%',
           maxWidth: 400,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          borderRadius: '12px'
+          borderRadius: 'var(--radius-lg)'
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
+          <Title level={2} style={{ color: 'var(--ant-color-primary)', marginBottom: 8 }}>
             忘记密码
           </Title>
           <Text type="secondary">
@@ -122,25 +121,25 @@ const ForgotPasswordPage: React.FC = () => {
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 16 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
+            <AppButton
+              hierarchy="primary"
+              type="submit"
               loading={loading}
               block
-              style={{ height: 'auto', padding: '12px 0', fontSize: '16px' }}
+              style={{ height: 'auto', padding: 'var(--space-3) 0', fontSize: '16px' }}
             >
               {loading ? '发送中...' : '发送重置请求'}
-            </Button>
+            </AppButton>
           </Form.Item>
         </Form>
 
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
-            <Link to="/login" style={{ color: '#1890ff' }}>
+            <Link to="/login" style={{ color: 'var(--ant-color-primary)' }}>
               <ArrowLeftOutlined /> 登录
             </Link>
             {' · '}
-            <Link to="/reset-password" style={{ color: '#1890ff' }}>已有重置令牌？</Link>
+            <Link to="/reset-password" style={{ color: 'var(--ant-color-primary)' }}>已有重置令牌？</Link>
           </Text>
         </div>
       </Card>

@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
-import { Card, Row, Col, Progress, Statistic, Tooltip, Tag, Space } from 'antd';
+import { Row, Col, Progress, Statistic, Tooltip, Tag, Space, Card } from 'antd';
 import { InfoCircleOutlined, SettingOutlined, ArrowUpOutlined, ArrowDownOutlined, MinusOutlined } from '@ant-design/icons';
+import { getLevelColor, getTrendColor } from '@/config/growthColorConfig';
+import { useResponsive } from '@/hooks/useResponsive';
 // Define the expected interface for growth state data
 interface GrowthState {
   tagId: number;
@@ -24,10 +26,11 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
   states,
   showDetails = true
 }) => {
+  const { isMobile } = useResponsive();
   if (!states || states.length === 0) {
     return (
-      <Card title="卡尔曼滤波器状态" style={{ marginBottom: '16px' }}>
-        <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+      <Card title="卡尔曼滤波器状态" style={{ marginBottom: 'var(--space-4)' }}>
+        <div style={{ textAlign: 'center', color: 'var(--ant-color-text-tertiary)', padding: 'var(--space-5)' }}>
           暂无成长数据
         </div>
       </Card>
@@ -86,19 +89,19 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
     const direction = growthUtils.getTrendDirection(trend);
     switch (direction) {
       case 'UP':
-        return <ArrowUpOutlined style={{ color: '#52c41a' }} />;
+        return <ArrowUpOutlined style={{ color: 'var(--ant-color-success)' }} />;
       case 'DOWN':
-        return <ArrowDownOutlined style={{ color: '#ff4d4f' }} />;
+        return <ArrowDownOutlined style={{ color: 'var(--ant-color-error)' }} />;
       case 'STABLE':
-        return <MinusOutlined style={{ color: '#faad14' }} />;
+        return <MinusOutlined style={{ color: 'var(--ant-color-warning)' }} />;
     }
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return '#52c41a';
-    if (confidence >= 0.6) return '#faad14';
+    if (confidence >= 0.8) return 'var(--ant-color-success)';
+    if (confidence >= 0.6) return 'var(--ant-color-warning)';
     if (confidence >= 0.3) return '#ff7a45';
-    return '#ff4d4f';
+    return 'var(--ant-color-error)';
   };
 
   return (
@@ -113,21 +116,24 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
       }
     >
       {/* 整体概览 */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
+      <Row gutter={16} style={{ marginBottom: 'var(--space-6)' }}>
         <Col span={6}>
           <Statistic
             title={
               <Space>
                 成长分数
-                <Tooltip title="基于所有标签的加权平均计算">
-                  <InfoCircleOutlined />
-                </Tooltip>
+                {!isMobile && (
+                  <Tooltip title="基于所有标签的加权平均计算">
+                    <InfoCircleOutlined />
+                  </Tooltip>
+                )}
               </Space>
             }
             value={growthScore}
             precision={2}
             valueStyle={{ 
-              color: growthUtils.getColorByTrend(growthUtils.getTrendDirection(growthScore))
+              color: growthUtils.getColorByTrend(growthUtils.getTrendDirection(growthScore)),
+              fontWeight: 700
             }}
           />
         </Col>
@@ -137,8 +143,8 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
             value={overallTrend === 'IMPROVING' ? '改善' : overallTrend === 'DECLINING' ? '下降' : '稳定'}
             prefix={getTrendIcon(growthScore)}
             valueStyle={{ 
-              color: overallTrend === 'IMPROVING' ? '#52c41a' : 
-                     overallTrend === 'DECLINING' ? '#ff4d4f' : '#faad14'
+              color: overallTrend === 'IMPROVING' ? 'var(--ant-color-success)' : 
+                     overallTrend === 'DECLINING' ? 'var(--ant-color-error)' : 'var(--ant-color-warning)'
             }}
           />
         </Col>
@@ -162,7 +168,7 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
       {showDetails && (
         <>
           {/* 关键标签信息 */}
-          <Row gutter={16} style={{ marginBottom: '24px' }}>
+          <Row gutter={16} style={{ marginBottom: 'var(--space-6)' }}>
             <Col span={12}>
               <Card size="small" title="最活跃标签">
                 <Space direction="vertical" style={{ width: '100%' }}>
@@ -197,8 +203,8 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
           </Row>
 
           {/* 详细状态列表 */}
-          <div style={{ marginTop: '24px' }}>
-            <h4 style={{ marginBottom: '16px' }}>各标签详细状态 ({states.length} 个标签)</h4>
+          <div style={{ marginTop: 'var(--space-6)' }}>
+            <h4 style={{ marginBottom: 'var(--space-4)' }}>各标签详细状态 ({states.length} 个标签)</h4>
             <Row gutter={[16, 16]}>
               {states.map((state) => (
                 <Col {...getResponsiveColProps} key={state.tagId}>
@@ -208,41 +214,71 @@ const KalmanStatePanel: React.FC<KalmanStatePanelProps> = ({
                         <Tag color={state.sentiment === 'POSITIVE' ? 'green' : 'red'}>
                           {state.tagName}
                         </Tag>
-                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                          {growthUtils.formatTimeAgo(state.lastUpdatedAt)}
+                        <div style={{ fontSize: '12px', color: 'var(--ant-color-text-tertiary)', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{growthUtils.formatTimeAgo(state.lastUpdatedAt)}</span>
+                          <span>观测 {state.totalObservations} 次</span>
                         </div>
                       </div>
 
                       <div>
-                        <div style={{ marginBottom: '4px' }}>
-                          水平 (μ): <strong>{growthUtils.formatGrowthScore(state.level, 1)}</strong>
+                        {isMobile ? (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <div>
+                              水平: <strong style={{ color: getLevelColor(state.level) }}>{growthUtils.formatGrowthScore(state.level, 1)}</strong>
+                            </div>
+                            <div>
+                              趋势: {getTrendIcon(state.trend)}
+                              <span style={{ 
+                                color: getTrendColor(state.trend, state.sentiment),
+                                fontWeight: 'bold',
+                                marginLeft: 4
+                              }}>
+                                {growthUtils.formatGrowthScore(state.trend, 2)}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ marginBottom: '4px' }}>
+                              水平: <strong style={{ color: getLevelColor(state.level) }}>{growthUtils.formatGrowthScore(state.level, 1)}</strong>
+                            </div>
+                            <div>
+                              趋势: {getTrendIcon(state.trend)} 
+                              <span style={{ 
+                                color: getTrendColor(state.trend, state.sentiment),
+                                fontWeight: 'bold'
+                              }}>
+                                {growthUtils.formatGrowthScore(state.trend, 2)}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {isMobile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <span style={{ fontSize: '12px' }}>{growthUtils.formatConfidence(state.confidence)}</span>
+                          <Progress 
+                            percent={Math.round(state.confidence * 100)} 
+                            size="small"
+                            strokeColor={getConfidenceColor(state.confidence)}
+                            showInfo={false}
+                            style={{ width: 90 }}
+                          />
                         </div>
+                      ) : (
                         <div>
-                          趋势 (ν): {getTrendIcon(state.trend)} 
-                          <span style={{ 
-                            color: growthUtils.getColorByTrend(growthUtils.getTrendDirection(state.trend)),
-                            fontWeight: 'bold'
-                          }}>
-                            {growthUtils.formatGrowthScore(state.trend, 2)}
-                          </span>
+                          <div style={{ marginBottom: '4px' }}>
+                            {growthUtils.formatConfidence(state.confidence)}
+                          </div>
+                          <Progress 
+                            percent={Math.round(state.confidence * 100)} 
+                            size="small"
+                            strokeColor={getConfidenceColor(state.confidence)}
+                            showInfo={false}
+                          />
                         </div>
-                      </div>
-
-                      <div>
-                        <div style={{ marginBottom: '4px' }}>
-                          置信度: {growthUtils.formatConfidence(state.confidence)}
-                        </div>
-                        <Progress 
-                          percent={Math.round(state.confidence * 100)} 
-                          size="small"
-                          strokeColor={getConfidenceColor(state.confidence)}
-                          showInfo={false}
-                        />
-                      </div>
-
-                      <div style={{ fontSize: '12px', color: '#666', textAlign: 'center' }}>
-                        观测 {state.totalObservations} 次
-                      </div>
+                      )}
                     </Space>
                   </Card>
                 </Col>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Typography, List, Avatar, Space, Empty, Badge, Tag } from 'antd';
+import { Typography, List, Avatar, Space, Empty, Badge, Tag, Card } from 'antd';
 import { UserOutlined, PhoneOutlined, TeamOutlined } from '@ant-design/icons';
-import ProjectCard from '@/components/ui/ProjectCard';
+
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 
 const { Title, Text } = Typography;
@@ -56,19 +56,19 @@ const FollowUpRemindersCard: React.FC<FollowUpRemindersCardProps> = ({
 }) => {
   if (loading) {
     return (
-      <ProjectCard 
+      <Card 
         title="今日需跟进的客户"
         style={{ minHeight: '300px' }}
       >
         <SkeletonLoader variant="list" />
-      </ProjectCard>
+      </Card>
     );
   }
 
   const followUpCount = customers.length;
 
   return (
-    <ProjectCard 
+    <Card 
       title={
         <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
           <Space align="center">
@@ -184,7 +184,7 @@ const FollowUpRemindersCard: React.FC<FollowUpRemindersCardProps> = ({
             className="custom-scrollbar"
           />
       )}
-    </ProjectCard>
+    </Card>
   );
 };
 

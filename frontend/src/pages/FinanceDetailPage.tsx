@@ -1,7 +1,8 @@
+import AppButton from '@/components/AppButton';
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Typography, Breadcrumb } from 'antd';
-import { HomeOutlined, DollarOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import FinanceDetailView from '@/features/finance/components/FinanceDetailView';
 import { useResponsive } from '@/hooks/useResponsive';
 
@@ -17,9 +18,9 @@ const FinanceDetailPage: React.FC = () => {
     return (
       <div style={{ padding: isMobile ? 16 : 24, textAlign: 'center' }}>
         <Title level={3}>无效的学生公共ID</Title>
-        <Button type="primary" onClick={() => navigate('/finance')}>
+        <AppButton hierarchy="primary" onClick={() => navigate('/finance')}>
           返回财务中心
-        </Button>
+        </AppButton>
       </div>
     );
   }
@@ -30,37 +31,14 @@ const FinanceDetailPage: React.FC = () => {
 
   return (
     <div style={{ padding: isMobile ? 16 : 24 }}>
-      {/* 面包屑导航 */}
-      <div style={{ marginBottom: 16 }}>
-        <Breadcrumb
-          items={[
-            {
-              href: '/',
-              title: <HomeOutlined />,
-            },
-            {
-              href: '/finance',
-              title: (
-                <span>
-                  <DollarOutlined />
-                  <span style={{ marginLeft: 4 }}>财务中心</span>
-                </span>
-              ),
-            },
-            {
-              title: '学生详情',
-            },
-          ]}
-        />
-      </div>
 
 
       {!isMobile && (
         <div style={{ marginBottom: 16 }}>
-          <Button 
+          <AppButton 
             icon={<ArrowLeftOutlined />} 
             onClick={handleBack}
-            type="link"
+            hierarchy="link"
             style={{ padding: 0 }}
           />
         </div>

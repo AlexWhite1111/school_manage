@@ -1,5 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Alert, Card, Typography } from 'antd';
+import { Form, Input, Alert, Typography, Card } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -103,19 +104,18 @@ const LoginPage: React.FC = () => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
+  background: 'var(--app-brand-gradient)',
+      padding: 'var(--space-5)'
     }}>
       <Card
         style={{
           width: '100%',
           maxWidth: 400,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-          borderRadius: '12px'
+          borderRadius: 'var(--radius-lg)'
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title level={2} style={{ color: '#1890ff', marginBottom: 8 }}>
+          <Title level={2} style={{ color: 'var(--ant-color-primary)', marginBottom: 8 }}>
             自然教育
           </Title>
           <Text type="secondary">
@@ -170,23 +170,23 @@ const LoginPage: React.FC = () => {
           )}
 
           <Form.Item style={{ marginBottom: 16 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
+            <AppButton
+              hierarchy="primary"
+              type="submit"
               loading={loading}
               block
-              style={{ height: 'auto', padding: '12px 0', fontSize: '16px' }}
+              style={{ height: 'auto', padding: 'var(--space-3) 0', fontSize: '16px' }}
             >
               {loading ? '登录中...' : '登录'}
-            </Button>
+            </AppButton>
           </Form.Item>
         </Form>
 
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
-            <Link to="/forgot-password" style={{ color: '#1890ff' }}>忘记密码？</Link>
+            <Link to="/forgot-password" style={{ color: 'var(--ant-color-primary)' }}>忘记密码？</Link>
             {' · '}
-            <Link to="/register" style={{ color: '#1890ff' }}>注册新账号</Link>
+            <Link to="/register" style={{ color: 'var(--ant-color-primary)' }}>注册新账号</Link>
           </Text>
         </div>
       </Card>

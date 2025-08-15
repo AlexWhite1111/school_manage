@@ -1,12 +1,14 @@
 import React from 'react';
-import { Row, Col, Statistic, List, Typography, Space, Progress } from 'antd';
+import { Row, Col, Statistic, List, Typography, Space, Progress, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
+import { useResponsive } from '@/hooks/useResponsive';
 import { 
   FileTextOutlined, 
   TrophyOutlined, 
   RiseOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import ProjectCard from '@/components/ui/ProjectCard';
+
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 
 const { Text, Title } = Typography;
@@ -27,61 +29,66 @@ const ExamStatsCard: React.FC<ExamStatsCardProps> = ({
   data,
   loading = false
 }) => {
+  const { isMobile } = useResponsive();
   if (loading) {
-    return (
-      <ProjectCard title="考试统计" style={{ minHeight: '300px' }}>
+  const preset = UnifiedCardPresets.desktopDefault(isMobile);
+  return (
+    <Card title="考试统计" style={{ minHeight: '300px', ...preset.style }} styles={preset.styles}>
         <SkeletonLoader variant="card" />
-      </ProjectCard>
+      </Card>
     );
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return '#52c41a';
-    if (score >= 70) return '#fa8c16';
-    return '#ff4d4f';
+    if (score >= 85) return 'var(--ant-color-success)';
+    if (score >= 70) return 'var(--ant-color-warning)';
+    return 'var(--ant-color-error)';
   };
 
+  const preset = UnifiedCardPresets.desktopDefault(isMobile);
   return (
-    <ProjectCard 
+    <Card 
       title={
         <Space align="center">
           <FileTextOutlined style={{ color: 'var(--ant-color-primary)' }} />
           <Title level={4} style={{ margin: 0 }}>考试统计</Title>
         </Space>
       }
-      style={{ height: '100%' }}
+      style={{ height: '100%', ...preset.style }}
+      styles={preset.styles}
     >
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
         {/* 考试概览 */}
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}>
-            <Statistic
-              title="最近考试"
-              value={data?.recentExams || 0}
-              prefix={<RiseOutlined />}
-              suffix="场"
-              valueStyle={{ color: 'var(--ant-color-primary)' }}
-            />
-          </Col>
-          <Col xs={24} sm={8}>
-            <Statistic
-              title="即将考试"
-              value={data?.upcomingExams || 0}
-              prefix={<ClockCircleOutlined />}
-              suffix="场"
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Col>
-          <Col xs={24} sm={8}>
-            <Statistic
-              title="平均分"
-              value={data?.averageScore || 0}
-              prefix={<TrophyOutlined />}
-              precision={1}
-              valueStyle={{ color: getScoreColor(data?.averageScore || 0) }}
-            />
-          </Col>
-        </Row>
+        {isMobile ? (
+          <div className="metric-row">
+            <span className="metric-item" data-tone="primary">
+              <span className="metric-number">{data?.recentExams ?? 0}</span>
+              <span>最近</span>
+            </span>
+            <span className="metric-sep">|</span>
+            <span className="metric-item" data-tone="warning">
+              <span className="metric-number">{data?.upcomingExams ?? 0}</span>
+              <span>即将</span>
+            </span>
+            <span className="metric-sep">|</span>
+            <span className="metric-item" data-tone={((data?.averageScore ?? 0) >= 85) ? 'success' : ((data?.averageScore ?? 0) >= 70) ? 'warning' : 'error'}>
+              <span className="metric-number">{(data?.averageScore ?? 0).toFixed(1)}</span>
+              <span>平均</span>
+            </span>
+          </div>
+        ) : (
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={8}>
+              <Statistic title="最近考试" value={data?.recentExams || 0} suffix="场" valueStyle={{ color: 'var(--ant-color-primary)' }} />
+            </Col>
+            <Col xs={24} sm={8}>
+              <Statistic title="即将考试" value={data?.upcomingExams || 0} suffix="场" valueStyle={{ color: 'var(--ant-color-warning)' }} />
+            </Col>
+            <Col xs={24} sm={8}>
+              <Statistic title="平均分" value={data?.averageScore || 0} precision={1} valueStyle={{ color: getScoreColor(data?.averageScore || 0) }} />
+            </Col>
+          </Row>
+        )}
 
         {/* 科目表现排行 */}
         <div>
@@ -100,8 +107,8 @@ const ExamStatsCard: React.FC<ExamStatsCardProps> = ({
                         width: '20px',
                         height: '20px',
                         borderRadius: '50%',
-                        background: index < 3 ? '#fa8c16' : 'var(--ant-color-fill)',
-                        color: index < 3 ? '#fff' : 'var(--ant-color-text-secondary)',
+                        background: index < 3 ? 'var(--ant-color-warning)' : 'var(--ant-color-fill)',
+                        color: index < 3 ? 'var(--ant-color-bg-container)' : 'var(--ant-color-text-secondary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -145,7 +152,7 @@ const ExamStatsCard: React.FC<ExamStatsCardProps> = ({
           )}
         </div>
       </Space>
-    </ProjectCard>
+    </Card>
   );
 };
 

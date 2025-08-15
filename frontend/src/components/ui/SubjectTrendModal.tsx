@@ -1,20 +1,9 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Modal,
-  Row,
-  Col,
-  Select,
-  Button,
-  Space,
-  Statistic,
-  Typography,
-  Alert,
-  Spin,
-  Empty,
-  DatePicker,
-  Card,
-  Tag
-} from 'antd';
+import { Modal, Row, Col, Select, Space, Statistic, Typography, Alert, Spin, Empty, Tag, theme as themeApi, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   BookOutlined,
   ReloadOutlined,
@@ -33,7 +22,7 @@ import dayjs from 'dayjs';
 
 const { Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+ 
 
 // 科目中文映射
 const subjectLabels: Record<Subject, string> = {
@@ -92,13 +81,15 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
   const [trendData, setTrendData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)'
-  };
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    textSecondary: token.colorTextSecondary
+  } as const;
+  const preset = UnifiedCardPresets.mobileCompact(isMobile);
 
   const loadTrendData = async () => {
     setLoading(true);
@@ -166,24 +157,24 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
       onCancel={onClose}
       width={isMobile ? '95vw' : 800}
       footer={[
-        <Button key="refresh" icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
+        <AppButton key="refresh" icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
           刷新
-        </Button>,
-        <Button key="details" type="primary" icon={<EyeOutlined />} onClick={handleViewDetails}>
+        </AppButton>,
+        <AppButton key="details" hierarchy="primary" icon={<EyeOutlined />} onClick={handleViewDetails}>
           查看详情
-        </Button>,
-        <Button key="close" onClick={onClose}>
+        </AppButton>,
+        <AppButton key="close" onClick={onClose}>
           关闭
-        </Button>
+        </AppButton>
       ]}
     >
       {/* 筛选控制区 */}
-      <Card size="small" style={{ marginBottom: '16px' }}>
+      <Card size="small" style={{ ...preset.style, marginBottom: 'var(--space-4)' }} styles={preset.styles}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12}>
             <Text type="secondary" style={{ fontSize: '12px' }}>考试类型</Text>
             <Select
-              style={{ width: '100%', marginTop: '4px' }}
+              style={{ width: '100%', marginTop: 'var(--space-1)' }}
               value={selectedExamType}
               onChange={setSelectedExamType}
               size="small"
@@ -196,11 +187,10 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
           </Col>
           <Col xs={24} sm={12}>
             <Text type="secondary" style={{ fontSize: '12px' }}>时间范围</Text>
-            <RangePicker
-              style={{ width: '100%', marginTop: '4px' }}
+            <UnifiedRangePicker
+              className="w-full"
               value={dateRange}
               onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
-              format="YYYY-MM-DD"
               size="small"
             />
           </Col>
@@ -208,9 +198,9 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
       </Card>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+        <div style={{ textAlign: 'center', padding: 'var(--space-8) 0' }}>
           <Spin size="large" />
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 'var(--space-4)' }}>
             <Text type="secondary">加载趋势数据中...</Text>
           </div>
         </div>
@@ -226,9 +216,9 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
       ) : (
         <>
           {/* 核心指标 */}
-          <Row gutter={[12, 12]} style={{ marginBottom: '16px' }}>
+          <Row gutter={[12, 12]} style={{ marginBottom: 'var(--space-4)' }}>
             <Col span={6}>
-              <Card size="small" bodyStyle={{ padding: '12px' }}>
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles}>
                 <Statistic
                   title="考试数"
                   value={trendData.summary.totalExams}
@@ -237,7 +227,7 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
               </Card>
             </Col>
             <Col span={6}>
-              <Card size="small" bodyStyle={{ padding: '12px' }}>
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles}>
                 <Statistic
                   title="平均分"
                   value={trendData.summary.averageScore}
@@ -251,7 +241,7 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
               </Card>
             </Col>
             <Col span={6}>
-              <Card size="small" bodyStyle={{ padding: '12px' }}>
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles}>
                 <Statistic
                   title="参与率"
                   value={trendData.summary.averageParticipationRate}
@@ -261,7 +251,7 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
               </Card>
             </Col>
             <Col span={6}>
-              <Card size="small" bodyStyle={{ padding: '12px' }}>
+              <Card size="small" style={{ ...preset.style }} styles={preset.styles}>
                 <Statistic
                   title="趋势"
                   value={Math.abs(trendData.summary.improvement)}
@@ -284,7 +274,7 @@ const SubjectTrendModal: React.FC<SubjectTrendModalProps> = ({
           </Row>
 
           {/* 图表区域 */}
-          <Card title="成绩趋势" size="small">
+          <Card title="成绩趋势" size="small" style={{ ...preset.style }} styles={preset.styles}>
             {trendData.trend.length > 0 ? (
               <div style={{ height: '250px' }}>
                 <Line {...chartConfig} />

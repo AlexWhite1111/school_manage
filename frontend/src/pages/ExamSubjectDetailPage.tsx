@@ -1,24 +1,9 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Space,
-  Statistic,
-  Typography,
-  Alert,
-  Spin,
-  Empty,
-  Table,
-  Tag,
-  Progress,
-  message,
-  Radio,
-  Select,
-  Divider
-} from 'antd';
+import { Row, Col, Space, Statistic, Typography, Alert, Spin, Empty, Table, Tag, Progress, message, Radio, Select, Divider, theme as themeApi, Card } from 'antd';
+import { UnifiedCardPresets } from '@/theme/card';
 import {
   ArrowLeftOutlined,
   BarChartOutlined,
@@ -74,15 +59,16 @@ const ExamSubjectDetailPage: React.FC = () => {
   const [historyLimit, setHistoryLimit] = useState<number>(5); // 历史考试数量
 
   // 主题适配样式
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-  };
+    cardBackground: token.colorBgContainer,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+  } as const;
 
   // 数据加载
   const loadExamSubjectData = async () => {
@@ -143,9 +129,8 @@ const ExamSubjectDetailPage: React.FC = () => {
         <div style={{
           backgroundColor: themeStyles.cardBackground,
           border: `1px solid ${themeStyles.primaryColor}`,
-          borderRadius: '4px',
-          padding: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          borderRadius: 'var(--radius-sm)',
+          padding: 'var(--space-2)'
         }}>
           <p style={{ margin: 0, color: themeStyles.textPrimary }}>
             <strong>{data.studentName}</strong>
@@ -238,13 +223,13 @@ const ExamSubjectDetailPage: React.FC = () => {
       key: 'name',
       width: 100,
       render: (name: string, record: any) => (
-        <Button 
-          type="link" 
+        <AppButton 
+          hierarchy="link" 
           onClick={() => handleStudentClick(record)}
           style={{ padding: 0, height: 'auto' }}
         >
           {name}
-        </Button>
+        </AppButton>
       )
     },
     {
@@ -377,16 +362,16 @@ const ExamSubjectDetailPage: React.FC = () => {
 
   if (error || !data) {
     return (
-      <div style={{ padding: isMobile ? '16px' : '24px' }}>
+      <div data-page-container>
         <Alert 
           message="数据加载失败" 
           description={error || '未找到相关数据'}
           type="error" 
           showIcon 
           action={
-            <Button size="small" onClick={loadExamSubjectData}>
+            <AppButton size="sm" onClick={loadExamSubjectData}>
               重试
-            </Button>
+            </AppButton>
           }
         />
       </div>
@@ -394,13 +379,14 @@ const ExamSubjectDetailPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '24px' }}>
+    <div data-page-container>
       {/* 页面头部 */}
-      <Card style={{ marginBottom: '24px' }}>
+      {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+      <Card style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}>
         <Row align="middle" justify="space-between">
           <Col>
             <Space size="large">
-              <Button 
+              <AppButton 
                 icon={<ArrowLeftOutlined />} 
                 onClick={handleBack}
                 size={isMobile ? 'middle' : 'large'}
@@ -416,12 +402,13 @@ const ExamSubjectDetailPage: React.FC = () => {
             </Space>
           </Col>
         </Row>
-      </Card>
+      </Card> ); })()}
 
       {/* 核心指标概览 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 'var(--space-6)' }}>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="原始平均分"
               value={data.subject.averageScore}
@@ -429,10 +416,11 @@ const ExamSubjectDetailPage: React.FC = () => {
               valueStyle={{ color: themeStyles.primaryColor, fontSize: '20px' }}
               suffix={<Text type="secondary">/{data.exam.totalScore}</Text>}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="归一化平均分"
               value={data.subject.normalizedAverageScore}
@@ -440,20 +428,22 @@ const ExamSubjectDetailPage: React.FC = () => {
               valueStyle={{ color: themeStyles.primaryColor, fontSize: '20px' }}
               suffix={<Text type="secondary">/100</Text>}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="最高分"
               value={data.subject.highestScore}
               valueStyle={{ color: themeStyles.successColor }}
               prefix={<TrophyOutlined />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="参与率"
               value={data.subject.participationRate}
@@ -462,10 +452,11 @@ const ExamSubjectDetailPage: React.FC = () => {
               valueStyle={{ color: themeStyles.primaryColor }}
               prefix={<UserOutlined />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="及格率"
               value={data.subject.passRate}
@@ -474,10 +465,11 @@ const ExamSubjectDetailPage: React.FC = () => {
               valueStyle={{ color: themeStyles.successColor }}
               prefix={<BookOutlined />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
         <Col xs={12} sm={6} md={4}>
-          <Card size="small">
+          {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+          <Card size="small" style={preset.style} styles={preset.styles}>
             <Statistic
               title="优秀率"
               value={data.subject.excellentRate}
@@ -489,12 +481,13 @@ const ExamSubjectDetailPage: React.FC = () => {
             <Text type="secondary" style={{ fontSize: '12px' }}>
               优秀线: {data.subject.excellentLine?.toFixed(1)}分
             </Text>
-          </Card>
+          </Card> ); })()}
         </Col>
       </Row>
 
       {/* 成绩分布散点图 */}
       {scatterData.length > 0 && (
+        (() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card 
           title={
             <Space>
@@ -502,7 +495,7 @@ const ExamSubjectDetailPage: React.FC = () => {
               <span>成绩分布</span>
             </Space>
           }
-          style={{ marginBottom: '24px' }}
+          style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}
           extra={
             <Space>
               <Radio.Group 
@@ -575,11 +568,12 @@ const ExamSubjectDetailPage: React.FC = () => {
               </ScatterChart>
             </ResponsiveContainer>
           </div>
-        </Card>
+        </Card> ); })()
       )}
 
       {/* 历史趋势对比 */}
       {trendData.length > 0 && (
+        (() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card 
           title={
             <Space>
@@ -587,7 +581,7 @@ const ExamSubjectDetailPage: React.FC = () => {
               <span>成绩趋势分析</span>
             </Space>
           }
-          style={{ marginBottom: '24px' }}
+          style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}
           extra={
             <Space>
               <Text type="secondary">历史考试数量：</Text>
@@ -665,11 +659,12 @@ const ExamSubjectDetailPage: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </Card>
+        </Card> ); })()
       )}
 
       {/* 标签分析 */}
       {data.tags && data.tags.length > 0 && (
+        (() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card 
           title={
             <Space>
@@ -677,7 +672,7 @@ const ExamSubjectDetailPage: React.FC = () => {
               <span>评价标签分析</span>
             </Space>
           }
-          style={{ marginBottom: '24px' }}
+          style={{ ...preset.style, marginBottom: 'var(--space-6)' }} styles={preset.styles}
         >
           <Row gutter={[16, 16]}>
             {data.tags.map((tag: any) => (
@@ -699,11 +694,12 @@ const ExamSubjectDetailPage: React.FC = () => {
               </Col>
             ))}
           </Row>
-        </Card>
+        </Card> ); })()
       )}
 
       {/* 学生详细排名 */}
       {data.students && (
+        (() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card 
           title={
             <Space>
@@ -711,6 +707,7 @@ const ExamSubjectDetailPage: React.FC = () => {
               <span>学生排名详情</span>
             </Space>
           }
+          style={{ ...preset.style }} styles={preset.styles}
         >
           <Table
             columns={studentColumns}
@@ -726,7 +723,7 @@ const ExamSubjectDetailPage: React.FC = () => {
             scroll={{ x: 600 }}
             size={isMobile ? 'small' : 'middle'}
           />
-        </Card>
+        </Card> ); })()
       )}
     </div>
   );

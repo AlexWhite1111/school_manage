@@ -1,20 +1,8 @@
+import AppButton from '@/components/AppButton';
 // src/components/excel/ExcelExportModal.tsx
 import React, { useState } from 'react';
-import {
-  Modal,
-  Button,
-  Form,
-  Select,
-  DatePicker,
-  Checkbox,
-  Space,
-  Typography,
-  Alert,
-  Divider,
-  Card,
-  Statistic,
-  message
-} from 'antd';
+import { Modal, Form, Select, Checkbox, Space, Typography, Alert, Divider, Statistic, message, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
 import {
   DownloadOutlined,
   FilterOutlined,
@@ -24,7 +12,6 @@ import { exportCustomersExcel as exportCustomers, type ExportFilters } from '@/a
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 interface ExcelExportModalProps {
   open: boolean;
@@ -168,24 +155,24 @@ const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
       width={700}
       footer={
         <Space>
-          <Button onClick={handleCancel}>
+          <AppButton onClick={handleCancel}>
             取消
-          </Button>
-          <Button
+          </AppButton>
+          <AppButton
             icon={<FilterOutlined />}
             loading={previewLoading}
             onClick={handlePreview}
           >
             预览数据
-          </Button>
-          <Button
-            type="primary"
+          </AppButton>
+          <AppButton
+            hierarchy="primary"
             icon={<DownloadOutlined />}
             loading={loading}
             onClick={handleExport}
           >
             导出Excel
-          </Button>
+          </AppButton>
         </Space>
       }
       destroyOnClose
@@ -254,10 +241,9 @@ const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
             name="dateRange"
             tooltip="不选择表示导出所有时间的客户"
           >
-            <RangePicker
+            <UnifiedRangePicker
               style={{ width: '100%' }}
               placeholder={['开始日期', '结束日期']}
-              format="YYYY-MM-DD"
             />
           </Form.Item>
         </Form>
@@ -273,7 +259,7 @@ const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
                   title="预计导出记录数"
                   value={previewData.total}
                   suffix="条"
-                  valueStyle={{ color: '#1890ff' }}
+                  valueStyle={{ color: 'var(--ant-color-primary)' }}
                 />
                 
                 <div>

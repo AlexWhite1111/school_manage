@@ -1,27 +1,10 @@
+
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-  Button,
-  Typography,
-  Space,
-  Select,
-  DatePicker,
-  Spin,
-  Empty,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  List,
-  Tag,
-  Badge,
-  Tooltip,
-  message,
-  Divider,
-  Avatar,
-  Table,
-  Card
-} from 'antd';
+import { Typography, Space, Select, Spin, Empty, Row, Col, Statistic, Progress, List, Tag, Badge, Tooltip, message, Divider, Avatar, Table, theme as themeApi, Card } from 'antd';
+import UnifiedRangePicker from '@/components/common/UnifiedRangePicker';
+import { UnifiedCardPresets } from '@/theme/card';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import {
@@ -53,6 +36,7 @@ import {
 import dayjs from 'dayjs';
 
 import { useThemeStore } from '@/stores/themeStore';
+import { UNIFIED_DATE_FORMAT, UNIFIED_TIME_RANGE_PRESETS } from '@/config/timeRange';
 import { useResponsive } from '../hooks/useResponsive';
 import { GRADE_LABELS } from '../utils/enumMappings';
 
@@ -78,7 +62,7 @@ import * as examApi from '@/api/examApi';
 import { GrowthApi } from '@/api/growthApi';
 
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
+ 
 const { Option } = Select;
 
 // ================================
@@ -145,15 +129,7 @@ const examTypeLabels: Record<string, string> = {
   'FINAL': '期末考试'
 };
 
-// 时间范围选项
-const timeRangeOptions: TimeRangeOption[] = [
-  { key: 'week', label: '最近一周', days: 7 },
-  { key: 'month', label: '最近一个月', days: 30 },
-  { key: 'quarter', label: '最近三个月', days: 90 },
-  { key: 'semester', label: '本学期', days: 120 },
-  { key: 'year', label: '最近一年', days: 365 },
-  { key: 'all', label: '全部时间' }
-];
+// 使用统一预设，禁止页面内自定义选项
 
 const StudentTrendPage: React.FC = () => {
   const { examId, subject, publicId } = useParams<{ examId: string; subject: string; publicId: string }>();
@@ -166,8 +142,8 @@ const StudentTrendPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState<StudentGrowthReport | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('month');
-  const [customDateRange, setCustomDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+  const defaultRange = UNIFIED_TIME_RANGE_PRESETS.find(p => p.key === 'last3m')!.getValue();
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(defaultRange);
   const [examAnalysisData, setExamAnalysisData] = useState<ExamAnalysisData | null>(null);
   const [examLoading, setExamLoading] = useState(false);
   const [selectedSubjectData, setSelectedSubjectData] = useState<any>(null);
@@ -183,16 +159,17 @@ const StudentTrendPage: React.FC = () => {
   const fromState = location.state as any;
 
   // 主题适配样式
+  const { token } = themeApi.useToken();
   const themeStyles = {
-    cardBackground: theme === 'dark' ? '#141414' : '#ffffff',
-    textPrimary: theme === 'dark' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
-    textSecondary: theme === 'dark' ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.65)',
-    successColor: theme === 'dark' ? '#52c41a' : '#389e0d',
-    warningColor: theme === 'dark' ? '#faad14' : '#d48806',
-    errorColor: theme === 'dark' ? '#ff4d4f' : '#cf1322',
-    primaryColor: theme === 'dark' ? '#1890ff' : '#1890ff',
-    borderColor: theme === 'dark' ? '#303030' : '#e8e8e8',
-  };
+    cardBackground: token.colorBgContainer,
+    textPrimary: token.colorText,
+    textSecondary: token.colorTextSecondary,
+    successColor: token.colorSuccess,
+    warningColor: token.colorWarning,
+    errorColor: token.colorError,
+    primaryColor: token.colorPrimary,
+    borderColor: token.colorBorder,
+  } as const;
 
   // 智能返回逻辑
   const handleBack = () => {
@@ -206,28 +183,13 @@ const StudentTrendPage: React.FC = () => {
 
   // 计算日期范围
   const calculateDateRange = useCallback((): { startDate: string; endDate: string } => {
-    const now = dayjs();
-    let startDate: dayjs.Dayjs;
-    let endDate: dayjs.Dayjs = now;
-
-    if (customDateRange) {
-      startDate = customDateRange[0];
-      endDate = customDateRange[1];
-    } else {
-      const timeRange = timeRangeOptions.find(option => option.key === selectedTimeRange);
-      if (timeRange && timeRange.days) {
-        startDate = now.subtract(timeRange.days, 'day');
-      } else {
-        // 全部时间：从很久以前开始
-        startDate = now.subtract(2, 'year');
-      }
-    }
-
+    const fallback = UNIFIED_TIME_RANGE_PRESETS.find(p => p.key === 'all')!.getValue();
+    const [start, end] = dateRange ?? fallback;
     return {
-      startDate: startDate.format('YYYY-MM-DD'),
-      endDate: endDate.format('YYYY-MM-DD')
+      startDate: start.format(UNIFIED_DATE_FORMAT),
+      endDate: end.format(UNIFIED_DATE_FORMAT)
     };
-  }, [selectedTimeRange, customDateRange]);
+  }, [dateRange]);
 
   // 加载学生报告数据
   const loadReportData = useCallback(async (showLoading = true) => {
@@ -368,20 +330,9 @@ const StudentTrendPage: React.FC = () => {
     setSubjectDetailVisible(true);
   }, [publicId, selectedClassId]);
 
-  // 处理时间范围变化
-  const handleTimeRangeChange = (value: string) => {
-    setSelectedTimeRange(value);
-    if (value !== 'custom') {
-      setCustomDateRange(null);
-    }
-  };
-
-  // 处理自定义日期变化
-  const handleCustomDateChange = (dates: any) => {
-    setCustomDateRange(dates);
-    if (dates) {
-      setSelectedTimeRange('custom');
-    }
+  // 统一日期范围变化
+  const handleUnifiedRangeChange = (dates: any) => {
+    setDateRange(dates);
   };
 
   // 处理班级选择变化
@@ -475,7 +426,7 @@ const StudentTrendPage: React.FC = () => {
           {/* 页面头部 */}
           <div>
             <Space style={{ marginBottom: 16 }}>
-              <Button 
+              <AppButton 
                 icon={<ArrowLeftOutlined />} 
                 onClick={handleBack}
                 size={isMobile ? 'middle' : 'large'}
@@ -496,8 +447,8 @@ const StudentTrendPage: React.FC = () => {
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           >
             <Space>
-              <Button onClick={() => loadReportData()}>重试</Button>
-              <Button icon={<ArrowLeftOutlined />} onClick={handleBack} />
+              <AppButton onClick={() => loadReportData()}>重试</AppButton>
+              <AppButton icon={<ArrowLeftOutlined />} onClick={handleBack} />
             </Space>
           </Empty>
         </Space>
@@ -597,7 +548,7 @@ const StudentTrendPage: React.FC = () => {
 
     return (
       <div>
-        <div style={{ marginBottom: '16px', fontSize: '12px', color: '#8c8c8c' }}>
+        <div style={{ marginBottom: '16px', fontSize: '12px', color: 'var(--ant-color-text-secondary)' }}>
           基于归一化成绩的科目综合表现分析（100分制）
         </div>
         <ResponsiveContainer width="100%" height={300}>
@@ -615,16 +566,16 @@ const StudentTrendPage: React.FC = () => {
             <Radar
               name="个人成绩"
               dataKey="student"
-              stroke="#1890ff"
-              fill="#1890ff"
+              stroke="var(--ant-color-primary)"
+              fill="var(--ant-color-primary)"
               fillOpacity={0.3}
               strokeWidth={2}
             />
             <Radar
               name="班级平均"
               dataKey="average"
-              stroke="#faad14"
-              fill="#faad14"
+              stroke="var(--ant-color-warning)"
+              fill="var(--ant-color-warning)"
               fillOpacity={0.1}
               strokeWidth={2}
               strokeDasharray="5 5"
@@ -632,8 +583,8 @@ const StudentTrendPage: React.FC = () => {
             <Radar
               name="优秀线"
               dataKey="excellent"
-              stroke="#52c41a"
-              fill="#52c41a"
+              stroke="var(--ant-color-success)"
+              fill="var(--ant-color-success)"
               fillOpacity={0.05}
               strokeWidth={2}
               strokeDasharray="3 3"
@@ -642,8 +593,8 @@ const StudentTrendPage: React.FC = () => {
             <RechartsTooltip 
               contentStyle={{
                 backgroundColor: themeStyles.cardBackground,
-                border: '1px solid #d9d9d9',
-                borderRadius: '4px'
+                border: `1px solid ${themeStyles.primaryColor}`,
+                borderRadius: 'var(--radius-sm)'
               }}
               formatter={(value: any, name: string) => [
                 `${Number(value).toFixed(1)}分`, 
@@ -658,14 +609,15 @@ const StudentTrendPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: isMobile ? '16px' : '24px' }} id="student-growth-report">
+    <div data-page-container id="student-growth-report">
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {/* 页面头部 */}
-        <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card style={{ ...preset.style }} styles={preset.styles}>
         <Row align="middle" justify="space-between">
           <Col>
             <Space size="large">
-              <Button 
+              <AppButton 
                 icon={<ArrowLeftOutlined />} 
                 onClick={handleBack}
                 size={isMobile ? 'middle' : 'large'}
@@ -682,57 +634,40 @@ const StudentTrendPage: React.FC = () => {
           </Col>
             <Col>
               <Space>
-                <Button 
+                <AppButton 
                   icon={<DownloadOutlined />}
                   onClick={generatePDFReport}
                   type="primary"
                   size={isMobile ? 'middle' : 'large'}
                 >
                   {!isMobile && '导出PDF'}
-                </Button>
-                <Button 
+                </AppButton>
+                <AppButton 
                   icon={<ReloadOutlined />}
                   onClick={() => loadReportData()}
                   size={isMobile ? 'middle' : 'large'}
                 >
                   {!isMobile && '刷新'}
-                </Button>
+                </AppButton>
               </Space>
             </Col>
           </Row>
-        </Card>
+        </Card> ); })()}
 
         {/* 筛选控制区域 */}
-        <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+        <Card style={{ ...preset.style }} styles={preset.styles}>
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} md={8}>
               <Space>
                 <Text strong>时间范围:</Text>
-                <Select
-                  value={selectedTimeRange}
-                  onChange={handleTimeRangeChange}
-                  style={{ width: 120 }}
-                  size={isMobile ? 'middle' : 'small'}
-                >
-                  {timeRangeOptions.map(option => (
-                    <Option key={option.key} value={option.key}>
-                      {option.label}
-                    </Option>
-                  ))}
-                  <Option value="custom">自定义</Option>
-                </Select>
-              </Space>
-            </Col>
-            
-            {selectedTimeRange === 'custom' && (
-              <Col xs={24} sm={12} md={8}>
-                <RangePicker
-                  value={customDateRange}
-                  onChange={handleCustomDateChange}
+                <UnifiedRangePicker
+                  value={dateRange}
+                  onChange={handleUnifiedRangeChange}
                   size={isMobile ? 'middle' : 'small'}
                 />
-              </Col>
-            )}
+              </Space>
+            </Col>
 
             {studentClasses.length > 1 && (
               <Col xs={24} sm={12} md={8}>
@@ -756,21 +691,23 @@ const StudentTrendPage: React.FC = () => {
               </Col>
             )}
         </Row>
-      </Card>
+       </Card> ); })()}
 
         {/* 统计概览卡片 */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
-            <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+            <Card style={{ ...preset.style }} styles={preset.styles}>
             <Statistic
               title="总记录数"
                 value={examAnalysis?.totalRecords || 0}
-                prefix={<FileTextOutlined style={{ color: '#1890ff' }} />}
+                prefix={<FileTextOutlined style={{ color: 'var(--ant-color-primary)' }} />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+            <Card style={{ ...preset.style }} styles={preset.styles}>
             <Statistic
               title="平均分"
                 value={(() => {
@@ -779,12 +716,13 @@ const StudentTrendPage: React.FC = () => {
                   return (total / examAnalysis.subjectAnalysis.length).toFixed(1);
                 })() as any}
                 suffix="分"
-                prefix={<BarChartOutlined style={{ color: '#52c41a' }} />}
+                prefix={<BarChartOutlined style={{ color: 'var(--ant-color-success)' }} />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+            <Card style={{ ...preset.style }} styles={preset.styles}>
             <Statistic
               title="最高分"
                 value={(() => {
@@ -793,12 +731,13 @@ const StudentTrendPage: React.FC = () => {
                   return Math.max(...highs);
                 })()}
                 suffix="分"
-                prefix={<TrophyOutlined style={{ color: '#faad14' }} />}
+                prefix={<TrophyOutlined style={{ color: 'var(--ant-color-warning)' }} />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card style={{ backgroundColor: themeStyles.cardBackground }}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
+            <Card style={{ ...preset.style }} styles={preset.styles}>
             <Statistic
               title="进步科目"
                 value={(() => {
@@ -806,13 +745,14 @@ const StudentTrendPage: React.FC = () => {
                   return examAnalysis.subjectAnalysis.filter((s: any) => s.trend === 'improving').length;
                 })()}
                 suffix="个"
-                prefix={<RiseOutlined style={{ color: '#52c41a' }} />}
+                prefix={<RiseOutlined style={{ color: 'var(--ant-color-success)' }} />}
             />
-          </Card>
+          </Card> ); })()}
         </Col>
       </Row>
 
         {/* 考试成绩趋势图 */}
+        {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
         <Card 
           title={
             <Space>
@@ -820,17 +760,18 @@ const StudentTrendPage: React.FC = () => {
               <span>考试成绩趋势</span>
             </Space>
           }
-          style={{ backgroundColor: themeStyles.cardBackground }}
+          style={{ ...preset.style }} styles={preset.styles}
         >
           <ExamScoreTrendChart 
             publicId={publicId}
             dateRange={calculateDateRange()}
           />
-        </Card>
+        </Card> ); })()}
 
         {/* 科目能力雷达图和考试表现词云 - 左右布局 */}
         <Row gutter={[16, 16]}>
           <Col xs={24} lg={12}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
             <Card 
               title={
                 <Space>
@@ -838,12 +779,13 @@ const StudentTrendPage: React.FC = () => {
                   <span>科目能力雷达图</span>
                 </Space>
               }
-              style={{ backgroundColor: themeStyles.cardBackground }}
+              style={{ ...preset.style }} styles={preset.styles}
             >
               {renderSubjectRadar()}
-            </Card>
+            </Card> ); })()}
           </Col>
           <Col xs={24} lg={12}>
+            {(() => { const preset = UnifiedCardPresets.desktopDefault(isMobile); return (
             <Card
               title={
                 <Space>
@@ -851,10 +793,10 @@ const StudentTrendPage: React.FC = () => {
                   <span>考试表现词云</span>
                 </Space>
               }
-              style={{ backgroundColor: themeStyles.cardBackground }}
+              style={{ ...preset.style }} styles={preset.styles}
             >
               {renderExamWordCloud()}
-            </Card>
+            </Card> ); })()}
           </Col>
         </Row>
 

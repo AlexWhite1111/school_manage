@@ -2,11 +2,6 @@ import apiClient from '@/lib/apiClient';
 
 // Dashboard 摘要数据类型定义 (扩展版本)
 export interface DashboardSummaryResponse {
-  financial: {
-    monthlyReceived: number;      // 本月实收
-    monthlyDue: number;           // 本月应收  
-    totalOutstanding: number;     // 当前待收总额
-  };
   followUps: {
     id: number;
     name: string;
@@ -58,8 +53,9 @@ export interface DashboardSummaryResponse {
  * API: GET /dashboard/summary
  * 
  * 根据 DashboardWorkflow.md:
- * - 财务速览：本月实收、本月应收、当前待收总额
  * - 待办提醒：所有"下次跟进日期"为今天的客户
+ * - 客户统计：总客户数、本月新增、转化率、状态分布
+ * - 考勤和考试统计
  */
 export const getDashboardSummary = async (): Promise<DashboardSummaryResponse> => {
   try {

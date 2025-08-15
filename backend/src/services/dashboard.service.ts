@@ -8,11 +8,6 @@ import { Decimal } from '@prisma/client/runtime/library';
 // ================================
 
 interface DashboardSummary {
-  financial: {
-    monthlyReceived: number;
-    monthlyDue: number;
-    totalOutstanding: number;
-  };
   followUps: any[];
   overview: {
     totalStudents: number;
@@ -75,7 +70,6 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
 
     // 并行获取所有数据
     const [
-      financialOverview,
       followUpReminders,
       overviewStats,
       customerStats,
@@ -83,7 +77,6 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
       examStats,
       quickStats
     ] = await Promise.all([
-      getFinancialOverview(currentMonth, nextMonth),
       getFollowUpReminders(today, tomorrow),
       getOverviewStats(),
       getCustomerStats(currentMonth, nextMonth),
@@ -93,11 +86,6 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
     ]);
 
     const summary: DashboardSummary = {
-      financial: {
-        monthlyReceived: parseFloat(financialOverview.monthlyReceived),
-        monthlyDue: parseFloat(financialOverview.monthlyDue),
-        totalOutstanding: parseFloat(financialOverview.totalOutstanding)
-      },
       followUps: followUpReminders,
       overview: overviewStats,
       customerStats,
@@ -115,47 +103,7 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
   }
 };
 
-/**
- * @description 获取财务速览数据
- */
-const getFinancialOverview = async (currentMonth: Date, nextMonth: Date) => {
-  // 本月实收
-  const monthlyReceived = await prisma.payment.aggregate({
-    where: {
-      paymentDate: { gte: currentMonth, lt: nextMonth }
-    },
-    _sum: { amount: true }
-  });
 
-  // 本月应收
-  const monthlyDue = await prisma.financialOrder.aggregate({
-    where: {
-      dueDate: { gte: currentMonth, lt: nextMonth }
-    },
-    _sum: { totalDue: true }
-  });
-
-  // 当前待收总额计算
-  const allOrders = await prisma.financialOrder.findMany({
-    include: { payments: true }
-  });
-
-  let totalOutstanding = new Decimal(0);
-  allOrders.forEach(order => {
-    const totalPaid = order.payments.reduce((sum, payment) => 
-      sum.plus(payment.amount), new Decimal(0));
-    const remaining = order.totalDue.minus(totalPaid);
-    if (remaining.greaterThan(0)) {
-      totalOutstanding = totalOutstanding.plus(remaining);
-    }
-  });
-
-  return {
-    monthlyReceived: monthlyReceived._sum.amount?.toString() || "0",
-    monthlyDue: monthlyDue._sum.totalDue?.toString() || "0", 
-    totalOutstanding: totalOutstanding.toString()
-  };
-};
 
 /**
  * @description 获取今日待办提醒
@@ -276,11 +224,22 @@ const getCustomerStats = async (currentMonth: Date, nextMonth: Date) => {
     'LOST': '流失客户'
   };
 
-  const statusDistribution = statusGroups.map(group => ({
+  let statusDistribution = statusGroups.map(group => ({
     status: statusMap[group.status] || group.status,
     count: group._count.id,
     percentage: totalCustomers > 0 ? Math.round((group._count.id / totalCustomers) * 100) : 0
   }));
+
+  // 统一展示顺序：潜在用户置顶
+  const statusOrder: Record<string, number> = {
+    '潜在用户': 0,
+    '初步沟通': 1,
+    '意向用户': 2,
+    '试课': 3,
+    '已报名': 4,
+    '流失客户': 5
+  };
+  statusDistribution = statusDistribution.sort((a, b) => (statusOrder[a.status as keyof typeof statusOrder] ?? 99) - (statusOrder[b.status as keyof typeof statusOrder] ?? 99));
 
   // 转化率计算（已报名/总客户）
   const enrolledCount = statusGroups.find(g => g.status === 'ENROLLED')?._count.id || 0;

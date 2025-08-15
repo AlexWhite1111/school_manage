@@ -10,7 +10,7 @@
 }
 
 .selected {
-  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 4px 16px var(--ant-color-primary-bg);
 }
 
 .completed {
@@ -21,6 +21,16 @@
   border-radius: 6px;
   font-weight: 500;
   transition: all 0.2s ease;
+}
+
+/* 更紧凑的多选框样式（作用于包裹容器上） */
+.compactCheckbox :global(.ant-checkbox-inner) {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+.compactCheckbox :global(.ant-checkbox) {
+  transform: scale(0.95);
 }
 
 .attendanceButton:hover {
@@ -37,6 +47,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative; /* 供角落控件定位 */
 }
 
 @media (max-width: 768px) {
@@ -48,6 +59,24 @@
     font-size: 11px;
     height: 28px;
   }
+}
+
+/* 右上角小型复选框（不占据主信息行） */
+.cornerCheckbox {
+  position: absolute;
+  top: var(--space-0);
+  right: var(--space-0);
+  z-index: 2;
+}
+
+.cornerCheckbox :global(.ant-checkbox) {
+  transform: scale(0.9);
+}
+
+.cornerCheckbox :global(.ant-checkbox-inner) {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
 }
 
 /* 优化移动端响应式 */

@@ -1,24 +1,6 @@
+import AppButton from '@/components/AppButton';
 import React, { useState, useEffect } from 'react';
-import {
-  Space,
-  Form,
-  InputNumber,
-  Button,
-  message,
-  Row,
-  Col,
-  Statistic,
-  Progress,
-  List,
-  Tag,
-  Typography,
-  Tooltip,
-  Alert,
-  Card,
-  Select,
-  Switch,
-  Divider
-} from 'antd';
+import { Space, Form, InputNumber, message, Row, Col, Statistic, Progress, List, Tag, Typography, Tooltip, Select, Switch, Divider, Card, Dropdown } from 'antd';
 import {
   SettingOutlined,
   SaveOutlined,
@@ -33,10 +15,12 @@ import {
   TrophyOutlined
 } from '@ant-design/icons';
 
-import ProjectCard from '@/components/ui/ProjectCard';
+
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
+import { featureFlags } from '@/config/kalmanPanelConfig';
 import { GrowthApi } from '@/api/growthApi';
 import type { KalmanConfig, GrowthTag } from '@/api/growthApi';
+import { kalmanLayout, kalmanButtons, tagPanelConfig } from '@/config/kalmanPanelConfig';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -120,61 +104,41 @@ const KalmanConfigSection: React.FC = () => {
 
   if (loading) {
     return (
-      <ProjectCard title="卡尔曼滤波器参数配置">
+      <Card title="卡尔曼滤波器参数配置">
         <SkeletonLoader variant="card" />
-      </ProjectCard>
+      </Card>
     );
   }
 
   return (
-    <ProjectCard 
+      <Card 
       title={
         <Space>
           <ExperimentOutlined />
           <Title level={4} style={{ margin: 0 }}>卡尔曼滤波器参数配置</Title>
         </Space>
       }
-      extra={
-        <Space>
-          <Button onClick={handleReset}>
-            重置默认
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<SaveOutlined />}
-            onClick={handleSave}
-            loading={saving}
-          >
-            保存配置
-          </Button>
-        </Space>
-      }
     >
-      <Alert
-        message="参数调整说明"
-        description="这些参数会影响卡尔曼滤波器的计算精度和响应速度，建议在专业指导下调整。"
-        type="info"
-        showIcon
-        style={{ marginBottom: '24px' }}
-      />
-
+      {/* 题头下方操作栏（第二行） */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: kalmanLayout.toolbarGap }}>
+        <AppButton size={kalmanButtons.headerSize as any} hierarchy={kalmanButtons.resetHierarchy as any} onClick={handleReset}>
+          重置默认
+        </AppButton>
+        <AppButton size={kalmanButtons.headerSize as any} hierarchy={kalmanButtons.saveHierarchy as any} icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
+          保存配置
+        </AppButton>
+      </div>
       <Form
         form={form}
         layout="vertical"
         initialValues={config || {}}
       >
         <Row gutter={24}>
-          <Col xs={24} md={12}>
+          <Col xs={12} md={12}>
             <Form.Item
               name="processNoise"
-              label={
-                <Space>
-                  过程噪声 (Q)
-                  <Tooltip title="控制对模型预测的信任度，值越小越相信模型预测">
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Space>
-              }
+              label="过程噪声 (Q)"
+              tooltip="控制对模型预测的信任度，值越小越相信模型预测"
               rules={[
                 { required: true, message: '请输入过程噪声值' },
                 { type: 'number', min: 0.001, max: 1.0, message: '值必须在0.001-1.0之间' }
@@ -190,17 +154,11 @@ const KalmanConfigSection: React.FC = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          <Col xs={12} md={12}>
             <Form.Item
               name="initialUncertainty"
-              label={
-                <Space>
-                  初始不确定性 (P)
-                  <Tooltip title="新状态的初始协方差，表示初始状态的不确定程度">
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Space>
-              }
+              label="初始不确定性 (P)"
+              tooltip="新状态的初始协方差，表示初始状态的不确定程度"
               rules={[
                 { required: true, message: '请输入初始不确定性值' },
                 { type: 'number', min: 1.0, max: 100.0, message: '值必须在1.0-100.0之间' }
@@ -216,17 +174,11 @@ const KalmanConfigSection: React.FC = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          <Col xs={12} md={12}>
             <Form.Item
               name="timeDecayFactor"
-              label={
-                <Space>
-                  时间衰减因子 (λ)
-                  <Tooltip title="历史数据影响力的衰减速度，值越大历史数据影响越小">
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Space>
-              }
+              label="时间衰减因子 (λ)"
+              tooltip="历史数据影响力的衰减速度，值越大历史数据影响越小"
               rules={[
                 { required: true, message: '请输入时间衰减因子' },
                 { type: 'number', min: 0.001, max: 0.1, message: '值必须在0.001-0.1之间' }
@@ -242,17 +194,11 @@ const KalmanConfigSection: React.FC = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          <Col xs={12} md={12}>
             <Form.Item
               name="minObservations"
-              label={
-                <Space>
-                  最少观测次数
-                  <Tooltip title="低于此值时置信度较低，建议增加观测">
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Space>
-              }
+              label="最少观测次数"
+              tooltip="低于此值时置信度较低，建议增加观测"
               rules={[
                 { required: true, message: '请输入最少观测次数' },
                 { type: 'number', min: 1, max: 10, message: '值必须在1-10之间' }
@@ -268,17 +214,12 @@ const KalmanConfigSection: React.FC = () => {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12}>
+          {/* 第三行单列：最大天数间隔 */}
+          <Col xs={24} md={24}>
             <Form.Item
               name="maxDaysBetween"
-              label={
-                <Space>
-                  最大天数间隔
-                  <Tooltip title="超过此天数认为状态可能已过时">
-                    <InfoCircleOutlined />
-                  </Tooltip>
-                </Space>
-              }
+              label="最大天数间隔"
+              tooltip="超过此天数认为状态可能已过时"
               rules={[
                 { required: true, message: '请输入最大天数间隔' },
                 { type: 'number', min: 7, max: 90, message: '值必须在7-90之间' }
@@ -299,8 +240,9 @@ const KalmanConfigSection: React.FC = () => {
         <Divider>预设方案</Divider>
         <Row gutter={16}>
           <Col span={8}>
-            <Button 
+            <AppButton 
               block 
+              size="sm"
               onClick={() => form.setFieldsValue({
                 processNoise: 0.05,
                 initialUncertainty: 15.0,
@@ -309,13 +251,14 @@ const KalmanConfigSection: React.FC = () => {
                 maxDaysBetween: 45
               })}
             >
-              保守型 (高稳定性)
-            </Button>
+              保守型
+            </AppButton>
           </Col>
           <Col span={8}>
-            <Button 
+            <AppButton 
               block 
-              type="primary"
+              size="sm"
+              hierarchy="primary"
               onClick={() => form.setFieldsValue({
                 processNoise: 0.1,
                 initialUncertainty: 10.0,
@@ -324,12 +267,13 @@ const KalmanConfigSection: React.FC = () => {
                 maxDaysBetween: 30
               })}
             >
-              标准型 (推荐)
-            </Button>
+              标准型
+            </AppButton>
           </Col>
           <Col span={8}>
-            <Button 
+            <AppButton 
               block 
+              size="sm"
               onClick={() => form.setFieldsValue({
                 processNoise: 0.2,
                 initialUncertainty: 5.0,
@@ -338,12 +282,12 @@ const KalmanConfigSection: React.FC = () => {
                 maxDaysBetween: 14
               })}
             >
-              敏感型 (快响应)
-            </Button>
+              敏感型
+            </AppButton>
           </Col>
         </Row>
       </Form>
-    </ProjectCard>
+    </Card>
   );
 };
 
@@ -373,9 +317,9 @@ const TagManagementSection: React.FC = () => {
 
   if (loading) {
     return (
-      <ProjectCard title="成长标签管理">
+      <Card title="成长标签管理">
         <SkeletonLoader variant="list" />
-      </ProjectCard>
+      </Card>
     );
   }
 
@@ -383,7 +327,7 @@ const TagManagementSection: React.FC = () => {
   const negativeTags = tags.filter(tag => tag.sentiment === 'NEGATIVE');
 
   return (
-    <ProjectCard 
+    <Card 
       title={
         <Space>
           <TagsOutlined />
@@ -391,36 +335,50 @@ const TagManagementSection: React.FC = () => {
         </Space>
       }
       extra={
-        <Button type="primary">
-          + 新建标签
-        </Button>
+        <AppButton size={tagPanelConfig.headerButtonSize as any} hierarchy={tagPanelConfig.headerButtonHierarchy as any}>
+          新建标签
+        </AppButton>
       }
     >
       <Row gutter={24}>
         <Col xs={24} md={12}>
-          <div style={{ marginBottom: '16px' }}>
-            <Text strong style={{ color: '#52c41a' }}>
-              📋 正面标签 ({positiveTags.length}个)
+          <div style={{ marginBottom: tagPanelConfig.groupTitleMargin }}>
+            <Text strong>
+              正面标签 ({positiveTags.length}个)
             </Text>
           </div>
           <List
-            size="small"
+            size={tagPanelConfig.listSize}
             dataSource={positiveTags}
             renderItem={(tag) => (
               <List.Item
                 actions={[
-                  <Button size="small" type="link">编辑</Button>,
-                  <Button size="small" type="link" danger>禁用</Button>
+                  <Dropdown
+                    menu={{
+                      items: [
+                        { key: 'edit', label: '编辑' },
+                        { key: 'disable', label: <span style={{ color: tagPanelConfig.negativeColor }}>禁用</span> },
+                      ],
+                    }}
+                    trigger={["click"]}
+                    placement="bottomRight"
+                  >
+                    <AppButton hierarchy="tertiary" size={tagPanelConfig.footerButtonSize as any}>⋯</AppButton>
+                  </Dropdown>
                 ]}
               >
                 <List.Item.Meta
-                  avatar={<Tag color="green">正面</Tag>}
-                  title={tag.text}
-                  description={
+                  title={
                     <Space>
-                      <Text type="secondary">权重: {tag.defaultWeight}</Text>
-                      <Text type="secondary">使用: {tag.usageCount}次</Text>
+                      <Text strong>{tag.text}</Text>
+                      <Tag color={tagPanelConfig.positiveColor}>正面</Tag>
                     </Space>
+                  }
+                  description={
+                    <Row gutter={tagPanelConfig.metricsGutter}>
+                      <Col span={12}><Text style={{ fontSize: tagPanelConfig.metricsFontSize }}>权重: {tag.defaultWeight}</Text></Col>
+                      <Col span={12}><Text style={{ fontSize: tagPanelConfig.metricsFontSize }}>使用: {tag.usageCount}次</Text></Col>
+                    </Row>
                   }
                 />
               </List.Item>
@@ -429,29 +387,43 @@ const TagManagementSection: React.FC = () => {
         </Col>
 
         <Col xs={24} md={12}>
-          <div style={{ marginBottom: '16px' }}>
-            <Text strong style={{ color: '#ff4d4f' }}>
-              📋 负面标签 ({negativeTags.length}个)
+          <div style={{ marginBottom: tagPanelConfig.groupTitleMargin }}>
+            <Text strong>
+              负面标签 ({negativeTags.length}个)
             </Text>
           </div>
           <List
-            size="small"
+            size={tagPanelConfig.listSize}
             dataSource={negativeTags}
             renderItem={(tag) => (
               <List.Item
                 actions={[
-                  <Button size="small" type="link">编辑</Button>,
-                  <Button size="small" type="link" danger>禁用</Button>
+                  <Dropdown
+                    menu={{
+                      items: [
+                        { key: 'edit', label: '编辑' },
+                        { key: 'disable', label: <span style={{ color: tagPanelConfig.negativeColor }}>禁用</span> },
+                      ],
+                    }}
+                    trigger={["click"]}
+                    placement="bottomRight"
+                  >
+                    <AppButton hierarchy="tertiary" size={tagPanelConfig.footerButtonSize as any}>⋯</AppButton>
+                  </Dropdown>
                 ]}
               >
                 <List.Item.Meta
-                  avatar={<Tag color="red">负面</Tag>}
-                  title={tag.text}
-                  description={
+                  title={
                     <Space>
-                      <Text type="secondary">权重: {tag.defaultWeight}</Text>
-                      <Text type="secondary">使用: {tag.usageCount}次</Text>
+                      <Text strong>{tag.text}</Text>
+                      <Tag color={tagPanelConfig.negativeColor}>负面</Tag>
                     </Space>
+                  }
+                  description={
+                    <Row gutter={tagPanelConfig.metricsGutter}>
+                      <Col span={12}><Text style={{ fontSize: tagPanelConfig.metricsFontSize }}>权重: {tag.defaultWeight}</Text></Col>
+                      <Col span={12}><Text style={{ fontSize: tagPanelConfig.metricsFontSize }}>使用: {tag.usageCount}次</Text></Col>
+                    </Row>
                   }
                 />
               </List.Item>
@@ -463,12 +435,12 @@ const TagManagementSection: React.FC = () => {
       <Divider />
       <div style={{ textAlign: 'center' }}>
         <Space>
-          <Button>批量导入</Button>
-          <Button>导出配置</Button>
-          <Button type="dashed">重置默认</Button>
+          <AppButton size={tagPanelConfig.footerButtonSize as any}>批量导入</AppButton>
+          <AppButton size={tagPanelConfig.footerButtonSize as any}>导出配置</AppButton>
+          <AppButton size={tagPanelConfig.footerButtonSize as any} hierarchy={tagPanelConfig.footerButtonHierarchy as any}>重置默认</AppButton>
         </Space>
       </div>
-    </ProjectCard>
+    </Card>
   );
 };
 
@@ -500,16 +472,16 @@ const SystemMonitorSection: React.FC = () => {
 
   if (loading || !healthData) {
     return (
-      <ProjectCard title="系统监控">
+      <Card title="系统监控">
         <SkeletonLoader variant="card" />
-      </ProjectCard>
+      </Card>
     );
   }
 
   const healthRate = (healthData.healthyStates / healthData.totalStates) * 100;
 
   return (
-    <ProjectCard 
+    <Card 
       title={
         <Space>
           <MonitorOutlined />
@@ -517,9 +489,9 @@ const SystemMonitorSection: React.FC = () => {
         </Space>
       }
       extra={
-        <Button icon={<ReloadOutlined />}>
+        <AppButton icon={<ReloadOutlined />}>
           刷新状态
-        </Button>
+        </AppButton>
       }
     >
       <Row gutter={24} style={{ marginBottom: '24px' }}>
@@ -531,8 +503,8 @@ const SystemMonitorSection: React.FC = () => {
             suffix="%"
             prefix={<CheckCircleOutlined />}
             valueStyle={{ 
-              color: healthRate >= 90 ? '#52c41a' : 
-                     healthRate >= 70 ? '#fa8c16' : '#ff4d4f' 
+              color: healthRate >= 90 ? 'var(--ant-color-success)' : 
+                     healthRate >= 70 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)' 
             }}
           />
         </Col>
@@ -541,7 +513,7 @@ const SystemMonitorSection: React.FC = () => {
             title="总状态数"
             value={healthData.totalStates}
             prefix={<ThunderboltOutlined />}
-            valueStyle={{ color: '#1677ff' }}
+            valueStyle={{ color: 'var(--ant-color-primary)' }}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
@@ -551,8 +523,8 @@ const SystemMonitorSection: React.FC = () => {
             suffix="%"
             prefix={<TrophyOutlined />}
             valueStyle={{ 
-              color: healthData.averageConfidence >= 0.7 ? '#52c41a' : 
-                     healthData.averageConfidence >= 0.5 ? '#fa8c16' : '#ff4d4f' 
+              color: healthData.averageConfidence >= 0.7 ? 'var(--ant-color-success)' : 
+                     healthData.averageConfidence >= 0.5 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)' 
             }}
           />
         </Col>
@@ -562,7 +534,7 @@ const SystemMonitorSection: React.FC = () => {
             value={healthData.staleStates}
             prefix={<ExclamationCircleOutlined />}
             valueStyle={{ 
-              color: healthData.staleStates === 0 ? '#52c41a' : '#fa8c16' 
+              color: healthData.staleStates === 0 ? 'var(--ant-color-success)' : 'var(--ant-color-warning)' 
             }}
           />
         </Col>
@@ -575,7 +547,7 @@ const SystemMonitorSection: React.FC = () => {
         <Progress 
           percent={healthRate} 
           status={healthRate >= 90 ? 'success' : healthRate >= 70 ? 'active' : 'exception'}
-          strokeColor={healthRate >= 90 ? '#52c41a' : healthRate >= 70 ? '#fa8c16' : '#ff4d4f'}
+          strokeColor={healthRate >= 90 ? 'var(--ant-color-success)' : healthRate >= 70 ? 'var(--ant-color-warning)' : 'var(--ant-color-error)'}
         />
       </div>
 
@@ -589,7 +561,7 @@ const SystemMonitorSection: React.FC = () => {
           renderItem={(item, index) => (
             <List.Item>
               <Space>
-                <InfoCircleOutlined style={{ color: '#1677ff' }} />
+                <InfoCircleOutlined style={{ color: 'var(--ant-color-primary)' }} />
                 <Text>{item}</Text>
               </Space>
             </List.Item>
@@ -599,13 +571,13 @@ const SystemMonitorSection: React.FC = () => {
 
       <div style={{ textAlign: 'center' }}>
         <Space>
-          <Button type="primary">系统健康检查</Button>
-          <Button>数据清理</Button>
-          <Button>重新计算</Button>
-          <Button>性能优化</Button>
+          <AppButton hierarchy="primary">系统健康检查</AppButton>
+          <AppButton>数据清理</AppButton>
+          <AppButton>重新计算</AppButton>
+          <AppButton>性能优化</AppButton>
         </Space>
       </div>
-    </ProjectCard>
+    </Card>
   );
 };
 
@@ -622,8 +594,8 @@ const GrowthConfigPanel: React.FC<GrowthConfigPanelProps> = () => {
       {/* 标签管理 */}
       <TagManagementSection />
 
-      {/* 系统监控 */}
-      <SystemMonitorSection />
+      {/* 系统监控（按开关显示） */}
+      {featureFlags.showSystemMonitor ? <SystemMonitorSection /> : null}
     </Space>
   );
 };

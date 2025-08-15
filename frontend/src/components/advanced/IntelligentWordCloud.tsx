@@ -1,5 +1,8 @@
+import AppButton from '@/components/AppButton';
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { Empty, theme, Tooltip, Button, Space } from 'antd';
+import { Empty, theme, Tooltip, Space } from 'antd';
+import { useThemeStore } from '@/stores/themeStore';
+import { getAppTokens } from '@/theme/tokens';
 import { DownloadOutlined } from '@ant-design/icons';
 import html2canvas from 'html2canvas';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
@@ -56,6 +59,7 @@ const IntelligentWordCloud: React.FC<IntelligentWordCloudProps> = ({
   exportName = 'wordcloud',
 }) => {
   const { token } = theme.useToken();
+  const { theme: mode } = useThemeStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -135,14 +139,14 @@ const IntelligentWordCloud: React.FC<IntelligentWordCloudProps> = ({
       if (colorScheme === 'semantic') {
         if (item.type === 'negative') {
           // 负面词条使用更明显的红色系
-          return '#ff4d4f'; // 更鲜明的红色
+          return 'var(--ant-color-error)'; // 更鲜明的红色
         }
         if (item.type === 'positive') {
           // 正面词条使用更明显的绿色系
-          return '#52c41a'; // 更鲜明的绿色
+          return 'var(--ant-color-success)'; // 更鲜明的绿色
         }
         // 中性词条使用蓝色系
-        return '#1890ff';
+        return 'var(--ant-color-primary)';
       }
       
       if (colorScheme === 'gradient') {
@@ -150,11 +154,8 @@ const IntelligentWordCloud: React.FC<IntelligentWordCloudProps> = ({
         return `hsl(${hue}, 70%, 50%)`;
       }
       
-      // default colorScheme - 使用更丰富的颜色
-      const colors = [
-        '#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1',
-        '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#2f54eb'
-      ];
+      // default colorScheme - 使用统一的调色盘
+      const colors = getAppTokens(mode).colors.wordCloudPalette;
       return colors[index % colors.length];
     };
 
@@ -463,9 +464,9 @@ const IntelligentWordCloud: React.FC<IntelligentWordCloudProps> = ({
       {/* 导出按钮 */}
       {allowExport && (
         <Space style={{ position: 'absolute', top: 8, right: 8 }}>
-          <Button size="small" icon={<DownloadOutlined />} onClick={handleExport}>
+          <AppButton size="sm" icon={<DownloadOutlined />} onClick={handleExport}>
             导出 PNG
-          </Button>
+          </AppButton>
         </Space>
       )}
     </div>
