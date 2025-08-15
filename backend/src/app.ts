@@ -13,8 +13,7 @@ dotenv.config();
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware（放在 CORS 之前可能导致预检异常，保持在其后）
 
 // 网络检测和信息收集
 app.use(networkInfoMiddleware);
@@ -24,6 +23,9 @@ app.use(detectNetworkType);
 app.use(dynamicCors);
 // 预检请求放行
 app.options('*', dynamicCors);
+
+// 再启用 Helmet（在 CORS 之后）
+app.use(helmet());
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

@@ -82,7 +82,14 @@ const productionCorsOptions: cors.CorsOptions = {
     if (origin === 'null') {
       return callback(null, true);
     }
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').filter(Boolean) || [];
+    // 如果未显式配置白名单，则放开所有来源，便于“裸IP+无Nginx”场景快速运行
+    const envList = (process.env.ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const allowedOrigins = envList.length > 0
+      ? [...envList, 'http://localhost', 'https://localhost']
+      : ['*'];
 
     // 同源或缺失 Origin（如 Postman/Electron 某些场景）放行
     if (!origin) {
@@ -90,10 +97,7 @@ const productionCorsOptions: cors.CorsOptions = {
     }
 
     // 未配置白名单时，临时放行所有来源，避免生产事故（建议尽快在 deploy.env 中设置 ALLOWED_ORIGINS）
-    if (allowedOrigins.length === 0) {
-      console.warn('警告: 未配置 ALLOWED_ORIGINS，已临时放开所有来源');
-      return callback(null, true);
-    }
+    if (allowedOrigins.includes('*')) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -103,7 +107,7 @@ const productionCorsOptions: cors.CorsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
     'Origin',
     'X-Requested-With',

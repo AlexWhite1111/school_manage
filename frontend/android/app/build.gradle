@@ -7,8 +7,8 @@ android {
         applicationId "com.alex.naturaleducation"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,11 +16,32 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            def releaseKeystore = file("$rootProject.rootDir/keystore/release.jks")
+            if (releaseKeystore.exists()) {
+                storeFile releaseKeystore
+                storePassword "229791"
+                keyAlias "nature_classroom"
+                keyPassword "229791"
+            }
+        }
+    }
     buildTypes {
+        debug {
+            debuggable true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (file("$rootProject.rootDir/keystore/release.jks").exists()) {
+                signingConfig signingConfigs.release
+            }
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
